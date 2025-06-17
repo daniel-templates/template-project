@@ -3,6 +3,7 @@
 #
 # Minimal makefile which can be extended and specialized on a per-project basis
 # by adding additional makefiles to the MAKE_DIR
+#
 #===============================================================================
 
 # Import paths

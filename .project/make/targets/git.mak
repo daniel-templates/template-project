@@ -4,32 +4,77 @@
 # Quick access to common Git operations.
 #
 # Usage:
-#   From project root directory, run "make git"
+#   From project root directory, run "make git".
 #
-# Adding Prerequisites:
-#   Define prereq targets at the end of this file.
-#   For each prereq, redefine the parent target to add the prereq targets:
+# Defining New Targets:
+#  1. Copy the TARGET definition template to the appropriate section of this file.
+#  2. Uncomment (remove leading whitespace) and edit as necessary.
 #
-#     parent: prereq | prereq_orderonly
+# Appending Prerequisites:
+#   Target definitions take the form:
 #
-#   The top-level target runs if any of its "normal" prereqs are newer.
-#   The top-level target ignores the timestamps of its "orderonly" prereqs;
-#     they run if they need to, but won't force the top-level to update as well.
+#     target: prereq | prereq_orderonly
+#
+#   The target runs if any of its "normal" prereqs are newer.
+#   The target ignores the timestamps of its "orderonly" prereqs;
+#     they run if they need to, but won't force the target to update as well.
 #   Targets should be .PHONY if they do not produce an actual file on the system.
+#
 #===============================================================================
 
-# Config
+
+#-----------------------------------------------------------
+# TARGET
+#-----------------------------------------------------------
+#
+# Append To Prerequisites Of
+#
+#   OTHER: TARGET            (if TARGET is file and timestamp should be checked)
+#   OTHER: | TARGET          (if TARGET is phony or timestamp should be ignored)
+#
+# Global Variables       Defined for all targets
+#
+#   VAR ?= value
+#
+# Local Variables        Defined only during this TARGET and its prereqs
+#
+#   TARGET: VAR ?= value
+#
+# Help Text              Info printed with "make help" or "make help.TARGET"
+#
+#   $(eval $(call set_helptext,TARGET,ShortDesc,LongDesc,VarList))
+#
+# Definition
+#
+#   .PHONY: TARGET           (if TARGET is not an actual file on the system)
+#   TARGET: PREREQS (file prereqs) | PREREQS_ORDERONLY (phony or ignore timestamps)
+#   	COMMANDS TO MAKE TARGET
+#
+
+
+
+#===============================================================================
+# UPSTREAM: daniel-templates/template-project
+#===============================================================================
+
+
+#-----------------------------------------------------------
+# git
+#-----------------------------------------------------------
+
+# Help Text
 $(eval $(call set_helptext,git,\
-  Quick access to common Git operations.,\
-  This is a standard top-level target.$(LF)\
-  Projects can change the behavior of this target through$(LF)\
-  two methods:$(LF)\
+  Common Git operations.,\
+  Available sub-tasks are listed in "Related Targets" below.$(LF)\
+  $(LF)\
+  Projects can extend the behavior of this (or related) targets$(LF)\
+  through two methods:$(LF)\
   $(LF)\
   1: define new targets and append them as prereqs$(LF)\
   _    (see git.mak for details)$(LF)\
-  2: leverage existing prereqs by overwriting their variables$(LF)\
+  2: leverage existing targets by overriding their variables$(LF)\
   _    (see Related Targets below)$(LF)\
-  $(LF),\
+  ,\
 $(EMPTY)\
 ))
 
@@ -38,24 +83,21 @@ $(EMPTY)\
 git: | help.git
 
 
-#-------------------------------------------------------------------------------
-# UPSTREAM: daniel-templates/template-project
-#-------------------------------------------------------------------------------
 
-#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-# TARGET: git.gitconfig
-#   Sets Git:include.path to project .gitconfig
-#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+#-----------------------------------------------------------
+# git.gitconfig
+#-----------------------------------------------------------
 
-# Config
-GIT_CONFIG_FILE ?= .project/git/.gitconfig
-GIT_HOOKS_DIR ?= .project/git/hooks
+# Local Variables
+git.gitconfig: GIT_CONFIG_FILE ?= .project/git/.gitconfig
+git.gitconfig: GIT_HOOKS_DIR ?= .project/git/hooks
 
+# Help Text
 $(eval $(call set_helptext,git.gitconfig,\
 $(EMPTY),\
   Sets Git property "include.path" to ../GIT_CONFIG_FILE.$(LF)\
   Also sets executable bit on files in GIT_HOOKS_DIR.$(LF)\
-  $(LF),\
+  ,\
   GIT_CONFIG_FILE\
   GIT_HOOKS_DIR\
 ))
@@ -69,12 +111,15 @@ git.gitconfig:
 
 
 
-#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-# TARGET: git.gitignore
-#   Untrack files identified in the repo's .gitignore.
-#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+#-----------------------------------------------------------
+# git.gitignore
+#-----------------------------------------------------------
 
-# Config
+# Local Variables
+git.gitignore: GIT_COMMIT_MESSAGE ?= Updated file tracking according to .gitignore
+git.gitignore: m ?= $(GIT_COMMIT_MESSAGE)
+
+# Help Text
 $(eval $(call set_helptext,git.gitignore,\
 $(EMPTY),\
   Untrack files identified in the repo's .gitignore.$(LF)\
@@ -90,27 +135,30 @@ $(EMPTY),\
     git rm -rf --cached --quiet .$(LF)\
     git add --all$(LF)\
     git commit -m "GIT_COMMIT_MESSAGE"$(LF)\
-  $(LF),\
+  ,\
   GIT_COMMIT_MESSAGE\
+  m\
 ))
 
 # Definition
 .PHONY: git.gitignore
 git.gitignore: | git.require.no-uncommitted-changes
 	$(PRINT_TRACE)
-	$(eval GIT_COMMIT_MESSAGE ?= Updated file tracking according to .gitignore)
 	git rm -rf --cached --quiet .
 	git add --all
-	-git commit -m "$(GIT_COMMIT_MESSAGE)"
+	-git commit -m "$(m)"
 
 
 
-#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-# TARGET: git.gitattributes
-#   Reencode files according to the repo's .gitattributes.
-#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+#-----------------------------------------------------------
+# git.gitattributes
+#-----------------------------------------------------------
 
-# Config
+# Local Variables
+git.gitattributes: GIT_COMMIT_MESSAGE ?= Reencoded files according to .gitattributes
+git.gitattributes: m ?= $(GIT_COMMIT_MESSAGE)
+
+# Help Text
 $(eval $(call set_helptext,git.gitattributes,\
 $(EMPTY),\
   Reencode files according to the repo's .gitattributes.$(LF)\
@@ -125,35 +173,35 @@ $(EMPTY),\
   $(LF)\
   This process is equivalent to running:$(LF)\
   $(LF)\
-    git add --renormalize .$(LF),\
+  _ git add --renormalize .$(LF),\
     git commit -m "GIT_COMMIT_MESSAGE"$(LF)\
     git rm -rf --cached --quiet .$(LF)\
     git reset --hard$(LF)\
   $(LF)\
   Be sure these changes are also reflected in .vscode/settings.all.json$(LF)\
-  $(LF),\
+  $(LF)\
+  WARNING: This process is not perfect! Some files may not be reencoded.$(LF)\
+  ,\
   GIT_COMMIT_MESSAGE\
+  m\
 ))
 
 # Definition
 .PHONY: git.gitattributes
 git.gitattributes: | git.require.no-uncommitted-changes
 	$(PRINT_TRACE)
-	$(eval GIT_COMMIT_MESSAGE ?= Reencoded files according to .gitattributes)
 	git add --renormalize .
-	-git commit -m "$(GIT_COMMIT_MESSAGE)"
+	-git commit -m "$(m)"
 	git rm -rf --cached --quiet .
 	git reset --hard
 
 
 
+#-----------------------------------------------------------
+# git.require.no-uncommitted-changes
+#-----------------------------------------------------------
 
-#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-# TARGET: git.require.no-uncommitted-changes
-#   Terminates make if repository contains unstaged or staged but uncommitted changes.
-#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-# Config
+# Help Text
 $(eval $(call set_helptext,git.require.no-uncommitted-changes,\
 $(EMPTY),\
   Terminates make with an error message if repository contains$(LF)\
@@ -162,7 +210,7 @@ $(EMPTY),\
   This process is equivalent to running:$(LF)\
   $(LF)\
     git add . && git diff --quiet && git diff --cached --quiet$(LF)\
-  $(LF),\
+  ,\
 $(EMPTY),\
 ))
 
@@ -174,8 +222,8 @@ git.require.no-uncommitted-changes:
 
 
 
-#-------------------------------------------------------------------------------
-# CURRENT PROJECT
-#-------------------------------------------------------------------------------
+#===============================================================================
+# UPSTREAM: CURRENT PROJECT
+#===============================================================================
 
 

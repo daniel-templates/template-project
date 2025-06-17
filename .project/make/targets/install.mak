@@ -1,10 +1,10 @@
 #===============================================================================
-# init.mak
+# install.mak
 #
-# Initializes this project's development environment.
+# Install build artifacts to the local system.
 #
 # Usage:
-#   From project root directory, run "make init".
+#   From project root directory, run "make install".
 #
 # Defining New Targets:
 #  1. Copy the TARGET definition template to the appropriate section of this file.
@@ -52,7 +52,6 @@
 #
 
 
-
 #===============================================================================
 # UPSTREAM: daniel-templates/template-project
 #===============================================================================
@@ -60,62 +59,28 @@
 
 
 #-----------------------------------------------------------
-# init
+# install
 #-----------------------------------------------------------
 
 # Help Text
-$(eval $(call set_helptext,init,\
-  Initializes the project's development environment.,\
-  Available sub-tasks are listed in "Related Targets" below.$(LF)\
-  $(LF)\
-  Projects can extend the behavior of this (or related) targets$(LF)\
-  through two methods:$(LF)\
+$(eval $(call set_helptext,install, \
+  Install build artifacts to the local system,\
+  This is a standard top-level target.$(LF)\
+  Projects can change the behavior of this target through$(LF)\
+  two methods:$(LF)\
   $(LF)\
   1: define new targets and append them as prereqs$(LF)\
-  _    (see init.mak for details)$(LF)\
-  2: leverage existing targets by overriding their variables$(LF)\
+  _    (see all.mak for details)$(LF)\
+  2: leverage existing prereqs by overwriting their variables$(LF)\
   _    (see Related Targets below)$(LF)\
   ,\
 $(EMPTY)\
 ))
 
 # Definition
-.PHONY: init
-init: | help.init
-
-
-
-#-----------------------------------------------------------
-# init.create.dirs
-#-----------------------------------------------------------
-
-# Append to Prerequisites Of
-init: | init.create.dirs
-
-# Local Variables
-init.create.dirs: CREATE_DIRS ?=
-
-# Help Text
-$(eval $(call set_helptext,init.create.dirs,\
-$(EMPTY),\
-  Creates each directory listed in CREATE_DIRS.$(LF)\
-  ,\
-  CREATE_DIRS\
-))
-
-# Definition
-.PHONY: init.create.dirs
-init.create.dirs: | $(CREATE_DIRS)
-
-# Create a target for each path in CREATE_DIRS
-$(CREATE_DIRS): | init.create.dirs.pre
-	$(call mkdir,$@)
-
-# Pre-target, runs once before any number of $(CREATE_DIRS) targets
-.PHONY: init.create.dirs.pre
-init.create.dirs.pre:
-	$(info )
-	$(info ======= init.create.dirs  =======)
+.PHONY: install
+install:
+	$(PRINT_TRACE)
 
 
 

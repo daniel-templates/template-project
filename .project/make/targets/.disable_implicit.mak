@@ -1,14 +1,14 @@
 #===============================================================================
-# implicit_disable.mak
+# .disable_implicit.mak
 #
-# Disables Make's built-in (implicit) rules.
+# Conditionally disables Make's built-in (implicit) rules.
 #
-# https://stackoverflow.com/a/5356500/10001931
+# Source: https://stackoverflow.com/a/5356500/10001931
 #
 #===============================================================================
 
-# Config
-DISABLE_IMPLICIT ?= true
+# Global Variables
+DISABLE_IMPLICIT ?= false
 
 # Definition
 ifeq "$(DISABLE_IMPLICIT)" "true"
