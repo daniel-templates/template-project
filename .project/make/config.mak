@@ -15,6 +15,10 @@ SOURCE_DIR = src
 BUILD_DIR = build
 LOG_DIR = logs
 
+# Consumed by: functions.mak
+print.debug.enable = false
+print.trace.enable = true
+
 # Consumed by: makefile (project root)
 DEFAULT_TARGET ?= help
 

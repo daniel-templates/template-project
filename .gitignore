@@ -58,6 +58,8 @@
 .nfs*
 .fuse_hidden*
 *.stackdump
+*.vim
+*.viminfo
 
 # Other filetypes
 **/.svn/*

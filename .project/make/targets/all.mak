@@ -27,28 +27,47 @@
 # TARGET
 #-----------------------------------------------------------
 #
-# Append To Prerequisites Of
+# Global Variables
+#   Defined for all targets
 #
-#   OTHER: TARGET            (if TARGET is file and timestamp should be checked)
-#   OTHER: | TARGET          (if TARGET is phony or timestamp should be ignored)
+# TARGET.prereqs.normal ?=    (List of file prereq targets, space-separated)
+# TARGET.prereqs.orderonly ?= (List of phony prereqs, or prereq files whos timestamps should be ignored)
+# TARGET.prereqs = $(TARGET.prereqs.normal) $(TARGET.prereqs.orderonly)
 #
-# Global Variables       Defined for all targets
+# globalvar ?= value
 #
-#   VAR ?= value
+# Local Variables
+#   Defined only while making this TARGET and its prereqs
 #
-# Local Variables        Defined only during this TARGET and its prereqs
+# TARGET: localvar ?= value
 #
-#   TARGET: VAR ?= value
+# Help Text
+#   Info printed with "make help" or "make help.TARGET"
 #
-# Help Text              Info printed with "make help" or "make help.TARGET"
+# $(eval $(call target.set_helptext,TARGET,\
+#   Short Description,\
+#   Long Multiline$(LF)\
+#   description$(LF)\
+#   ,\
+#   $$@.prereqs.normal\
+#   $$@.prereqs.orderonly\
+#   OTHER CONSUMED VARIABLES\
+# ))
 #
-#   $(eval $(call set_helptext,TARGET,ShortDesc,LongDesc,VarList))
+# Pretarget
+#   Runs exactly once before any number of prereqs
 #
-# Definition
+# $(eval $(call target.add_pretarget,TARGET,$(TARGET.prereqs),\
+# 	$$(call print.trace,make $$(basename $$@))$$(LF)\
+# 	[COMMANDS]$$(LF)\
+# ))
 #
-#   .PHONY: TARGET           (if TARGET is not an actual file on the system)
-#   TARGET: PREREQS (file prereqs) | PREREQS_ORDERONLY (phony or ignore timestamps)
-#   	COMMANDS TO MAKE TARGET
+# Target Definition
+#
+# .PHONY: TARGET              (if TARGET is not an actual file on the system)
+# .ONESHELL: TARGET           (if TARGET should run all command lines in a single shell process)
+# TARGET: $(TARGET.prereqs.normal) | $(TARGET.prereqs.orderonly)
+# 	COMMANDS TO MAKE TARGET
 #
 
 
@@ -63,24 +82,39 @@
 # all
 #-----------------------------------------------------------
 
+# Global Variables
+all.prereqs.normal ?=
+all.prereqs.orderonly ?= help.all
+all.prereqs = $(all.prereqs.normal) $(all.prereqs.orderonly)
+
 # Help Text
-$(eval $(call set_helptext,all, \
+$(eval $(call target.set_helptext,all,\
   Build all artifacts,\
+  $(LF)\
   Projects can extend the behavior of this (or related) targets$(LF)\
   through two methods:$(LF)\
   $(LF)\
-  1: define new targets and append them as prereqs$(LF)\
-  _    (see all.mak for details)$(LF)\
-  2: leverage existing targets by overriding their variables$(LF)\
-  _    (see Related Targets below)$(LF)\
+  1: Define new targets and append them as prereqs;$(LF)\
+  $(INDENT) In config.mak$(COMMA) add the lines:$(LF)\
+  $(LF)\
+  $(INDENT)$(INDENT) $$@.prereqs.normal = TARGETS$(LF)\
+  $(INDENT)$(INDENT) $$@.prereqs.orderonly = TARGETS$(LF)\
+  $(LF)\
+  2: Leverage existing targets by overriding their variables.$(LF)\
+  $(INDENT) See Related Targets below.$(LF)\
   ,\
-$(EMPTY)\
+  $$@.prereqs.normal\
+  $$@.prereqs.orderonly\
 ))
 
-# Definition
+# Pretarget; runs exactly once before any number of prereqs
+$(eval $(call target.add_pretarget,all,$(all.prereqs),\
+	$$(call print.trace,make $$(basename $$@))$$(LF)\
+))
+
+# Target Definition
 .PHONY: all
-all:
-	$(PRINT_TRACE)
+all: $(all.prereqs.normal) | $(all.prereqs.orderonly)
 
 
 

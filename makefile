@@ -20,8 +20,10 @@ include $(MAKE_DIR)/platform.mak
 include $(MAKE_DIR)/config.mak
 
 # Set default target (override value in config.mak, not here)
-DEFAULT_TARGET ?= help
+ifdef DEFAULT_TARGET
 $(DEFAULT_TARGET):
+endif
 
 # Target definitions
 include $(sort $(wildcard $(MAKE_TARGETS_DIR)/*.mak))
+

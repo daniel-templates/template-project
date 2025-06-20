@@ -27,28 +27,47 @@
 # TARGET
 #-----------------------------------------------------------
 #
-# Append To Prerequisites Of
+# Global Variables
+#   Defined for all targets
 #
-#   OTHER: TARGET            (if TARGET is file and timestamp should be checked)
-#   OTHER: | TARGET          (if TARGET is phony or timestamp should be ignored)
+# TARGET.prereqs.normal ?=    (List of file prereq targets, space-separated)
+# TARGET.prereqs.orderonly ?= (List of phony prereqs, or prereq files whos timestamps should be ignored)
+# TARGET.prereqs = $(TARGET.prereqs.normal) $(TARGET.prereqs.orderonly)
 #
-# Global Variables       Defined for all targets
+# globalvar ?= value
 #
-#   VAR ?= value
+# Local Variables
+#   Defined only while making this TARGET and its prereqs
 #
-# Local Variables        Defined only during this TARGET and its prereqs
+# TARGET: localvar ?= value
 #
-#   TARGET: VAR ?= value
+# Help Text
+#   Info printed with "make help" or "make help.TARGET"
 #
-# Help Text              Info printed with "make help" or "make help.TARGET"
+# $(eval $(call target.set_helptext,TARGET,\
+#   Short Description,\
+#   Long Multiline$(LF)\
+#   description$(LF)\
+#   ,\
+#   $$@.prereqs.normal\
+#   $$@.prereqs.orderonly\
+#   OTHER CONSUMED VARIABLES\
+# ))
 #
-#   $(eval $(call set_helptext,TARGET,ShortDesc,LongDesc,VarList))
+# Pretarget
+#   Runs exactly once before any number of prereqs
 #
-# Definition
+# $(eval $(call target.add_pretarget,TARGET,$(TARGET.prereqs),\
+# 	$$(call print.trace,make $$(basename $$@))$$(LF)\
+# 	[COMMANDS]$$(LF)\
+# ))
 #
-#   .PHONY: TARGET           (if TARGET is not an actual file on the system)
-#   TARGET: PREREQS (file prereqs) | PREREQS_ORDERONLY (phony or ignore timestamps)
-#   	COMMANDS TO MAKE TARGET
+# Target Definition
+#
+# .PHONY: TARGET              (if TARGET is not an actual file on the system)
+# .ONESHELL: TARGET           (if TARGET should run all command lines in a single shell process)
+# TARGET: $(TARGET.prereqs.normal) | $(TARGET.prereqs.orderonly)
+# 	COMMANDS TO MAKE TARGET
 #
 
 
@@ -64,32 +83,29 @@
 #-----------------------------------------------------------
 
 # Global Variables
-HELP_INDENT := $(SPACE)$(SPACE)
 HELP_TARGET_COL_WIDTH := ........................
-HELP_VARN_COL_WIDTH := ........................
 
 # Help Text
-$(eval $(call set_helptext,help,\
+$(eval $(call target.set_helptext,help,\
   Prints the top-level Make targets available in this project,\
-  Targets can define help text using the "set_helptext" macro.$(LF)\
+  Targets can define help text using the "target.set_helptext" macro.$(LF)\
   See "functions.mak" for more information.$(LF)\
   ,\
-  HELP_INDENT\
   HELP_TARGET_COL_WIDTH\
-  HELP_VARN_COL_WIDTH\
+  help_targets\
 ))
 
-# Definition
+# Target Definition
 .PHONY: help
 help:
 	@$(call nop)
 	$(info )
 	$(info Usage:)
-	$(info $(HELP_INDENT)make [target] [variable=value])
+	$(info $(INDENT)make [target] [variable=value])
 	$(info )
 	$(info Targets:)
 	$(foreach tgt,$(sort $(help_targets)),$(if $($(tgt).shortdesc),\
-	  $(info $(HELP_INDENT)$(call rpad,$(patsubst help.%,%,$(tgt)),$(HELP_TARGET_COL_WIDTH)) $($(tgt).shortdesc))\
+	  $(info $(INDENT)$(call rpad,$(patsubst help.%,%,$(tgt)),$(HELP_TARGET_COL_WIDTH)) $($(tgt).shortdesc))\
 	))
 	$(info )
 
@@ -99,44 +115,57 @@ help:
 # help.[target]
 #-----------------------------------------------------------
 
+# Local Variables
+help.%: expand ?= false
+
 # Help Text
-$(eval $(call set_helptext,help.[target],\
+$(eval $(call target.set_helptext,help.[target],\
   Prints detailed info about a specific target,\
-  Targets can define help text using the "set_helptext" macro.$(LF)\
+  Targets can define help text using the "target.set_helptext" macro.$(LF)\
   See "functions.mak" for more information.$(LF)\
   ,\
-$(EMPTY)\
+  expand\
 ))
 
-# Definition
+# Target Definition
 .PHONY: help.%
 help.%:
 	@$(call nop)
 	$(if $(filter $@,$(help_targets)),\
 	  $(info )\
 	  $(info Usage:)\
-	  $(info $(HELP_INDENT)make $(patsubst help.%,%,$@) [variable=value])\
+	  $(info )\
+	  $(info $(INDENT)make $(patsubst help.%,%,$@) [variable=value])\
 	  $(if $($@.shortdesc),\
 	    $(info )\
-	    $(info $(HELP_INDENT)$($@.shortdesc))\
+	    $(info $(INDENT)$($@.shortdesc))\
 	  )\
 	  $(if $($@.longdesc),\
 	    $(info )\
-	    $(info $(HELP_INDENT)$(subst $(LF),$(LF)$(HELP_INDENT),$($@.longdesc)))\
+	    $(info $(SPACE)$(subst $(LF)$(SPACE),$(LF)$(INDENT),$($@.longdesc)))\
 	  )\
 	  $(if $($@.variables),\
 	    $(info )\
-	    $(info $(call rpad,Variable:,$(HELP_VARN_COL_WIDTH))Value:)\
-	    $(foreach varn,$(sort $($@.variables)),\
-	      $(info $(HELP_INDENT)$(call rpad,$(varn),$(HELP_VARN_COL_WIDTH))$($(varn)))\
-	    )\
+	    $(if $(findstring true,$(expand)),\
+	      $(info $(call rpad,Variables:,....................) Values expanded recursively.)\
+	      $(info )\
+	      $(foreach varn,$(sort $($@.variables)),\
+	        $(info $(INDENT)$(varn)=[$($(varn))])\
+	      ),\
+	      $(info $(call rpad,Variables:,....................) Expand values by rerunning with "expand=true".)\
+	      $(info )\
+	      $(foreach varn,$(sort $($@.variables)),\
+	        $(info $(INDENT)$(varn)=[$(value $(varn))])\
+	      )\
+		)\
 	  )\
 	  $(if $(strip $(foreach tgt,$(filter-out $@,$(help_targets)),$(if $(findstring $(patsubst help.%,%,$@),$(tgt)),$(tgt)))),\
 	    $(info )\
-	    $(info $(call rpad,Related Targets:,$(HELP_TARGET_COL_WIDTH))For more info, run "make help.[target]")\
+	    $(info $(call rpad,Related Targets:,....................) For more info$(COMMA) run "make help.[target]".)\
+	    $(info )\
 	    $(foreach tgt,$(sort $(filter-out $@,$(help_targets))),\
 	      $(if $(findstring $(patsubst help.%,%,$@),$(tgt)),\
-	        $(info $(HELP_INDENT)$(call rpad,$(patsubst help.%,%,$(tgt)),$(HELP_TARGET_COL_WIDTH)) $($(tgt).shortdesc))\
+	        $(info $(INDENT)$(call rpad,$(patsubst help.%,%,$(tgt)),$(HELP_TARGET_COL_WIDTH)) $($(tgt).shortdesc))\
 	      )\
 	    )\
 	  )\

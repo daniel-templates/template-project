@@ -10,7 +10,7 @@
 # Global Variables
 DISABLE_IMPLICIT ?= false
 
-# Definition
+# Target Definition
 ifeq "$(DISABLE_IMPLICIT)" "true"
 
 .SUFFIXES:

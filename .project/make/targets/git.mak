@@ -27,28 +27,47 @@
 # TARGET
 #-----------------------------------------------------------
 #
-# Append To Prerequisites Of
+# Global Variables
+#   Defined for all targets
 #
-#   OTHER: TARGET            (if TARGET is file and timestamp should be checked)
-#   OTHER: | TARGET          (if TARGET is phony or timestamp should be ignored)
+# TARGET.prereqs.normal ?=    (List of file prereq targets, space-separated)
+# TARGET.prereqs.orderonly ?= (List of phony prereqs, or prereq files whos timestamps should be ignored)
+# TARGET.prereqs = $(TARGET.prereqs.normal) $(TARGET.prereqs.orderonly)
 #
-# Global Variables       Defined for all targets
+# globalvar ?= value
 #
-#   VAR ?= value
+# Local Variables
+#   Defined only while making this TARGET and its prereqs
 #
-# Local Variables        Defined only during this TARGET and its prereqs
+# TARGET: localvar ?= value
 #
-#   TARGET: VAR ?= value
+# Help Text
+#   Info printed with "make help" or "make help.TARGET"
 #
-# Help Text              Info printed with "make help" or "make help.TARGET"
+# $(eval $(call target.set_helptext,TARGET,\
+#   Short Description,\
+#   Long Multiline$(LF)\
+#   description$(LF)\
+#   ,\
+#   $$@.prereqs.normal\
+#   $$@.prereqs.orderonly\
+#   OTHER CONSUMED VARIABLES\
+# ))
 #
-#   $(eval $(call set_helptext,TARGET,ShortDesc,LongDesc,VarList))
+# Pretarget
+#   Runs exactly once before any number of prereqs
 #
-# Definition
+# $(eval $(call target.add_pretarget,TARGET,$(TARGET.prereqs),\
+# 	$$(call print.trace,make $$(basename $$@))$$(LF)\
+# 	[COMMANDS]$$(LF)\
+# ))
 #
-#   .PHONY: TARGET           (if TARGET is not an actual file on the system)
-#   TARGET: PREREQS (file prereqs) | PREREQS_ORDERONLY (phony or ignore timestamps)
-#   	COMMANDS TO MAKE TARGET
+# Target Definition
+#
+# .PHONY: TARGET              (if TARGET is not an actual file on the system)
+# .ONESHELL: TARGET           (if TARGET should run all command lines in a single shell process)
+# TARGET: $(TARGET.prereqs.normal) | $(TARGET.prereqs.orderonly)
+# 	COMMANDS TO MAKE TARGET
 #
 
 
@@ -62,25 +81,40 @@
 # git
 #-----------------------------------------------------------
 
+# Global Variables
+git.prereqs.normal ?=
+git.prereqs.orderonly ?= help.git
+git.prereqs = $(git.prereqs.normal) $(git.prereqs.orderonly)
+
 # Help Text
-$(eval $(call set_helptext,git,\
+$(eval $(call target.set_helptext,git,\
   Common Git operations.,\
   Available sub-tasks are listed in "Related Targets" below.$(LF)\
   $(LF)\
   Projects can extend the behavior of this (or related) targets$(LF)\
   through two methods:$(LF)\
   $(LF)\
-  1: define new targets and append them as prereqs$(LF)\
-  _    (see git.mak for details)$(LF)\
-  2: leverage existing targets by overriding their variables$(LF)\
-  _    (see Related Targets below)$(LF)\
+  1: Define new targets and append them as prereqs;$(LF)\
+  $(INDENT) In config.mak$(COMMA) add the lines:$(LF)\
+  $(LF)\
+  $(INDENT)$(INDENT) $$@.prereqs.normal = TARGETS$(LF)\
+  $(INDENT)$(INDENT) $$@.prereqs.orderonly = TARGETS$(LF)\
+  $(LF)\
+  2: Leverage existing targets by overriding their variables.$(LF)\
+  $(INDENT) See Related Targets below.$(LF)\
   ,\
-$(EMPTY)\
+  $$@.prereqs.normal\
+  $$@.prereqs.orderonly\
 ))
 
-# Definition
+# Pretarget; runs exactly once before any number of prereqs
+$(eval $(call target.add_pretarget,git,$(git.prereqs),\
+	$$(call print.trace,make $$(basename $$@))$$(LF)\
+))
+
+# Target Definition
 .PHONY: git
-git: | help.git
+git: $(git.prereqs.normal) | $(git.prereqs.orderonly)
 
 
 
@@ -88,26 +122,32 @@ git: | help.git
 # git.gitconfig
 #-----------------------------------------------------------
 
-# Local Variables
-git.gitconfig: GIT_CONFIG_FILE ?= .project/git/.gitconfig
-git.gitconfig: GIT_HOOKS_DIR ?= .project/git/hooks
+# Global Variables
+git.gitconfig.prereqs.normal ?=
+git.gitconfig.prereqs.orderonly ?=
+git.gitconfig.prereqs = $(git.gitconfig.prereqs.normal) $(git.gitconfig.prereqs.orderonly)
+
+git.gitconfig.path ?= .project/git/.gitconfig
+git.gitconfig.hooksdir ?= .project/git/hooks
 
 # Help Text
-$(eval $(call set_helptext,git.gitconfig,\
+$(eval $(call target.set_helptext,git.gitconfig,\
 $(EMPTY),\
-  Sets Git property "include.path" to ../GIT_CONFIG_FILE.$(LF)\
-  Also sets executable bit on files in GIT_HOOKS_DIR.$(LF)\
+  Sets Git property "include.path" to ../$$$$($$@.path).$(LF)\
+  Also sets executable bit on files in $$$$($$@.hooksdir).$(LF)\
   ,\
-  GIT_CONFIG_FILE\
-  GIT_HOOKS_DIR\
+  $$@.prereqs.normal\
+  $$@.prereqs.orderonly\
+  $$@.path\
+  $$@.hooksdir\
 ))
 
-# Definition
+# Target Definition
 .PHONY: git.gitconfig
-git.gitconfig:
-	$(PRINT_TRACE)
-	git config --local include.path ../$(GIT_CONFIG_FILE)
-	$(call chmod,--verbose u+x,$(GIT_HOOKS_DIR)/*)
+git.gitconfig: $(git.gitconfig.prereqs.normal) | $(git.gitconfig.prereqs.orderonly)
+	$(call print.trace)
+	git config --local include.path ../$($@.path)
+	$(call chmod,--verbose u+x,$($@.hooksdir)/*)
 
 
 
@@ -115,12 +155,16 @@ git.gitconfig:
 # git.gitignore
 #-----------------------------------------------------------
 
-# Local Variables
-git.gitignore: GIT_COMMIT_MESSAGE ?= Updated file tracking according to .gitignore
-git.gitignore: m ?= $(GIT_COMMIT_MESSAGE)
+# Global Variables
+git.gitignore.prereqs.normal ?=
+git.gitignore.prereqs.orderonly ?= git.require.no-uncommitted-changes
+git.gitignore.prereqs = $(git.gitignore.prereqs.normal) $(git.gitignore.prereqs.orderonly)
+
+commitmsg ?=
+git.gitignore.commitmsg ?= $(if $(commitmsg),$(commitmsg),Updated file tracking according to .gitignore)
 
 # Help Text
-$(eval $(call set_helptext,git.gitignore,\
+$(eval $(call target.set_helptext,git.gitignore,\
 $(EMPTY),\
   Untrack files identified in the repo's .gitignore.$(LF)\
   $(LF)\
@@ -132,21 +176,23 @@ $(EMPTY),\
   $(LF)\
   This process is equivalent to running:$(LF)\
   $(LF)\
-    git rm -rf --cached --quiet .$(LF)\
-    git add --all$(LF)\
-    git commit -m "GIT_COMMIT_MESSAGE"$(LF)\
+  $(INDENT.COMMAND) git rm -rf --cached --quiet .$(LF)\
+  $(INDENT.COMMAND) git add --all$(LF)\
+  $(INDENT.COMMAND) git commit -m "$$$$($$@.commitmsg)"$(LF)\
   ,\
-  GIT_COMMIT_MESSAGE\
-  m\
+  $$@.prereqs.normal\
+  $$@.prereqs.orderonly\
+  $$@.commitmsg\
+  commitmsg\
 ))
 
-# Definition
+# Target Definition
 .PHONY: git.gitignore
-git.gitignore: | git.require.no-uncommitted-changes
-	$(PRINT_TRACE)
+git.gitignore: $($@.prereqs.normal) | $($@.prereqs.orderonly)
+	$(call print.trace)
 	git rm -rf --cached --quiet .
 	git add --all
-	-git commit -m "$(m)"
+	-git commit -m "$($@.commitmsg)"
 
 
 
@@ -154,18 +200,22 @@ git.gitignore: | git.require.no-uncommitted-changes
 # git.gitattributes
 #-----------------------------------------------------------
 
-# Local Variables
-git.gitattributes: GIT_COMMIT_MESSAGE ?= Reencoded files according to .gitattributes
-git.gitattributes: m ?= $(GIT_COMMIT_MESSAGE)
+# Global Variables
+git.gitattributes.prereqs.normal ?=
+git.gitattributes.prereqs.orderonly ?= git.require.no-uncommitted-changes
+git.gitattributes.prereqs = $(git.gitattributes.prereqs.normal) $(git.gitattributes.prereqs.orderonly)
+
+commitmsg ?=
+git.gitattributes.commitmsg ?= $(if $(commitmsg),$(commitmsg),Reencoded files according to .gitattributes)
 
 # Help Text
-$(eval $(call set_helptext,git.gitattributes,\
+$(eval $(call target.set_helptext,git.gitattributes,\
 $(EMPTY),\
   Reencode files according to the repo's .gitattributes.$(LF)\
   $(LF)\
   Modifies local files AND Git repo.$(LF)\
   $(LF)\
-  When .gitattributes is changed, some files may not have$(LF)\
+  When .gitattributes is changed$(COMMA) some files may not have$(LF)\
   the correct encoding or line ending format anymore.$(LF)\
   This renormalizes and commits changes to all files in the repo$(COMMA)$(LF)\
   then hard-resets to that commit so these changes are reflected$(LF)\
@@ -173,25 +223,27 @@ $(EMPTY),\
   $(LF)\
   This process is equivalent to running:$(LF)\
   $(LF)\
-  _ git add --renormalize .$(LF),\
-    git commit -m "GIT_COMMIT_MESSAGE"$(LF)\
-    git rm -rf --cached --quiet .$(LF)\
-    git reset --hard$(LF)\
+  $(INDENT.COMMAND) git add --renormalize .$(LF)\
+  $(INDENT.COMMAND) git commit -m "$$$$($$@.commitmsg)"$(LF)\
+  $(INDENT.COMMAND) git rm -rf --cached --quiet .$(LF)\
+  $(INDENT.COMMAND) git reset --hard$(LF)\
   $(LF)\
   Be sure these changes are also reflected in .vscode/settings.all.json$(LF)\
   $(LF)\
   WARNING: This process is not perfect! Some files may not be reencoded.$(LF)\
   ,\
-  GIT_COMMIT_MESSAGE\
-  m\
+  $$@.prereqs.normal\
+  $$@.prereqs.orderonly\
+  $$@.commitmsg\
+  commitmsg\
 ))
 
-# Definition
+# Target Definition
 .PHONY: git.gitattributes
-git.gitattributes: | git.require.no-uncommitted-changes
-	$(PRINT_TRACE)
+git.gitattributes: $($@.prereqs.normal) | $($@.prereqs.orderonly)
+	$(call print.trace)
 	git add --renormalize .
-	-git commit -m "$(m)"
+	-git commit -m "$($@.commitmsg)"
 	git rm -rf --cached --quiet .
 	git reset --hard
 
@@ -201,24 +253,30 @@ git.gitattributes: | git.require.no-uncommitted-changes
 # git.require.no-uncommitted-changes
 #-----------------------------------------------------------
 
+# Global Variables
+git.require.no-uncommitted-changes.prereqs.normal ?=
+git.require.no-uncommitted-changes.prereqs.orderonly ?=
+git.require.no-uncommitted-changes.prereqs = $(git.require.no-uncommitted-changes.prereqs.normal) $(git.require.no-uncommitted-changes.prereqs.orderonly)
+
 # Help Text
-$(eval $(call set_helptext,git.require.no-uncommitted-changes,\
+$(eval $(call target.set_helptext,git.require.no-uncommitted-changes,\
 $(EMPTY),\
   Terminates make with an error message if repository contains$(LF)\
   unstaged changes$(COMMA) or staged but uncommitted changes.$(LF)\
   $(LF)\
   This process is equivalent to running:$(LF)\
   $(LF)\
-    git add . && git diff --quiet && git diff --cached --quiet$(LF)\
+  $(INDENT.COMMAND) git diff --quiet && git diff --cached --quiet$(LF)\
   ,\
-$(EMPTY),\
+  $$@.prereqs.normal\
+  $$@.prereqs.orderonly\
 ))
 
-# Definition
+# Target Definition
 .PHONY: git.require.no-uncommitted-changes
-git.require.no-uncommitted-changes:
-	$(PRINT_TRACE)
-	git add . && git diff --quiet && git diff --cached --quiet
+git.require.no-uncommitted-changes: $($@.prereqs.normal) | $($@.prereqs.orderonly)
+	$(call print.trace)
+	git diff --quiet && git diff --cached --quiet
 
 
 

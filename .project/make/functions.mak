@@ -23,22 +23,37 @@ PERCENT := %$(EMPTY)
 BACKSLASH := \$(EMPTY)
 POUND := \#
 DOLLAR := $$
+OPAREN := ($(EMPTY)
+CPAREN := )$(EMPTY)
 define LF
 
 
 endef
+INDENT := $(SPACE)$(SPACE)
+INDENT.COMMAND := $(INDENT)$(DOLLAR)$(DOLLAR)$(SPACE)
+
+
+#-----------------------------------------------------------
+# $(call print.debug)
+# $(call print.debug,[msg])
+#-----------------------------------------------------------
+# Prints a debug message if print.debug.enable = true.
+#-----------------------------------------------------------
+
+print.debug.enable ?= false
+print.debug = $(if $(findstring $(print.debug.enable),true),$(info DEBUG: $(strip $(1))))
 
 
 
 #-----------------------------------------------------------
-# Debugging
+# $(call print.trace)
+# $(call print.trace,[msg])
+#-----------------------------------------------------------
+# Prints a trace message if print.trace.enable = true.
 #-----------------------------------------------------------
 
-ifneq "$(SHOWTARGETS)" "false"
-    PRINT_TRACE = $(info $(LF)======= Target:  $@  =======)
-else
-    PRINT_TRACE :=
-endif
+print.trace.enable ?= false
+print.trace = $(if $(findstring $(print.trace.enable),true),$(info $(LF)======= $(if $(strip $(1)),$(strip $(1)),make $@) =======))
 
 
 
@@ -92,13 +107,22 @@ map = $(foreach a,$(2),$(call $(1),$(a)))
 
 
 #-----------------------------------------------------------
-# str = $(call concat sep,list)
+# str = $(call concat,sep,list)
 #-----------------------------------------------------------
-# Concatentates a list of strings with the given separator.
+# Concatentates a (space-separated) list of strings with the given separator.
 #
 #-----------------------------------------------------------
 
-concat = $(subst ?,,$(subst ? ,$(1),$(foreach a,$(2) $(3) $(4) $(5) $(6) $(7) $(8) $(9),$(a)?)))
+concat = $(subst $(SPACE),$(1),$(foreach a,$(2),$(a)))
+
+
+#-----------------------------------------------------------
+# str = $(call concatargs,sep,[str1],[str2],...)
+#-----------------------------------------------------------
+# Concatentates each string argument with the given separator.
+#
+#-----------------------------------------------------------
+concatargs = $(2)$(if $(3),$(1)$(3))$(if $(4),$(1)$(4))$(if $(5),$(1)$(5))$(if $(6),$(1)$(6))$(if $(7),$(1)$(7))$(if $(8),$(1)$(8))$(if $(9),$(1)$(9))
 
 
 
@@ -116,7 +140,7 @@ mkpath = $(subst /,$(FILESEP),$(subst $(BACKSLASH),$(FILESEP),$(call concat,$(FI
 
 
 #-----------------------------------------------------------
-# $(eval $(call set_helptext,target,\
+# $(eval $(call target.set_helptext,target,\
 #   Short description text,\
 #   Optional extended$(LF)\
 #   multiline description text$(LF)\
@@ -130,18 +154,50 @@ mkpath = $(subst /,$(FILESEP),$(subst $(BACKSLASH),$(FILESEP),$(call concat,$(FI
 # If a list of variable names are provided, variables and their values
 #   will be printed below the long description.
 #
+# In any argument except 1, the literal string $@ is substituted
+#   with the name of the target $(1).
+# Since literal '$' must be escaped, must type "$$@".
 #-----------------------------------------------------------
 
-define set_helptext
+define target.set_helptext
 help_targets += help.$(strip $(1))
-help.$(strip $(1)).shortdesc := $(strip $(2))
+help.$(strip $(1)).shortdesc := $(subst $$@,$(strip $(1)),$(strip $(2)))
 define help.$(strip $(1)).longdesc
-$(3)
+$(subst $$@,$(strip $(1)),$(3))
 endef
-help.$(strip $(1)).variables := $(strip $(4))
+help.$(strip $(1)).variables := $(subst $$@,$(strip $(1)),$(strip $(4)))
 endef
 
 
+
+#-----------------------------------------------------------
+# $(eval $(call target.add_pretarget,target,LIST_OF_PREREQS SPACE SEPARATED,
+# 	COMMANDS$$(LF)\
+# ))
+#-----------------------------------------------------------
+# Defines a pretarget which runs exactly once before any of
+# target's prerequisites.
+#
+# If target has no prerequisites, this pretarget never runs;
+# To force pretarget to run even without prereqs, include the target name
+# along with the list of its prereqs.
+#
+# Command formatting requirements:
+#	Each line should begin with tab.
+#	All $ must be escaped as $$.
+#	Each line should end with $$(LF)\
+#
+# Quick reference:
+#	$$(basename $$@)	Name of target this pretarget belongs to
+#	$$^					List of prerequisites
+#-----------------------------------------------------------
+
+define target.add_pretarget
+.PHONY: $(strip $(1)).pre
+$(strip $(2)): | $(strip $(1)).pre
+$(strip $(1)).pre:
+	$(subst $$(LF)$(SPACE),$(LF)$(TAB),$(strip $(3)))
+endef
 
 
 #===============================================================================
