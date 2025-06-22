@@ -44,7 +44,7 @@
 # Help Text
 #   Info printed with "make help" or "make help.TARGET"
 #
-# $(eval $(call target.set_helptext,TARGET,\
+# $(eval $(call lib.help.targets.define,TARGET,\
 #   Short Description,\
 #   Long Multiline$(LF)\
 #   description$(LF)\
@@ -88,7 +88,7 @@ clean.prereqs.orderonly ?= help.clean
 clean.prereqs = $(clean.prereqs.normal) $(clean.prereqs.orderonly)
 
 # Help Text
-$(eval $(call target.set_helptext,clean,\
+$(eval $(call lib.help.targets.define,clean,\
   Resets this project's development environment,\
   $(LF)\
   Projects can extend the behavior of this (or related) targets$(LF)\
@@ -134,7 +134,7 @@ clean.remove.files ?=
 clean.remove.dirs ?=
 
 # Help text
-$(eval $(call target.set_helptext,clean.remove.dirs,\
+$(eval $(call lib.help.targets.define,clean.remove.dirs,\
 $(EMPTY),\
   Removes each file in $$$$($$@.files).$(LF)\
   Removes each directory in $$$$($$@.dirs).$(LF)\

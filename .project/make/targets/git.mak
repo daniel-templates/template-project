@@ -44,7 +44,7 @@
 # Help Text
 #   Info printed with "make help" or "make help.TARGET"
 #
-# $(eval $(call target.set_helptext,TARGET,\
+# $(eval $(call lib.help.targets.define,TARGET,\
 #   Short Description,\
 #   Long Multiline$(LF)\
 #   description$(LF)\
@@ -87,7 +87,7 @@ git.prereqs.orderonly ?= help.git
 git.prereqs = $(git.prereqs.normal) $(git.prereqs.orderonly)
 
 # Help Text
-$(eval $(call target.set_helptext,git,\
+$(eval $(call lib.help.targets.define,git,\
   Common Git operations.,\
   Available sub-tasks are listed in "Related Targets" below.$(LF)\
   $(LF)\
@@ -132,7 +132,7 @@ git.gitconfig.hooksdir ?= .project/git/hooks
 
 
 # Help Text
-$(eval $(call target.set_helptext,git.gitconfig,\
+$(eval $(call lib.help.targets.define,git.gitconfig,\
 $(EMPTY),\
   Sets Git property "include.path" to ../$$$$($$@.file).$(LF)\
   Also sets executable bit on files in $$$$($$@.hooksdir).$(LF)\
@@ -165,7 +165,7 @@ commitmsg ?=
 git.gitignore.commitmsg ?= $(if $(commitmsg),$(commitmsg),Updated file tracking according to .gitignore)
 
 # Help Text
-$(eval $(call target.set_helptext,git.gitignore,\
+$(eval $(call lib.help.targets.define,git.gitignore,\
 $(EMPTY),\
   Untrack files identified in the repo's .gitignore.$(LF)\
   $(LF)\
@@ -210,7 +210,7 @@ commitmsg ?=
 git.gitattributes.commitmsg ?= $(if $(commitmsg),$(commitmsg),Reencoded files according to .gitattributes)
 
 # Help Text
-$(eval $(call target.set_helptext,git.gitattributes,\
+$(eval $(call lib.help.targets.define,git.gitattributes,\
 $(EMPTY),\
   Reencode files according to the repo's .gitattributes.$(LF)\
   $(LF)\
@@ -260,7 +260,7 @@ git.require.no-uncommitted-changes.prereqs.orderonly ?=
 git.require.no-uncommitted-changes.prereqs = $(git.require.no-uncommitted-changes.prereqs.normal) $(git.require.no-uncommitted-changes.prereqs.orderonly)
 
 # Help Text
-$(eval $(call target.set_helptext,git.require.no-uncommitted-changes,\
+$(eval $(call lib.help.targets.define,git.require.no-uncommitted-changes,\
 $(EMPTY),\
   Terminates make with an error message if repository contains$(LF)\
   unstaged changes$(COMMA) or staged but uncommitted changes.$(LF)\

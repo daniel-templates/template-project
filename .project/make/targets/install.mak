@@ -44,7 +44,7 @@
 # Help Text
 #   Info printed with "make help" or "make help.TARGET"
 #
-# $(eval $(call target.set_helptext,TARGET,\
+# $(eval $(call lib.help.targets.define,TARGET,\
 #   Short Description,\
 #   Long Multiline$(LF)\
 #   description$(LF)\
@@ -87,7 +87,7 @@ install.prereqs.orderonly ?= help.install
 install.prereqs = $(install.prereqs.normal) $(install.prereqs.orderonly)
 
 # Help Text
-$(eval $(call target.set_helptext,install, \
+$(eval $(call lib.help.targets.define,install, \
   Install build artifacts to the local system,\
   $(LF)\
   Projects can extend the behavior of this (or related) targets$(LF)\

@@ -59,7 +59,8 @@
 			//		.vscode/settings.windows.json
 			".vscode/settings.json": true,
 
-			// 3rdparty libraries
+			// Libraries
+			".project/make/lib*.mak": false,
 			".project/make/3rdparty/**": true,
 
 			//------------------------------------------------------------------
@@ -102,6 +103,7 @@
 			//------------------------------------------------------------------
 			//  UPSTREAM: CURRENT PROJECT
 			//------------------------------------------------------------------
+			// ".project/make/lib*.mak": true,
 			// ".vscode/**": true,
 			// ".project/**": true,
 

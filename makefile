@@ -10,11 +10,10 @@
 MAKE_DIR = .project/make
 MAKE_TARGETS_DIR = $(MAKE_DIR)/targets
 
-# Basic functions
-include $(MAKE_DIR)/functions.mak
-
-# Platform-specific definitions
-include $(MAKE_DIR)/platform.mak
+# Libraries
+include $(MAKE_DIR)/lib.mak
+include $(MAKE_DIR)/lib.help.mak
+include $(MAKE_DIR)/lib.platform.mak
 
 # Project-specific configuration
 include $(MAKE_DIR)/config.mak

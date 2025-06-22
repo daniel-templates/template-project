@@ -1,13 +1,20 @@
 #===============================================================================
-# functions.mak
+# lib.mak
 #
 # Common library of callable "functions" for use in target definitions, etc.
 #
-#===============================================================================
-
-
-#===============================================================================
-# UPSTREAM: daniel-templates/template-project
+# Usage:
+#
+#	Include in makefile:
+#
+#		include .project/make/lib.mak
+#
+#	Call a function:
+#
+#		filename := $(this.filename)
+#		list = $(call concat,$(COLON),item1 item2 item3)
+#		$(call print.var,filename list)
+#
 #===============================================================================
 
 
@@ -55,11 +62,64 @@ LOWERCASE := a b c d e f g h i j k l m n o p q r s t u v w x y z
 UPPERCASE := A B C D E F G H I J K L M N O P Q R S T U V W X Y Z
 DIGITS := 0 1 2 3 4 5 6 7 8 9
 
+# Indentation preferences
 INDENT := $(SPACE)$(SPACE)
 INDENT.COMMAND := $(INDENT)$(DOLLAR)$(DOLLAR)$(SPACE)
 
-TRUE := true
-FALSE := false
+# "Boolean" types that are printable
+TRUE.p := true
+FALSE.p := false
+
+# "Boolean" types that follow make's convention for conditional evaluation
+TRUE.m := true
+FALSE.m := $(EMPTY)
+
+# "Boolean" types that follow shell conventions for exitcodes (and also C language)
+TRUE.s := 0
+FALSE.s := 1
+
+# "Boolean" types that are actually binary in the traditional sense
+TRUE.b := 1
+FALSE.b := 0
+
+# Lists of truthy values and falsy values, for interactive purposes
+TRUE.l := TRUE True true YES Yes yes Y y 1
+FALSE.l := FALSE False false NO No no N n 0
+
+
+#-----------------------------------------------------------
+# $(this.filepath)
+# $(this.filename)
+# $(this.dirpath)
+# $(this.dirname)
+#-----------------------------------------------------------
+# Returns parts of the path to this makefile.
+# Must be expanded BEFORE any "include..." statements!
+# Use immediate expansion := early in the file to ensure correct results.
+# Ex:
+#    filename := $(this.filename)
+#-----------------------------------------------------------
+this.filepath = $(abspath $(lastword $(MAKEFILE_LIST)))
+this.filename = $(notdir $(lastword $(MAKEFILE_LIST)))
+this.dirpath = $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
+this.dirname = $(notdir $(dir $(abspath $(lastword $(MAKEFILE_LIST)))))
+
+#-----------------------------------------------------------
+# $(call is.truthy,{val})
+# $(call is.falsey,{val})
+#-----------------------------------------------------------
+# For use in conditional evaluation.
+#
+# Returns $(TRUE.m) if {val} is truthy or falsey, respectively.
+# Otherwise, returns $(FALSE.m).
+#
+# "Truthy" values are listed in $(TRUE.l).
+# "Falsey" values are listed in $(FALSE.l). Empty is also considered falsey.
+#-----------------------------------------------------------
+
+is.truthy = $(if $(filter $(TRUE.l),$(strip $(1))),$(TRUE.m),$(FALSE.m))
+is.falsey = $(if $(filter $(FALSE.l),$(or $(strip $(1)),false)),$(TRUE.m),$(FALSE.m))
+
 
 #-----------------------------------------------------------
 # $(call print.var,[var1] [var2] ...)
@@ -185,7 +245,7 @@ map = $(foreach a,$(2),$(call $(1),$(a)))
 # Concatentates a (space-separated) list of strings with the given separator.
 #-----------------------------------------------------------
 
-concat = $(subst $(SPACE),$(1),$(foreach a,$(2),$(a)))
+concat = $(subst $(SPACE),$(1),$(strip $(2)))
 
 
 #-----------------------------------------------------------
@@ -259,144 +319,5 @@ $(strip $(2)): | $(strip $(1)).pre
 $(strip $(1)).pre:
 	$(subst $$(LF)$(SPACE),$(LF)$(TAB),$(strip $(3)))
 endef
-
-
-
-#-----------------------------------------------------------
-# $(eval $(call target.set_helptext,target,\
-#   Short description text,\
-#   Optional extended$(LF)\
-#   multiline description text$(LF)\
-#   ,\
-#   LIST_OF_CONSUMED_VARIABLES SPACE SEPARATED
-# ))
-#-----------------------------------------------------------
-# Stores usage info and help text for the given target.
-# If a short description is provided, "make help" will print it.
-# If a long description is provided, "make help.{target}" will print it.
-# If a list of variable names are provided, variables and their values
-#   will be printed below the long description.
-#
-# In any argument except 1, the literal string $@ is substituted
-#   with the name of the target $(1).
-# Since literal '$' must be escaped, must type "$$@".
-#
-# Requires target definitions from "help.mak"
-#-----------------------------------------------------------
-
-define target.set_helptext
-help.definitions += help.$(strip $(1))
-help.$(strip $(1)).shortdesc := $(subst $$@,$(strip $(1)),$(strip $(2)))
-define help.$(strip $(1)).longdesc
-$(subst $$@,$(strip $(1)),$(3))
-endef
-help.$(strip $(1)).variables := $(subst $$@,$(strip $(1)),$(strip $(4)))
-endef
-
-
-#-----------------------------------------------------------
-# TARGET: help
-#-----------------------------------------------------------
-
-# Global Variables
-help.colwidth ?= ........................
-help.definitions ?=
-
-# Help Text (make help.help)
-$(eval $(call target.set_helptext,help,\
-  Prints the top-level Make targets available in this project,\
-  Targets can define help text using the "target.set_helptext" macro.$(LF)\
-  See "functions.mak" for more information.$(LF)\
-  ,\
-  help.colwidth\
-  help.definitions\
-))
-
-# Target Definition (make help)
-.PHONY: help
-help:
-	@$(call nop)
-	$(info )
-	$(info Usage:)
-	$(info $(INDENT)make [target] [variable=value])
-	$(info )
-	$(info Targets:)
-	$(foreach tgt,$(sort $(help.definitions)),$(if $($(tgt).shortdesc),\
-	  $(info $(INDENT)$(call rpad,$(patsubst help.%,%,$(tgt)),$(help.colwidth)) $($(tgt).shortdesc))\
-	))
-	$(info )
-
-
-
-#-----------------------------------------------------------
-# TARGET: help.[target]
-#-----------------------------------------------------------
-
-# Global Variables
-expand ?= false
-
-# Help Text (make help.[target]  (literally))
-$(eval $(call target.set_helptext,help.[target],\
-  Prints detailed info about a specific target,\
-  Targets can define help text using the "target.set_helptext" macro.$(LF)\
-  See "functions.mak" for more information.$(LF)\
-  ,\
-  expand\
-))
-
-# Target Definition (make help.[target])
-.PHONY: help.%
-help.%:
-	@$(call shell.nop)
-	$(if $(filter $@,$(help.definitions)),\
-	  $(info )\
-	  $(info Usage:)\
-	  $(info )\
-	  $(info $(INDENT)make $(patsubst help.%,%,$@) [variable=value])\
-	  $(if $($@.shortdesc),\
-	    $(info )\
-	    $(info $(INDENT)$($@.shortdesc))\
-	  )\
-	  $(if $($@.longdesc),\
-	    $(info )\
-	    $(info $(SPACE)$(subst $(LF)$(SPACE),$(LF)$(INDENT),$($@.longdesc)))\
-	  )\
-	  $(if $($@.variables),\
-	    $(info )\
-	    $(if $(findstring true,$(expand)),\
-	      $(info $(call rpad,Variables:,....................) Values expanded recursively.)\
-	      $(info )\
-	      $(foreach varn,$(sort $($@.variables)),\
-	        $(info $(INDENT)$(varn)=[$($(varn))])\
-	      ),\
-	      $(info $(call rpad,Variables:,....................) Expand values by rerunning with "expand=true".)\
-	      $(info )\
-	      $(foreach varn,$(sort $($@.variables)),\
-	        $(info $(INDENT)$(varn)=[$(value $(varn))])\
-	      )\
-		)\
-	  )\
-	  $(if $(strip $(foreach tgt,$(filter-out $@,$(help.definitions)),$(if $(findstring $(patsubst help.%,%,$@),$(tgt)),$(tgt)))),\
-	    $(info )\
-	    $(info $(call rpad,Related Targets:,....................) For more info$(COMMA) run "make help.[target]".)\
-	    $(info )\
-	    $(foreach tgt,$(sort $(filter-out $@,$(help.definitions))),\
-	      $(if $(findstring $(patsubst help.%,%,$@),$(tgt)),\
-	        $(info $(INDENT)$(call rpad,$(patsubst help.%,%,$(tgt)),$(help.colwidth)) $($(tgt).shortdesc))\
-	      )\
-	    )\
-	  )\
-	  $(info )\
-	,\
-	  $(info )\
-	  $(info No information available for target "$(patsubst help.%,%,$@)".)\
-	  $(info )\
-	)
-
-
-
-#===============================================================================
-# UPSTREAM: CURRENT PROJECT
-#===============================================================================
 
 

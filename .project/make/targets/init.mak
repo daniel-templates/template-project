@@ -44,7 +44,7 @@
 # Help Text
 #   Info printed with "make help" or "make help.TARGET"
 #
-# $(eval $(call target.set_helptext,TARGET,\
+# $(eval $(call lib.help.targets.define,TARGET,\
 #   Short Description,\
 #   Long Multiline$(LF)\
 #   description$(LF)\
@@ -88,7 +88,7 @@ init.prereqs.orderonly ?= help.init
 init.prereqs = $(init.prereqs.normal) $(init.prereqs.orderonly)
 
 # Help Text
-$(eval $(call target.set_helptext,init,\
+$(eval $(call lib.help.targets.define,init,\
   Initializes the project's development environment.,\
   Available sub-tasks are listed in "Related Targets" below.$(LF)\
   $(LF)\
@@ -134,7 +134,7 @@ init.create.files ?=
 init.create.files.perms ?= $(foreach path,$(init.create.files),u+rwx)
 
 # Help Text
-$(eval $(call target.set_helptext,init.create,\
+$(eval $(call lib.help.targets.define,init.create,\
   $(EMPTY),\
   For each directory listed in $$$$($$@.dirs):$(LF)\
   $(INDENT)1. Creates directory$(COMMA) if it doesn't already exist.$(LF)\

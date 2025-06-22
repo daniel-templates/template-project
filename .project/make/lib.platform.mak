@@ -1,30 +1,23 @@
 #===============================================================================
-# platform.mak
+# lib.platform.mak
+#===============================================================================
 #
 # Defines mappings between common shell commands and their platform-specific
 # variations.
 #
 # Usage:
 #
-#   Include in makefile:
+#	Include in makefile:
 #
-#     include .project/make/functions.mak
-#     include .project/make/platform.mak
+#		include .project/make/lib.mak
+#		include .project/make/lib.platform.mak
 #
-#   Run a platform-independent shell command in a target definition block:
-#
-#     $(call mkdir,path/to/dir)
-#
-#   Run a shell command and store the output in a variable:
-#
-#     files := $(shell $(call ls,*.c))
-#
+#===============================================================================
+$(if $(filter-out $(notdir $(MAKEFILE_LIST)), lib.mak ),$(error Makefile $(lastword $(notdir $(MAKEFILE_LIST))) is missing dependencies))
 #===============================================================================
 
 
-ifndef LF
-$(error CRITICAL: functions.mak has not yet been imported.)
-endif
+
 
 #===============================================================================
 # OS Properties
@@ -111,7 +104,7 @@ OS.ext.dll = $(OS.ext.dll.$(OS.type))
 #	.print               Returns empty. Prints values of all properties in this namespace.
 #
 # SHELL.names.{name}   Namespaces for each shell definition.
-#	.isactive            Returns {name} if this shell is currently active; empty otherwise.
+#	.isactive            Returns $(TRUE.m) if this shell is currently active; empty otherwise.
 #	.type                Type associated with this shell definition.
 #	.path
 #	.flags
@@ -124,7 +117,7 @@ OS.ext.dll = $(OS.ext.dll.$(OS.type))
 #	.activate            Returns empty. Sets this shell configuration as active.
 #
 # SHELL.types.{name}   Namespaces for each shell type definition.
-#	.isactive            Returns {name} if a shell of this type is currently active; empty otherwise.
+#	.isactive            Returns $(TRUE.m) if a shell of this type is currently active; empty otherwise.
 #	.path
 #	.flags
 #	.aliases
@@ -195,7 +188,7 @@ SHELL.names := $(EMPTY)
 define SHELL.names.define
 $(eval SHELL.names += $(1))
 $(eval SHELL.names.$(1).type := $(or $(2),$(error Empty shell_type in definition of '$(1)')))
-$(eval SHELL.names.$(1).isactive = $$(if $$(filter $(1),$$(SHELL.name)),$(1)))
+$(eval SHELL.names.$(1).isactive = $$(if $$(filter $(1),$$(SHELL.name)),$(TRUE.m),$(FALSE.m)))
 $(eval SHELL.names.$(1).print = $$(call print.var,$(foreach prop,$(SHELL.names.properties),SHELL.names.$(1).$(prop))))
 $(eval SHELL.names.$(1).activate = $$(if $$(SHELL.names.$(1).isactive),,$$(eval SHELL.name := $(1))$$(eval SHELL := $$(SHELL.path))$$(eval .SHELLFLAGS := $$(SHELL.flags))))
 $(foreach prop,$(filter-out type isactive print activate,$(SHELL.names.properties)),$(call variable.set_with_alternatives,SHELL.names.$(1).$(prop),?=,,  SHELL.names.$(1).$(prop).$$(OS.name)  SHELL.names.$(1).$(prop).$$(OS.type)  SHELL.names.$(1).$(prop).default  SHELL.types.$(2).$(prop)  ))
@@ -354,7 +347,7 @@ $(call SHELL.names.define,python,python)
 SHELL.types := $(EMPTY)
 define SHELL.types.define
 $(eval SHELL.types += $(1))
-$(eval SHELL.types.$(1).isactive = $$(if $$(filter $(1),$$(SHELL.type)),$(1)))
+$(eval SHELL.types.$(1).isactive = $$(if $$(filter $(1),$$(SHELL.type)),$(TRUE.m),$(FALSE.m)))
 $(eval SHELL.types.$(1).print = $$(call print.var,$(foreach prop,$(SHELL.types.properties),SHELL.types.$(1).$(prop))))
 $(foreach prop,$(filter-out isactive print,$(SHELL.types.properties)),$(call variable.set_with_alternatives,SHELL.types.$(1).$(prop),?=,,  SHELL.types.$(1).$(prop).$$(OS.name)  SHELL.types.$(1).$(prop).$$(OS.type)  SHELL.types.$(1).$(prop).default  SHELL.types.$(2).$(prop)  ))
 endef
@@ -408,7 +401,7 @@ $(call SHELL.types.define,cmd)
 #-----------------------------------------------------------
 # Syntax definitions and default launch config for Windows cmd.exe.
 #
-# Flags: Order of flags matters for cmd.exe! Not sure why.
+# Flags: must appear in a specific order or they get ignored by cmd.exe! Not sure why.
 #	/Q                 Disable command echoing; make does this already
 #	/D                 Skip execution of registry AutoRun commands at startup
 #	/E:ON              Enable Command Extensions; typical default behavior of CMD anyway
@@ -495,6 +488,7 @@ SHELL.types.python.ext.script.default := .py
 $(info )
 $(call SHELL.print)
 $(info )
+$(shell )
 $(call SHELL.names.cmd.activate)
 $(call SHELL.print)
 $(info )

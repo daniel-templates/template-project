@@ -44,7 +44,7 @@
 # Help Text
 #   Info printed with "make help" or "make help.TARGET"
 #
-# $(eval $(call target.set_helptext,TARGET,\
+# $(eval $(call lib.help.targets.define,TARGET,\
 #   Short Description,\
 #   Long Multiline$(LF)\
 #   description$(LF)\
@@ -88,7 +88,7 @@ all.prereqs.orderonly ?= help.all
 all.prereqs = $(all.prereqs.normal) $(all.prereqs.orderonly)
 
 # Help Text
-$(eval $(call target.set_helptext,all,\
+$(eval $(call lib.help.targets.define,all,\
   Build all artifacts,\
   $(LF)\
   Projects can extend the behavior of this (or related) targets$(LF)\
