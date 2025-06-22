@@ -31,7 +31,7 @@ REPO:   template-project
 - Windows 10 or later (tested on Windows 11)
 - Autodesk Inventor 2023
 - Git ([from here](https://git-scm.com/download/win), or similar)
-- Make ([from here](https://gnuwin32.sourceforge.net/packages/make.htm), or similar)
+- GNU Make 4.2 or higher ([from here](https://sourceforge.net/projects/ezwinports/files/), or similar)
 
 #### Linux:
 - Ubuntu 20.04 (tested)
@@ -225,7 +225,10 @@ Please refer to documentation directory: [doc/](doc/)
 
 ---
 *Author: Daniel Kennedy* ([GitHub][home_danielk-98])
-<!-- TODO: Add additional credits -->
+
+References:
+
+- *GNU Make Standard Library (GMSL)*: jgrahamc ([GitHub][ref_gmsl])
 
 <br/>
 
@@ -247,3 +250,4 @@ Please refer to documentation directory: [doc/](doc/)
 [icon_daniel-hardware]: https://avatars.githubusercontent.com/u/111267783?s=60 "Github Organization: daniel-hardware"
 [icon_daniel-robotics]: https://avatars.githubusercontent.com/u/107002723?s=60 "Github Organization: daniel-robotics"
 [icon_daniel-utilities]: https://avatars.githubusercontent.com/u/107002832?s=60 "Github Organization: daniel-utilities"
+[ref_gmsl]: https://github.com/jgrahamc/gmsl

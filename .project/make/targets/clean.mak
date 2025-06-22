@@ -122,32 +122,35 @@ clean: $(clean.prereqs.normal) | $(clean.prereqs.orderonly)
 
 
 #-----------------------------------------------------------
-# clean.remove.dirs
+# clean.remove
 #-----------------------------------------------------------
 
 # Global Variables
-clean.remove.dirs.prereqs.normal ?=
-clean.remove.dirs.prereqs.orderonly ?=
-clean.remove.dirs.prereqs = $(clean.remove.dirs.prereqs.normal) $(clean.remove.dirs.prereqs.orderonly)
+clean.remove.prereqs.normal ?=
+clean.remove.prereqs.orderonly ?=
+clean.remove.prereqs = $(clean.remove.prereqs.normal) $(clean.remove.prereqs.orderonly)
 
-# Local variables
-clean.remove.dirs: REMOVE_DIRS ?=
+clean.remove.files ?=
+clean.remove.dirs ?=
 
 # Help text
 $(eval $(call target.set_helptext,clean.remove.dirs,\
 $(EMPTY),\
-  Removes each directory listed in REMOVE_DIRS$(LF)\
+  Removes each file in $$$$($$@.files).$(LF)\
+  Removes each directory in $$$$($$@.dirs).$(LF)\
   ,\
   $$@.prereqs.normal\
   $$@.prereqs.orderonly\
-  REMOVE_DIRS\
+  $$@.files\
+  $$@.dirs\
 ))
 
 # Target Definition
-.PHONY: clean.remove.dirs
-clean.remove.dirs: $(clean.remove.dirs.prereqs.normal) | $(clean.remove.dirs.prereqs.orderonly)
-	$(call print.trace)
-	$(foreach dir,$(REMOVE_DIRS),$(call rmdir,$(dir)) $(LF))
+.PHONY: clean.remove
+clean.remove: $(clean.remove.prereqs.normal) | $(clean.remove.prereqs.orderonly)
+	$(if $($@.files)$($@.dirs),$(call print.trace))
+	@$(foreach path,$($@.files),$(call shell.rm,$(path))$(LF))
+	@$(foreach path,$($@.dirs),$(call shell.rmdir,$(path))$(LF))
 
 
 

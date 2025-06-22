@@ -120,38 +120,57 @@ init: $(init.prereqs.normal) | $(init.prereqs.orderonly)
 
 
 #-----------------------------------------------------------
-# init.dirs
+# init.create
 #-----------------------------------------------------------
 
 # Global Variables
-init.dirs.prereqs.normal ?=
-init.dirs.prereqs.orderonly ?= $(init.dirs.paths)
-init.dirs.prereqs = $(init.dirs.prereqs.normal) $(init.dirs.prereqs.orderonly)
+init.create.prereqs.normal ?=
+init.create.prereqs.orderonly ?=
+init.create.prereqs = $(init.create.prereqs.normal) $(init.create.prereqs.orderonly)
 
-init.dirs.paths ?=
+init.create.dirs ?=
+init.create.dirs.perms ?= $(foreach path,$(init.create.dirs),u+rwX)
+init.create.files ?=
+init.create.files.perms ?= $(foreach path,$(init.create.files),u+rwx)
 
 # Help Text
-$(eval $(call target.set_helptext,init.dirs,\
-$(EMPTY),\
-  Creates each directory listed in $(DOLLAR)$(OPAREN)init.dirs.paths$(CPAREN).$(LF)\
+$(eval $(call target.set_helptext,init.create,\
+  $(EMPTY),\
+  For each directory listed in $$$$($$@.dirs):$(LF)\
+  $(INDENT)1. Creates directory$(COMMA) if it doesn't already exist.$(LF)\
+  $(INDENT)2. Sets permissions according to $$$$($$@.dirs.perms).$(LF)\
+  $(INDENT)   Permissions are applied non-recursively.$(LF)\
+  For each file listed in $$$$($$@.files):$(LF)\
+  $(INDENT)1. Creates empty file$(COMMA) if it doesn't already exist.$(LF)\
+  $(INDENT)2. Sets permissions according to $$$$($$@.files.perms).$(LF)\
   ,\
-  init.dirs.prereqs.normal\
-  init.dirs.prereqs.orderonly\
-  init.dirs.paths\
-))
-
-# Pretarget
-$(eval $(call target.add_pretarget,init.dirs,$(init.dirs.prereqs),\
-	$$(call print.trace,make $$(basename $$@))$$(LF)\
+  $$@.prereqs.normal\
+  $$@.prereqs.orderonly\
+  $$@.dirs\
+  $$@.dirs.perms\
+  $$@.files\
+  $$@.files.perms\
 ))
 
 # Target Definition
-.PHONY: init.dirs
-init.dirs: $(init.dirs.prereqs.normal) | $(init.dirs.prereqs.orderonly)
+.PHONY: init.create
+init.create: $(init.create.prereqs.normal) | $(init.create.prereqs.orderonly)
+	$(if $($@.dirs)$($@.files),$(call print.trace))
+	@$(call shell.nop)
+	@$(if $($@.dirs),\
+	  $(call expand,$(foreach path,$($@.dirs),$$(call shell.mkdir,$(path))$$(LF)))\
+	)
+	@$(if $($@.dirs),$(if $($@.dirs.perms),\
+	  $(call expand,$(call foreach_pair,path,$($@.dirs),perm,$($@.dirs.perms),$$(call shell.chmod,,$$(perm),$$(path)),$$(LF)))\
+	))
+	@$(if $($@.files),\
+	  $(call expand,$(foreach path,$($@.files),$$(call shell.touch,$(path))$$(LF)))\
+	)
+	@$(if $($@.files),$(if $($@.files.perms),\
+	  $(call expand,$(call foreach_pair,path,$($@.files),perm,$($@.files.perms),$$(call shell.chmod,,$$(perm),$$(path)),$$(LF)))\
+	))
 
-# Create a file target for each path in CREATE_DIRS
-$(init.dirs.paths):
-	$(call mkdir,$@)
+# $(info [$(call foreach_pair,path,$($@.files),perm,$($@.files.perms),$$(eval $$(call shell.chmod,,$$(perm),$$(path))),$(LF))])
 
 
 

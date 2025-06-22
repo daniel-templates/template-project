@@ -127,18 +127,19 @@ git.gitconfig.prereqs.normal ?=
 git.gitconfig.prereqs.orderonly ?=
 git.gitconfig.prereqs = $(git.gitconfig.prereqs.normal) $(git.gitconfig.prereqs.orderonly)
 
-git.gitconfig.path ?= .project/git/.gitconfig
+git.gitconfig.file ?= .project/git/.gitconfig
 git.gitconfig.hooksdir ?= .project/git/hooks
+
 
 # Help Text
 $(eval $(call target.set_helptext,git.gitconfig,\
 $(EMPTY),\
-  Sets Git property "include.path" to ../$$$$($$@.path).$(LF)\
+  Sets Git property "include.path" to ../$$$$($$@.file).$(LF)\
   Also sets executable bit on files in $$$$($$@.hooksdir).$(LF)\
   ,\
   $$@.prereqs.normal\
   $$@.prereqs.orderonly\
-  $$@.path\
+  $$@.file\
   $$@.hooksdir\
 ))
 
@@ -146,8 +147,8 @@ $(EMPTY),\
 .PHONY: git.gitconfig
 git.gitconfig: $(git.gitconfig.prereqs.normal) | $(git.gitconfig.prereqs.orderonly)
 	$(call print.trace)
-	git config --local include.path ../$($@.path)
-	$(call chmod,--verbose u+x,$($@.hooksdir)/*)
+	git config --local include.path ../$($@.file)
+	$(call shell.chmod,--recursive,u+x,$($@.hooksdir))
 
 
 
@@ -188,7 +189,7 @@ $(EMPTY),\
 
 # Target Definition
 .PHONY: git.gitignore
-git.gitignore: $($@.prereqs.normal) | $($@.prereqs.orderonly)
+git.gitignore: $(git.gitignore.prereqs.normal) | $(git.gitignore.prereqs.orderonly)
 	$(call print.trace)
 	git rm -rf --cached --quiet .
 	git add --all
@@ -240,7 +241,7 @@ $(EMPTY),\
 
 # Target Definition
 .PHONY: git.gitattributes
-git.gitattributes: $($@.prereqs.normal) | $($@.prereqs.orderonly)
+git.gitattributes: $(git.gitattributes.prereqs.normal) | $(git.gitattributes.prereqs.orderonly)
 	$(call print.trace)
 	git add --renormalize .
 	-git commit -m "$($@.commitmsg)"
@@ -274,7 +275,7 @@ $(EMPTY),\
 
 # Target Definition
 .PHONY: git.require.no-uncommitted-changes
-git.require.no-uncommitted-changes: $($@.prereqs.normal) | $($@.prereqs.orderonly)
+git.require.no-uncommitted-changes: $(git.require.no-uncommitted-changes.prereqs.normal) | $(git.require.no-uncommitted-changes.prereqs.orderonly)
 	$(call print.trace)
 	git diff --quiet && git diff --cached --quiet
 

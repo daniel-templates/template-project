@@ -48,7 +48,7 @@
 			//------------------------------------------------------------------
 
 			// Git Management (can break Git if modified inadvertently)
-			"**/.project/git/**": true,
+			".project/git/**": true,
 
 			// VSCode Folder Settings
 			//   Folder settings (.vscode/settings.json) are applied after Workspace settings (this file).
@@ -57,18 +57,15 @@
 			//		.vscode/settings.all.json
 			//		.vscode/settings.linux.json
 			//		.vscode/settings.windows.json
-			"**/.vscode/settings.json": true,
+			".vscode/settings.json": true,
+
+			// 3rdparty libraries
+			".project/make/3rdparty/**": true,
 
 			//------------------------------------------------------------------
 			//  UPSTREAM: CURRENT PROJECT
 			//------------------------------------------------------------------
 
-			// Reference folders
-			// "P:/Reference/**": true,
-			// "/mnt/p/Reference/**": true,
-
-			// Specific filetypes
-			// "**/*.pdf": true,
 
 		},
 
@@ -82,27 +79,32 @@
 			//------------------------------------------------------------------
 
 			// Git Management
-			"**/.project/git/**": false,
+			".project/git/**": false,
 
 			// VSCode Folder Settings
-			"**/.vscode/settings.json": true,
+			".vscode/settings.json": true,
+
+			// 3rdparty libraries
+			".project/make/3rdparty/**": true,
 
 			// License
-			"**/LICENSE.txt": true,
+			"LICENSE.txt": true,
 
 			// Build output
-			"**/build/**": true,
+			"build/**": true,
+
+			// Reference files
+			".project/make/reference/**": true,
+
+			// Specific filetypes
+			"**/*.pdf": true,
 
 			//------------------------------------------------------------------
 			//  UPSTREAM: CURRENT PROJECT
 			//------------------------------------------------------------------
+			// ".vscode/**": true,
+			// ".project/**": true,
 
-			// Reference folders
-			// "P:/Reference/**": true,
-			// "/mnt/p/Reference/**": true,
-
-			// Specific filetypes
-			// "**/*.pdf": true,
 
 		},
 
@@ -116,15 +118,12 @@
 			//------------------------------------------------------------------
 
 			// Build output
-			"**/build/**": true,
+			"build/**": true,
 
 			//------------------------------------------------------------------
 			//  UPSTREAM: CURRENT PROJECT
 			//------------------------------------------------------------------
 
-			// Reference folders
-			// "P:/Reference/**": true,
-			// "/mnt/p/Reference/**": true,
 
 		},
 
@@ -208,7 +207,7 @@
 		//----------------------------------------------------------------------
 		//  UPSTREAM: CURRENT PROJECT
 		//----------------------------------------------------------------------
-
+		// Common settings (copy below and uncomment):
 		// "terminal.integrated.defaultProfile.windows": "PowerShell",
 		// "terminal.integrated.defaultProfile.linux": "Bash",
 		// "terminal.integrated.env.windows": {
@@ -217,5 +216,8 @@
 		// "terminal.integrated.env.linux": {
 		//     "ENVIRONMENT_VARIABLE": "value",
 		// },
+
+
+
 	},
 }
