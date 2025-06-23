@@ -12,7 +12,7 @@
 #	Call a function:
 #
 #		filename := $(this.filename)
-#		list = $(call concat,$(COLON),item1 item2 item3)
+#		list = $(call list.concat,$(COLON),item1 item2 item3)
 #		$(call print.var,filename list)
 #
 #===============================================================================
@@ -122,6 +122,7 @@ is.truthy = $(if $(filter $(TRUE.l),$(strip $(1))),$(TRUE.m),$(FALSE.m))
 is.falsey = $(if $(filter $(FALSE.l),$(or $(strip $(1)),false)),$(TRUE.m),$(FALSE.m))
 
 
+
 #-----------------------------------------------------------
 # $(call print.var,[var1] [var2] ...)
 #-----------------------------------------------------------
@@ -129,6 +130,7 @@ is.falsey = $(if $(filter $(FALSE.l),$(or $(strip $(1)),false)),$(TRUE.m),$(FALS
 #-----------------------------------------------------------
 
 print.var = $(foreach var,$(1),$(info $(INDENT)$(var)=[$($(var))]))
+
 
 
 #-----------------------------------------------------------
@@ -139,6 +141,7 @@ print.var = $(foreach var,$(1),$(info $(INDENT)$(var)=[$($(var))]))
 
 print.debug.enable ?= false
 print.debug = $(if $(findstring $(print.debug.enable),true),$(info DEBUG: $(strip $(1))))
+
 
 
 #-----------------------------------------------------------
@@ -184,8 +187,46 @@ str.expand = $(eval str.expand.tmp := $(1))$(str.expand.tmp)$(eval str.expand.tm
 str.indent.byline.lf := $(LF)
 str.indent.byline = $(1)$(subst $$(str.indent.byline.lf),,$(subst $$(str.indent.byline.lf)$(SPACE),$(LF)$(1),$(strip $(subst $(LF)$(SPACE),$$(str.indent.byline.lf)$(SPACE),$(2)))))
 
+
+
 #-----------------------------------------------------------
-# str = $(call foreach_pair,name1,list1,name2,list2,expr,[sep])
+# str = $(call str.rpad,str,col)
+# str = $(call str.lpad,str,col)
+#-----------------------------------------------------------
+# Pads str with whitespace so the total length is the same as col.
+# Col is a sequence of "." to specify the column width.
+#
+# Example:
+#   col := ..............................
+#   str := Some Text
+#   $(info [$(col)])                            [..............................]
+#   $(info [$(str)])                            [Some Text]
+#   $(info [$(call str.rpad,$(str),$(col))])    [Some Text                     ]
+#   $(info [$(call str.lpad,$(str),$(col))])    [                     Some Text]
+#-----------------------------------------------------------
+
+str.pad.subst := $(LOWERCASE) $(UPPERCASE) $(DIGITS) $(EXC) $(AT) $(POUND) $(DOLLAR) $(UCRT) $(AMPERSAND) $(AST) $(OPAREN) $(CPAREN) - _ + $(EQUAL) [ ] { } $(PIPE) $(BSLASH) $(COLON) $(SEMICOLON) $(DQUOTE) $(SQUOTE) $(COMMA) $(LCRT) $(RCRT) $(PERIOD) $(QUESTION) $(FSLASH) $(TILDE) $(BTICK)
+str.pad.recurse = $(if $(strip $(1)),$(call str.pad.recurse,$(filter-out $(firstword $(1)),$(1)),$(2),$(subst $(firstword $(1)),$(2),$(3))),$(3))
+str.pad.clear_if_eq = $(if $(subst $(2),,$(1)),$(1),)
+str.rpad = $(if $(1),$(1)$(subst .,$(SPACE),$(call str.pad.clear_if_eq,$(2:$(call str.pad.recurse,$(str.pad.subst),.,$(subst %,.,$(subst $(SPACE),.,$(1))))%=%),$(2))),$(subst .,$(SPACE),$(2)))
+str.lpad = $(if $(1),$(subst .,$(SPACE),$(call str.pad.clear_if_eq,$(2:$(call str.pad.recurse,$(str.pad.subst),.,$(subst %,.,$(subst $(SPACE),.,$(1))))%=%),$(2)))$(1),$(subst .,$(SPACE),$(2)))
+
+
+
+#-----------------------------------------------------------
+# newlist = $(call list.map,function,list)
+#-----------------------------------------------------------
+# Applies the function to each element of the (space-separated) list
+#
+# Source: https://www.gnu.org/software/make/manual/html_node/Call-Function.html
+#-----------------------------------------------------------
+
+list.map = $(foreach a,$(2),$(call $(1),$(a)))
+
+
+
+#-----------------------------------------------------------
+# str = $(call list.foreach.pair,name1,list1,name2,list2,expr,[sep])
 #-----------------------------------------------------------
 # Same as foreach, but iterates over two lists simultaneously.
 # Returns a copy of expr for each pair of items in list1, list2.
@@ -202,78 +243,34 @@ str.indent.byline = $(1)$(subst $$(str.indent.byline.lf),,$(subst $$(str.indent.
 #   list2 = 1 2 3
 #   expr = $$(item1)$$(item2)
 #   sep = $(SPACE)
-#   list3 = $(call foreach_pair,item1,$(list1),item2,$(list2),$(expr),$(sep))
+#   list3 = $(call list.foreach.pair,item1,$(list1),item2,$(list2),$(expr),$(sep))
 #         = a1 b2 c3
 #-----------------------------------------------------------
 
-foreach_pair = $(subst $(POUND),,$(subst $(POUND)$(SPACE),$(6),$(foreach __pair,$(join $(addsuffix $(POUND),$(2)),$(4)),$(subst $$($(1)),$(firstword $(subst $(POUND),$(SPACE),$(__pair))),$(subst $$($(3)),$(lastword $(subst $(POUND),$(SPACE),$(__pair))),$(5)))$(POUND))))
-
-
-#-----------------------------------------------------------
-# padded_str = $(call rpad,str,col)
-# padded_str = $(call lpad,str,col)
-#-----------------------------------------------------------
-# Pads str with whitespace so the total length is the same as col.
-# Col is a sequence of "." to specify the column width.
-#
-# Example:
-#   col := ..............................
-#   str := Some Text
-#   $(info [$(col)])                        [..............................]
-#   $(info [$(str)])                        [Some Text]
-#   $(info [$(call rpad,$(str),$(col))])    [Some Text                     ]
-#   $(info [$(call lpad,$(str),$(col))])    [                     Some Text]
-#-----------------------------------------------------------
-
-__pad_subst := $(LOWERCASE) $(UPPERCASE) $(DIGITS) $(EXC) $(AT) $(POUND) $(DOLLAR) $(UCRT) $(AMPERSAND) $(AST) $(OPAREN) $(CPAREN) - _ + $(EQUAL) [ ] { } $(PIPE) $(BSLASH) $(COLON) $(SEMICOLON) $(DQUOTE) $(SQUOTE) $(COMMA) $(LCRT) $(RCRT) $(PERIOD) $(QUESTION) $(FSLASH) $(TILDE) $(BTICK)
-__pad_recurse = $(if $(strip $(1)),$(call __pad_recurse,$(filter-out $(firstword $(1)),$(1)),$(2),$(subst $(firstword $(1)),$(2),$(3))),$(3))
-__pad_clear_if_eq = $(if $(subst $(2),,$(1)),$(1),)
-rpad = $(if $(1),$(1)$(subst .,$(SPACE),$(call __pad_clear_if_eq,$(2:$(call __pad_recurse,$(__pad_subst),.,$(subst %,.,$(subst $(SPACE),.,$(1))))%=%),$(2))),$(subst .,$(SPACE),$(2)))
-lpad = $(if $(1),$(subst .,$(SPACE),$(call __pad_clear_if_eq,$(2:$(call __pad_recurse,$(__pad_subst),.,$(subst %,.,$(subst $(SPACE),.,$(1))))%=%),$(2)))$(1),$(subst .,$(SPACE),$(2)))
+list.foreach.pair = $(subst $(POUND),,$(subst $(POUND)$(SPACE),$(6),$(foreach __pair,$(join $(addsuffix $(POUND),$(2)),$(4)),$(subst $$($(1)),$(firstword $(subst $(POUND),$(SPACE),$(__pair))),$(subst $$($(3)),$(lastword $(subst $(POUND),$(SPACE),$(__pair))),$(5)))$(POUND))))
 
 
 
 #-----------------------------------------------------------
-# filepath = $(call pathsearch,filename)
-#-----------------------------------------------------------
-# Finds the first instance of a file in PATH
-#
-# Source: https://www.gnu.org/software/make/manual/html_node/Call-Function.html
-#-----------------------------------------------------------
-
-sep.list ?= :
-pathsearch = $(firstword $(wildcard $(addsuffix /$(1),$(subst $(sep.list), ,$(PATH)))))
-
-
-
-#-----------------------------------------------------------
-# newlist = $(call map,function,list)
-#-----------------------------------------------------------
-# Applies the function to each element of the (space-separated) list
-#
-# Source: https://www.gnu.org/software/make/manual/html_node/Call-Function.html
-#-----------------------------------------------------------
-
-map = $(foreach a,$(2),$(call $(1),$(a)))
-
-
-
-#-----------------------------------------------------------
-# str = $(call concat,sep,list)
+# str = $(call list.concat,sep,list)
 #-----------------------------------------------------------
 # Concatentates a (space-separated) list of strings with the given separator.
 #-----------------------------------------------------------
 
-concat = $(subst $(SPACE),$(1),$(strip $(2)))
+list.concat = $(subst $(SPACE),$(1),$(strip $(2)))
+
 
 
 #-----------------------------------------------------------
-# str = $(call concatargs,sep,[str1],[str2],...)
+# str = $(call str.concat,[sep],[str1],[str2],...)
+# str = $(call str.concat.pair,[sep],[str1],[str2])
 #-----------------------------------------------------------
 # Concatentates each string argument with the given separator.
+# Empty strings are skipped and no separator is included for them.
 #-----------------------------------------------------------
 
-concatargs = $(2)$(if $(3),$(1)$(3))$(if $(4),$(1)$(4))$(if $(5),$(1)$(5))$(if $(6),$(1)$(6))$(if $(7),$(1)$(7))$(if $(8),$(1)$(8))$(if $(9),$(1)$(9))
+str.concat.pair = $(if $(and $(2),$(3)),$(2)$(1)$(3),$(or $(2),$(3)))
+str.concat = $(if $(or $(3),$(4),$(5),$(6),$(7),$(8),$(9)),$(call str.concat.pair,$(1),$(2),$(call str.concat,$(1),$(3),$(4),$(5),$(6),$(7),$(8),$(9))),$(2))
 
 
 
@@ -295,18 +292,6 @@ concatargs = $(2)$(if $(3),$(1)$(3))$(if $(4),$(1)$(4))$(if $(5),$(1)$(5))$(if $
 #-----------------------------------------------------------
 
 variable.set_with_alternatives = $(eval $(strip $(1)) $(strip $(2)) $(if $(or $(3),$(strip $(4)),$(5)),$$(or $(if $(3),$(3)$(COMMA))$(subst $(SPACE),$(COMMA),$(foreach var,$(strip $(4)),$$($(var))))$(if $(5),$(COMMA)$(5)))))
-
-
-
-#-----------------------------------------------------------
-# mkpath = $(call mkpath,list)
-#-----------------------------------------------------------
-# Concatenates a list of path segments into a single path.
-# Corrects / and \ to $(sep.path) in the final result.
-#-----------------------------------------------------------
-
-sep.path ?= /
-mkpath = $(subst /,$(sep.path),$(subst $(BSLASH),$(sep.path),$(call concat,$(sep.path),$(1),$(2),$(3),$(4),$(5),$(6),$(7),$(8))))
 
 
 
@@ -342,14 +327,40 @@ mkpath = $(subst /,$(sep.path),$(subst $(BSLASH),$(sep.path),$(call concat,$(sep
 #     $$(LF)
 #-----------------------------------------------------------
 
-
-
-
 pretarget.define = $(eval $(subst $(LF)$(SPACE),$(LF),$(LF)\
 	.PHONY: $(strip $(1)).pre$(LF)\
 	$(strip $(2)): | $(strip $(1)).pre$(LF)\
 	$(strip $(1)).pre:$(LF)\
 	$(call str.indent.byline,$(TAB),$(3))$(LF)\
 ))
+
+
+
+
+
+#-----------------------------------------------------------
+# n = $(call int.increment,{num})
+#-----------------------------------------------------------
+# Increments a positive integer by 1.
+# $(EMPTY) is treated as 0; $(EMPTY)+1=1
+#-----------------------------------------------------------
+
+# $(EMPTY)-->1, 0-->1, 1-->2, ... 9-->0
+digit.increment = $(word 1$(1),1 z z z z z z z z 1 2 3 4 5 6 7 8 9 0)
+
+# 1234 --> .1.2.3.4,  $(EMPTY)-->$(EMPTY)
+int.split_digits = $(subst 9,.9,$(subst 8,.8,$(subst 7,.7,$(subst 6,.6,$(subst 5,.5,$(subst 4,.4,$(subst 3,.3,$(subst 2,.2,$(subst 1,.1,$(subst 0,.0,$(1)))))))))))
+
+# up to last digit: $(1:%$(suffix $(1))=%)
+#  only last digit: $(subst .,,$(suffix $(1)))
+# Recursive method:
+# $(if lastdigit != 9, keep(firstdigits), increment(firstdigits))increment(lastdigit))
+# --> $(if $(1:%9=),,carry).increment
+int.increment.recurse = $(if $(if $(1),$(1:%9=),0),$(1:%$(suffix $(1))=%),$(call int.increment.recurse,$(1:%$(suffix $(1))=%))).$(call digit.increment,$(subst .,,$(suffix $(1))))
+
+# $(EMPTY)-->1, 0-->1, 1-->2, ... 9-->10, ...
+int.increment = $(subst .,,$(call int.increment.recurse,$(call int.split_digits,$(strip $(1)))))
+
+
 
 

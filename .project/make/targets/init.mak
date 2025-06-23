@@ -164,13 +164,13 @@ init.create: $(init.create.prereqs.normal) | $(init.create.prereqs.orderonly)
 	  $(call str.expand,$(foreach path,$($@.dirs),$$(call shell.mkdir,$(path))$$(LF)))\
 	)
 	@$(if $($@.dirs),$(if $($@.dirs.perms),\
-	  $(call str.expand,$(call foreach_pair,path,$($@.dirs),perm,$($@.dirs.perms),$$(call shell.chmod,,$$(perm),$$(path)),$$(LF)))\
+	  $(call str.expand,$(call list.foreach.pair,path,$($@.dirs),perm,$($@.dirs.perms),$$(call shell.chmod,,$$(perm),$$(path)),$$(LF)))\
 	))
 	@$(if $($@.files),\
 	  $(call str.expand,$(foreach path,$($@.files),$$(call shell.touch,$(path))$$(LF)))\
 	)
 	@$(if $($@.files),$(if $($@.files.perms),\
-	  $(call str.expand,$(call foreach_pair,path,$($@.files),perm,$($@.files.perms),$$(call shell.chmod,,$$(perm),$$(path)),$$(LF)))\
+	  $(call str.expand,$(call list.foreach.pair,path,$($@.files),perm,$($@.files.perms),$$(call shell.chmod,,$$(perm),$$(path)),$$(LF)))\
 	))
 
 

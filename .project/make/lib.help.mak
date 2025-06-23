@@ -93,7 +93,7 @@ help:
 	$(info )
 	$(info Targets:)
 	$(foreach tgt,$(sort $(help.targets)),$(if $($(tgt).shortdesc),\
-	  $(info $(INDENT)$(call rpad,$(patsubst help.%,%,$(tgt)),$(help.colwidth)) $($(tgt).shortdesc))\
+	  $(info $(INDENT)$(call str.rpad,$(patsubst help.%,%,$(tgt)),$(help.colwidth)) $($(tgt).shortdesc))\
 	))
 	$(info )
 
@@ -136,12 +136,12 @@ help.%:
 	  $(if $($@.variables),\
 	    $(info )\
 	    $(if $(findstring true,$(expand)),\
-	      $(info $(call rpad,Variables:,....................) Values expanded recursively.)\
+	      $(info $(call str.rpad,Variables:,....................) Values expanded recursively.)\
 	      $(info )\
 	      $(foreach varn,$(sort $($@.variables)),\
 	        $(info $(INDENT)$(varn)=[$($(varn))])\
 	      ),\
-	      $(info $(call rpad,Variables:,....................) Expand values by rerunning with "expand=true".)\
+	      $(info $(call str.rpad,Variables:,....................) Expand values by rerunning with "expand=true".)\
 	      $(info )\
 	      $(foreach varn,$(sort $($@.variables)),\
 	        $(info $(INDENT)$(varn)=[$(value $(varn))])\
@@ -150,11 +150,11 @@ help.%:
 	  )\
 	  $(if $(strip $(foreach tgt,$(filter-out $@,$(help.targets)),$(if $(findstring $(patsubst help.%,%,$@),$(tgt)),$(tgt)))),\
 	    $(info )\
-	    $(info $(call rpad,Related Targets:,....................) For more info$(COMMA) run "make help.[target]".)\
+	    $(info $(call str.rpad,Related Targets:,....................) For more info$(COMMA) run "make help.[target]".)\
 	    $(info )\
 	    $(foreach tgt,$(sort $(filter-out $@,$(help.targets))),\
 	      $(if $(findstring $(patsubst help.%,%,$@),$(tgt)),\
-	        $(info $(INDENT)$(call rpad,$(patsubst help.%,%,$(tgt)),$(help.colwidth)) $($(tgt).shortdesc))\
+	        $(info $(INDENT)$(call str.rpad,$(patsubst help.%,%,$(tgt)),$(help.colwidth)) $($(tgt).shortdesc))\
 	      )\
 	    )\
 	  )\
