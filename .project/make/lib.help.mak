@@ -1,5 +1,5 @@
 #===============================================================================
-# lib.help.mak
+# help.mak
 #===============================================================================
 #
 # Functions for dynamically adding help text to make targets.
@@ -13,12 +13,13 @@
 #
 #	Define help text for a target:
 #
-#		$(call lib.help.targets.define,target,\
-#		  Short description text,\
-#		  Optional extended$(LF)\
-#		  multiline description text$(LF)\
-#		  ,\
-#		  list of related variables
+#		$(call help.targets.define,target,\
+#			Short Description
+#			,\
+#			Optional extended$(LF)\
+#			multiline description text$(LF)\
+#			,\
+#			list of related variables
 #		)
 #
 #	View help text:
@@ -32,12 +33,12 @@ $(if $(filter-out $(notdir $(MAKEFILE_LIST)), lib.mak ),$(error Makefile $(lastw
 
 
 #-----------------------------------------------------------
-# $(call lib.help.targets.define,target,\
-#   Short description text,\
-#   Optional extended$(LF)\
-#   multiline description text$(LF)\
-#   ,\
-#   list of related variables
+# $(call help.targets.define,target,\
+# 	Short description text,\
+# 	Optional extended$(LF)\
+# 	multiline description text$(LF)\
+# 	,\
+# 	list of related variables
 # )
 #-----------------------------------------------------------
 # Stores usage info and help text for the given target.
@@ -49,16 +50,20 @@ $(if $(filter-out $(notdir $(MAKEFILE_LIST)), lib.mak ),$(error Makefile $(lastw
 # In any argument except 1, the literal string $@ is substituted
 #   with the name of the target $(1).
 # Since literal '$' must be escaped, must type "$$@".
+#
+# Other variables can be referenced as well, but also they must be $$(escaped).
 #-----------------------------------------------------------
 
-define lib.help.targets.define
-lib.help.targets += help.$(strip $(1))
-help.$(strip $(1)).shortdesc := $(subst $$@,$(strip $(1)),$(strip $(2)))
-define help.$(strip $(1)).longdesc
-$(subst $$@,$(strip $(1)),$(3))
-endef
-help.$(strip $(1)).variables := $(subst $$@,$(strip $(1)),$(strip $(4)))
-endef
+help.targets.define = $(eval $(subst $(LF)$(SPACE),$(LF),$(LF)\
+	help.targets += help.$(strip $(1))$(LF)\
+	$(subst $$@,$(strip $(1)),$(LF)\
+		help.$(strip $(1)).shortdesc := $(strip $(2))$(LF)\
+		help.$(strip $(1)).longdesc := $(strip $(subst $$(LF)$(SPACE),$$(LF),$(subst $(LF),$$(LF),$(3))))$(LF)\
+		help.$(strip $(1)).variables := $(strip $(4))$(LF)\
+	)$(LF)\
+))
+
+
 
 
 #-----------------------------------------------------------
@@ -66,17 +71,17 @@ endef
 #-----------------------------------------------------------
 
 # Global Variables
-lib.help.colwidth := ........................
-lib.help.targets ?=
+help.colwidth := ........................
+help.targets ?=
 
 # Help Text (make help.help)
-$(eval $(call lib.help.targets.define,help,\
-  Prints the top-level Make targets available in this project,\
-  Targets can define help text using the "lib.help.targets.define" macro.$(LF)\
-  See "functions.mak" for more information.$(LF)\
-  ,\
-  lib.help.targets\
-))
+$(call help.targets.define,help,\
+	Prints the top-level Make targets available in this project,\
+	Targets can define help text using the "help.targets.define" macro.$(LF)\
+	See "lib.help.mak" for more information.$(LF)\
+	,\
+	help.targets\
+)
 
 # Target Definition
 .PHONY: help
@@ -87,8 +92,8 @@ help:
 	$(info $(INDENT)make [target] [variable=value])
 	$(info )
 	$(info Targets:)
-	$(foreach tgt,$(sort $(lib.help.targets)),$(if $($(tgt).shortdesc),\
-	  $(info $(INDENT)$(call rpad,$(patsubst help.%,%,$(tgt)),$(lib.help.colwidth)) $($(tgt).shortdesc))\
+	$(foreach tgt,$(sort $(help.targets)),$(if $($(tgt).shortdesc),\
+	  $(info $(INDENT)$(call rpad,$(patsubst help.%,%,$(tgt)),$(help.colwidth)) $($(tgt).shortdesc))\
 	))
 	$(info )
 
@@ -101,11 +106,21 @@ help:
 # Global Variables
 expand ?= false
 
+# Help Text (make help.[target])
+$(call help.targets.define,help.[target],\
+	Prints detailed info about [target],\
+	Targets can define help text using the "help.targets.define" macro.$(LF)\
+	See "lib.help.mak" for more information.$(LF)\
+	,\
+	help.targets\
+	expand\
+)
+
 # Target Definition
 .PHONY: help.%
 help.%:
 	@$(call shell.nop)
-	$(if $(filter $@,$(lib.help.targets)),\
+	$(if $(filter $@,$(help.targets)),\
 	  $(info )\
 	  $(info Usage:)\
 	  $(info )\
@@ -116,7 +131,7 @@ help.%:
 	  )\
 	  $(if $($@.longdesc),\
 	    $(info )\
-	    $(info $(SPACE)$(subst $(LF)$(SPACE),$(LF)$(INDENT),$($@.longdesc)))\
+	    $(info $(INDENT)$(subst $(LF),$(LF)$(INDENT),$($@.longdesc)))\
 	  )\
 	  $(if $($@.variables),\
 	    $(info )\
@@ -133,13 +148,13 @@ help.%:
 	      )\
 		)\
 	  )\
-	  $(if $(strip $(foreach tgt,$(filter-out $@,$(lib.help.targets)),$(if $(findstring $(patsubst help.%,%,$@),$(tgt)),$(tgt)))),\
+	  $(if $(strip $(foreach tgt,$(filter-out $@,$(help.targets)),$(if $(findstring $(patsubst help.%,%,$@),$(tgt)),$(tgt)))),\
 	    $(info )\
 	    $(info $(call rpad,Related Targets:,....................) For more info$(COMMA) run "make help.[target]".)\
 	    $(info )\
-	    $(foreach tgt,$(sort $(filter-out $@,$(lib.help.targets))),\
+	    $(foreach tgt,$(sort $(filter-out $@,$(help.targets))),\
 	      $(if $(findstring $(patsubst help.%,%,$@),$(tgt)),\
-	        $(info $(INDENT)$(call rpad,$(patsubst help.%,%,$(tgt)),$(lib.help.colwidth)) $($(tgt).shortdesc))\
+	        $(info $(INDENT)$(call rpad,$(patsubst help.%,%,$(tgt)),$(help.colwidth)) $($(tgt).shortdesc))\
 	      )\
 	    )\
 	  )\

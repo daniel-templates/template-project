@@ -44,23 +44,24 @@
 # Help Text
 #   Info printed with "make help" or "make help.TARGET"
 #
-# $(eval $(call lib.help.targets.define,TARGET,\
-#   Short Description,\
-#   Long Multiline$(LF)\
-#   description$(LF)\
-#   ,\
-#   $$@.prereqs.normal\
-#   $$@.prereqs.orderonly\
-#   OTHER CONSUMED VARIABLES\
-# ))
+# $(call help.targets.define,TARGET,\
+# 	Short Description\
+# 	,\
+# 	Long Multiline$(LF)\
+# 	description$(LF)\
+# 	,\
+# 	$$@.prereqs.normal\
+# 	$$@.prereqs.orderonly\
+# 	OTHER CONSUMED VARIABLES\
+# )
 #
 # Pretarget
 #   Runs exactly once before any number of prereqs
 #
-# $(eval $(call target.add_pretarget,TARGET,$(TARGET.prereqs),\
-# 	$$(call print.trace,make $$(basename $$@))$$(LF)\
-# 	[COMMANDS]$$(LF)\
-# ))
+# $(call pretarget.define,TARGET,$(TARGET.prereqs),\
+# 	$$(call print.trace,make $$(basename $$@))$(LF)\
+# 	[OTHER COMMANDS]$(LF)\
+# )
 #
 # Target Definition
 #
@@ -87,29 +88,29 @@ install.prereqs.orderonly ?= help.install
 install.prereqs = $(install.prereqs.normal) $(install.prereqs.orderonly)
 
 # Help Text
-$(eval $(call lib.help.targets.define,install, \
-  Install build artifacts to the local system,\
-  $(LF)\
-  Projects can extend the behavior of this (or related) targets$(LF)\
-  through two methods:$(LF)\
-  $(LF)\
-  1: Define new targets and append them as prereqs;$(LF)\
-  $(INDENT) In config.mak$(COMMA) add the lines:$(LF)\
-  $(LF)\
-  $(INDENT)$(INDENT) $$@.prereqs.normal = TARGETS$(LF)\
-  $(INDENT)$(INDENT) $$@.prereqs.orderonly = TARGETS$(LF)\
-  $(LF)\
-  2: Leverage existing targets by overriding their variables.$(LF)\
-  $(INDENT) See Related Targets below.$(LF)\
-  ,\
-  $$@.prereqs.normal\
-  $$@.prereqs.orderonly\
-))
+$(call help.targets.define,install, \
+	Install build artifacts to the local system\
+	,\
+	Projects can extend the behavior of this (or related) targets$(LF)\
+	through two methods:$(LF)\
+	$(LF)\
+	1: Define new targets and append them as prereqs;$(LF)\
+	$$(INDENT) In config.mak$$(COMMA) add the lines:$(LF)\
+	$(LF)\
+	$$(INDENT)$$(INDENT) $$@.prereqs.normal = TARGETS$(LF)\
+	$$(INDENT)$$(INDENT) $$@.prereqs.orderonly = TARGETS$(LF)\
+	$(LF)\
+	2: Leverage existing targets by overriding their variables.$(LF)\
+	$$(INDENT) See Related Targets below.$(LF)\
+	,\
+	$$@.prereqs.normal\
+	$$@.prereqs.orderonly\
+)
 
 # Pretarget; runs exactly once before any number of prereqs
-$(eval $(call target.add_pretarget,install,$(install.prereqs),\
-	$$(call print.trace,make $$(basename $$@))$$(LF)\
-))
+$(call pretarget.define,install,$(install.prereqs),\
+	$$(call print.trace,make $$(basename $$@))$(LF)\
+)
 
 # Target Definition
 .PHONY: install

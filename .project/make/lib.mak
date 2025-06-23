@@ -62,6 +62,7 @@ LOWERCASE := a b c d e f g h i j k l m n o p q r s t u v w x y z
 UPPERCASE := A B C D E F G H I J K L M N O P Q R S T U V W X Y Z
 DIGITS := 0 1 2 3 4 5 6 7 8 9
 
+
 # Indentation preferences
 INDENT := $(SPACE)$(SPACE)
 INDENT.COMMAND := $(INDENT)$(DOLLAR)$(DOLLAR)$(SPACE)
@@ -153,17 +154,35 @@ print.trace = $(if $(findstring $(print.trace.enable),true),$(info $(LF)======= 
 
 
 #-----------------------------------------------------------
-# expanded_str = $(call expand,expr)
+# str = $(call str.expand,{expr})
 #-----------------------------------------------------------
 # Performs an additional $-expansion on a string.
 #
 # Example:
 #   expr := $$(call ...)                   expr contains a single literal '$'
-#   expr2 := $(call expand,$(expr))        expr2 contains the result of $(call ...)
+#   expr2 := $(call str.expand,$(expr))        expr2 contains the result of $(call ...)
 #-----------------------------------------------------------
 
-expand = $(eval __expand := $(1))$(__expand)$(eval __expand :=)
+str.expand = $(eval str.expand.tmp := $(1))$(str.expand.tmp)$(eval str.expand.tmp :=)
 
+
+
+#-----------------------------------------------------------
+# str = $(call str.indent.byline,{indentation},{multiline_value})
+#-----------------------------------------------------------
+# Calls $(strip) on each line to remove leading/trailing whitespace,
+# then prefixes each (nonempty) line with {indentation}.
+#
+# WARNING:
+#   The $(strip) operation removes consecutive whitespace from
+#   the middle of the string! Escape important whitespace with:
+#     $$(SPACE)
+#     $$(TAB)
+#     $$(LF)
+#-----------------------------------------------------------
+
+str.indent.byline.lf := $(LF)
+str.indent.byline = $(1)$(subst $$(str.indent.byline.lf),,$(subst $$(str.indent.byline.lf)$(SPACE),$(LF)$(1),$(strip $(subst $(LF)$(SPACE),$$(str.indent.byline.lf)$(SPACE),$(2)))))
 
 #-----------------------------------------------------------
 # str = $(call foreach_pair,name1,list1,name2,list2,expr,[sep])
@@ -292,9 +311,9 @@ mkpath = $(subst /,$(sep.path),$(subst $(BSLASH),$(sep.path),$(call concat,$(sep
 
 
 #-----------------------------------------------------------
-# $(eval $(call target.add_pretarget,target,LIST_OF_PREREQS SPACE SEPARATED,
-# 	COMMANDS$$(LF)\
-# ))
+# $(call pretarget.define,{target},{list of prereqs},\
+# 	COMMANDS$(LF)\
+# )
 #-----------------------------------------------------------
 # Defines a pretarget which runs exactly once before any of
 # target's prerequisites.
@@ -304,20 +323,33 @@ mkpath = $(subst /,$(sep.path),$(subst $(BSLASH),$(sep.path),$(call concat,$(sep
 # along with the list of its prereqs.
 #
 # Command formatting requirements:
-#	Each line should begin with tab.
-#	All $ must be escaped as $$.
-#	Each line should end with $$(LF)\
+#	Variables which should be evaluated at runtime should be escaped;
+#	 instead of $(VAR), use $$(VAR).
+#	 instead of $@, use $$@.
+#
+#	Each line should end with $(LF)\
+#	Recipe line indentation is corrected automatically.
 #
 # Quick reference:
 #	$$(basename $$@)	Name of target this pretarget belongs to
 #	$$^					List of prerequisites
+#
+# WARNING:
+#   Consecutive whitespace chars collapsed to a single space!
+#   Replace important whitespace with:
+#     $$(SPACE)
+#     $$(TAB)
+#     $$(LF)
 #-----------------------------------------------------------
 
-define target.add_pretarget
-.PHONY: $(strip $(1)).pre
-$(strip $(2)): | $(strip $(1)).pre
-$(strip $(1)).pre:
-	$(subst $$(LF)$(SPACE),$(LF)$(TAB),$(strip $(3)))
-endef
+
+
+
+pretarget.define = $(eval $(subst $(LF)$(SPACE),$(LF),$(LF)\
+	.PHONY: $(strip $(1)).pre$(LF)\
+	$(strip $(2)): | $(strip $(1)).pre$(LF)\
+	$(strip $(1)).pre:$(LF)\
+	$(call str.indent.byline,$(TAB),$(3))$(LF)\
+))
 
 

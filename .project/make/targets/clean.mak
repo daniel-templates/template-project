@@ -44,23 +44,24 @@
 # Help Text
 #   Info printed with "make help" or "make help.TARGET"
 #
-# $(eval $(call lib.help.targets.define,TARGET,\
-#   Short Description,\
-#   Long Multiline$(LF)\
-#   description$(LF)\
-#   ,\
-#   $$@.prereqs.normal\
-#   $$@.prereqs.orderonly\
-#   OTHER CONSUMED VARIABLES\
-# ))
+# $(call help.targets.define,TARGET,\
+# 	Short Description\
+# 	,\
+# 	Long Multiline$(LF)\
+# 	description$(LF)\
+# 	,\
+# 	$$@.prereqs.normal\
+# 	$$@.prereqs.orderonly\
+# 	OTHER CONSUMED VARIABLES\
+# )
 #
 # Pretarget
 #   Runs exactly once before any number of prereqs
 #
-# $(eval $(call target.add_pretarget,TARGET,$(TARGET.prereqs),\
-# 	$$(call print.trace,make $$(basename $$@))$$(LF)\
-# 	[COMMANDS]$$(LF)\
-# ))
+# $(call pretarget.define,TARGET,$(TARGET.prereqs),\
+# 	$$(call print.trace,make $$(basename $$@))$(LF)\
+# 	[OTHER COMMANDS]$(LF)\
+# )
 #
 # Target Definition
 #
@@ -88,32 +89,32 @@ clean.prereqs.orderonly ?= help.clean
 clean.prereqs = $(clean.prereqs.normal) $(clean.prereqs.orderonly)
 
 # Help Text
-$(eval $(call lib.help.targets.define,clean,\
-  Resets this project's development environment,\
-  $(LF)\
-  Projects can extend the behavior of this (or related) targets$(LF)\
-  through two methods:$(LF)\
-  $(LF)\
-  Projects can extend the behavior of this (or related) targets$(LF)\
-  through two methods:$(LF)\
-  $(LF)\
-  1: Define new targets and append them as prereqs;$(LF)\
-  $(INDENT) In config.mak$(COMMA) add the lines:$(LF)\
-  $(LF)\
-  $(INDENT)$(INDENT) $$@.prereqs.normal = TARGETS$(LF)\
-  $(INDENT)$(INDENT) $$@.prereqs.orderonly = TARGETS$(LF)\
-  $(LF)\
-  2: Leverage existing targets by overriding their variables.$(LF)\
-  $(INDENT) See Related Targets below.$(LF)\
-  ,\
-  $$@.prereqs.normal\
-  $$@.prereqs.orderonly\
-))
+$(call help.targets.define,clean,\
+	Resets this project's development environment\
+	,\
+	Projects can extend the behavior of this (or related) targets$(LF)\
+	through two methods:$(LF)\
+	$(LF)\
+	Projects can extend the behavior of this (or related) targets$(LF)\
+	through two methods:$(LF)\
+	$(LF)\
+	1: Define new targets and append them as prereqs;$(LF)\
+	$$(INDENT) In config.mak$$(COMMA) add the lines:$(LF)\
+	$(LF)\
+	$$(INDENT)$$(INDENT) $$@.prereqs.normal = TARGETS$(LF)\
+	$$(INDENT)$$(INDENT) $$@.prereqs.orderonly = TARGETS$(LF)\
+	$(LF)\
+	2: Leverage existing targets by overriding their variables.$(LF)\
+	$$(INDENT) See Related Targets below.$(LF)\
+	,\
+	$$@.prereqs.normal\
+	$$@.prereqs.orderonly\
+)
 
 # Pretarget; runs exactly once before any number of prereqs
-$(eval $(call target.add_pretarget,clean,$(clean.prereqs),\
-	$$(call print.trace,make $$(basename $$@))$$(LF)\
-))
+$(call pretarget.define,clean,$(clean.prereqs),\
+	$$(call print.trace,make $$(basename $$@))$(LF)\
+)
 
 # Definition
 .PHONY: clean
@@ -134,16 +135,17 @@ clean.remove.files ?=
 clean.remove.dirs ?=
 
 # Help text
-$(eval $(call lib.help.targets.define,clean.remove.dirs,\
-$(EMPTY),\
-  Removes each file in $$$$($$@.files).$(LF)\
-  Removes each directory in $$$$($$@.dirs).$(LF)\
-  ,\
-  $$@.prereqs.normal\
-  $$@.prereqs.orderonly\
-  $$@.files\
-  $$@.dirs\
-))
+$(call help.targets.define,clean.remove.dirs,\
+	$(EMPTY)\
+	,\
+	Removes each file in $$$$($$@.files).$(LF)\
+	Removes each directory in $$$$($$@.dirs).$(LF)\
+	,\
+	$$@.prereqs.normal\
+	$$@.prereqs.orderonly\
+	$$@.files\
+	$$@.dirs\
+)
 
 # Target Definition
 .PHONY: clean.remove

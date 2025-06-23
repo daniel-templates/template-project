@@ -26,18 +26,18 @@ $(if $(filter-out $(notdir $(MAKEFILE_LIST)), lib.mak ),$(error Makefile $(lastw
 #                         Typically already defined as an environment variable in Windows shells.
 #                         If undefined, is set to $(shell uname).
 #
-# $(OS.type)            Returns "windows" if OS is Windows; "unix" otherwise.
-# $(OS.type.windows)    Returns "windows" if OS is Windows; empty otherwise.
-# $(OS.type.unix)       Returns "unix" if OS is Unix-like; empty otherwise.
+# $(os.type)            Returns "windows" if OS is Windows; "unix" otherwise.
+# $(os.type.windows)    Returns "windows" if OS is Windows; empty otherwise.
+# $(os.type.unix)       Returns "unix" if OS is Unix-like; empty otherwise.
 #
-# $(OS.user.name)       Returns the current username.
-# $(OS.user.home)       Returns the current user's home directory.
-# $(OS.temp.root)       Returns the root path for temporary files.
-# $(OS.sep.path)        Returns the OS file path separator.
-# $(OS.sep.list)        Returns the OS list-of-multiple-paths separator.
-# $(OS.ext.exe)         Returns the OS file extension for executable binaries.
-# $(OS.ext.lib)         Returns the OS file extension for statically-linked libraries.
-# $(OS.ext.dll)         Returns the OS file extension for dynamically-linked libraries.
+# $(os.user.name)       Returns the current username.
+# $(os.user.home)       Returns the current user's home directory.
+# $(os.temp.root)       Returns the root path for temporary files.
+# $(os.sep.path)        Returns the OS file path separator.
+# $(os.sep.list)        Returns the OS list-of-multiple-paths separator.
+# $(os.ext.exe)         Returns the OS file extension for executable binaries.
+# $(os.ext.lib)         Returns the OS file extension for statically-linked libraries.
+# $(os.ext.dll)         Returns the OS file extension for dynamically-linked libraries.
 #===============================================================================
 
 ifndef OS
@@ -50,38 +50,38 @@ $(error CRITICAL: Environment variable OS undefined and 'uname' returned empty.)
 endif
 endif
 
-OS.type = $(or $(OS.type.windows),$(OS.type.unix),other)
-  OS.type.windows = $(if $(or $(findstring Windows,$(OS)),$(findstring MINGW,$(OS)),$(findstring MSYS,$(OS)),$(findstring CYGWIN,$(OS))),windows)
-  OS.type.unix = $(if $(OS.type.windows),,unix)
+os.type = $(or $(os.type.windows),$(os.type.unix),other)
+  os.type.windows = $(if $(or $(findstring Windows,$(OS)),$(findstring MINGW,$(OS)),$(findstring MSYS,$(OS)),$(findstring CYGWIN,$(OS))),windows)
+  os.type.unix = $(if $(os.type.windows),,unix)
 
-# OS.type variants are not intended to be used directly.
+# os.type variants are not intended to be used directly.
 # They may return incorrect results if not expanded on their target platform.
-OS.user.name = $(OS.user.name.$(OS.type))
-OS.user.home = $(OS.user.home.$(OS.type))
-OS.temp.root = $(OS.temp.root.$(OS.type))
-OS.sep.path = $(OS.sep.path.$(OS.type))
-OS.sep.list = $(OS.sep.list.$(OS.type))
-OS.ext.exe = $(OS.ext.exe.$(OS.type))
-OS.ext.lib = $(OS.ext.lib.$(OS.type))
-OS.ext.dll = $(OS.ext.dll.$(OS.type))
+os.user.name = $(os.user.name.$(os.type))
+os.user.home = $(os.user.home.$(os.type))
+os.temp.root = $(os.temp.root.$(os.type))
+os.sep.path = $(os.sep.path.$(os.type))
+os.sep.list = $(os.sep.list.$(os.type))
+os.ext.exe = $(os.ext.exe.$(os.type))
+os.ext.lib = $(os.ext.lib.$(os.type))
+os.ext.dll = $(os.ext.dll.$(os.type))
 
-  OS.user.name.windows = $(USERNAME)
-  OS.user.home.windows = $(USERPROFILE)
-  OS.temp.root.windows = $(or $(TEMP),$(TMP),$(OS.user.home.windows)\\AppData\\Local\\Temp)
-  OS.sep.path.windows := $(BSLASH)
-  OS.sep.list.windows := $(SEMICOLON)
-  OS.ext.exe.windows := .exe
-  OS.ext.lib.windows := .lib
-  OS.ext.dll.windows := .dll
+  os.user.name.windows = $(USERNAME)
+  os.user.home.windows = $(USERPROFILE)
+  os.temp.root.windows = $(or $(TEMP),$(TMP),$(os.user.home.windows)\\AppData\\Local\\Temp)
+  os.sep.path.windows := $(BSLASH)
+  os.sep.list.windows := $(SEMICOLON)
+  os.ext.exe.windows := .exe
+  os.ext.lib.windows := .lib
+  os.ext.dll.windows := .dll
 
-  OS.user.name.unix = $(USER)
-  OS.user.home.unix = $(HOME)
-  OS.temp.root.unix = $(or $(TMPDIR),$(TEMP),$(TMP),/var/tmp)
-  OS.sep.path.unix := $(FSLASH)
-  OS.sep.list.unix := $(COLON)
-  OS.ext.exe.unix :=
-  OS.ext.lib.unix := .a
-  OS.ext.dll.unix := .so
+  os.user.name.unix = $(USER)
+  os.user.home.unix = $(HOME)
+  os.temp.root.unix = $(or $(TMPDIR),$(TEMP),$(TMP),/var/tmp)
+  os.sep.path.unix := $(FSLASH)
+  os.sep.list.unix := $(COLON)
+  os.ext.exe.unix :=
+  os.ext.lib.unix := .a
+  os.ext.dll.unix := .so
 
 #===============================================================================
 # Shell Properties
@@ -91,7 +91,7 @@ OS.ext.dll = $(OS.ext.dll.$(OS.type))
 # Properties are intended to be read-only; their content is
 # dynamically derived from lower-level sources.
 #
-# SHELL                Top-level namespace for the active shell configuration.
+# shell                Top-level namespace for the active shell configuration.
 #	.name                Name of active shell.
 #	.type                Type of active shell.
 #	.path                Path to shell executable.
@@ -103,7 +103,7 @@ OS.ext.dll = $(OS.ext.dll.$(OS.type))
 #	.properties          List of properties in this namespace.
 #	.print               Returns empty. Prints values of all properties in this namespace.
 #
-# SHELL.names.{name}   Namespaces for each shell definition.
+# shell.names.{name}   Namespaces for each shell definition.
 #	.isactive            Returns $(TRUE.m) if this shell is currently active; empty otherwise.
 #	.type                Type associated with this shell definition.
 #	.path
@@ -116,7 +116,7 @@ OS.ext.dll = $(OS.ext.dll.$(OS.type))
 #	.print               Returns empty. Prints values of all properties in this namespace.
 #	.activate            Returns empty. Sets this shell configuration as active.
 #
-# SHELL.types.{name}   Namespaces for each shell type definition.
+# shell.types.{name}   Namespaces for each shell type definition.
 #	.isactive            Returns $(TRUE.m) if a shell of this type is currently active; empty otherwise.
 #	.path
 #	.flags
@@ -129,28 +129,28 @@ OS.ext.dll = $(OS.ext.dll.$(OS.type))
 #
 #===============================================================================
 
-SHELL.properties = name $(SHELL.names.properties)
-SHELL.names.properties = type $(SHELL.types.properties)
-SHELL.types.properties = isactive path flags aliases sep.path sep.list ext.script
+shell.properties = name $(shell.names.properties)
+shell.names.properties = type $(shell.types.properties)
+shell.types.properties = isactive path flags aliases sep.path sep.list ext.script
 
 
 
 #===============================================================================
-# SHELL.*
+# shell.*
 #===============================================================================
 # Top-level namespace for the active shell configuration.
 #
 # Each property points to the corresponding property in
 # the active shell's definition.
 #===============================================================================
-SHELL.name := default
-SHELL.print = $(call print.var,$(foreach prop,$(SHELL.properties),SHELL.$(prop)))
-$(foreach prop,$(filter-out name print,$(SHELL.properties)),$(eval SHELL.$(prop) = $$(SHELL.names.$$(SHELL.name).$(prop))))
+shell.name := default
+shell.print = $(call print.var,$(foreach prop,$(shell.properties),shell.$(prop)))
+$(foreach prop,$(filter-out name print,$(shell.properties)),$(eval shell.$(prop) = $$(shell.names.$$(shell.name).$(prop))))
 
 
 
 #===============================================================================
-# SHELL.names.*
+# shell.names.*
 #===============================================================================
 # Namespaces for each shell definition.
 #
@@ -164,57 +164,57 @@ $(foreach prop,$(filter-out name print,$(SHELL.properties)),$(eval SHELL.$(prop)
 #
 # Top-level properties are intended to be read-only, and are set automatically:
 #
-#	SHELL.names.{name}.{prop}
+#	shell.names.{name}.{prop}
 #
 # Each top-level property is its own namespace, and the property's value is
 # determined by the contents of its namespace, which are fully user-writeable:
 #
-#	SHELL.names.{name}.{prop}.*
+#	shell.names.{name}.{prop}.*
 #
 # Property value is assigned as the first non-empty string, in order:
 #
-#	1. SHELL.names.{name}.{prop}.{OS_name}    1st priority, if $(OS.name) matches
-#	2. SHELL.names.{name}.{prop}.{OS_type}    2nd priority, if $(OS.type) matches
-#	3. SHELL.names.{name}.{prop}.default      3rd priority
-#	4. SHELL.types.{type}.{prop}              4th priority
+#	1. shell.names.{name}.{prop}.{OS_name}    1st priority, if $(os.name) matches
+#	2. shell.names.{name}.{prop}.{OS_type}    2nd priority, if $(os.type) matches
+#	3. shell.names.{name}.{prop}.default      3rd priority
+#	4. shell.types.{type}.{prop}              4th priority
 #
 # User should define as many of 1,2,3 as are applicable to the shell configuration.
 #===============================================================================
 
 #-----------------------------------------------------------
-# $(call SHELL.names.define,{shell_name},{shell_type})
+# $(call shell.names.define,{shell_name},{shell_type})
 #-----------------------------------------------------------
-SHELL.names := $(EMPTY)
-define SHELL.names.define
-$(eval SHELL.names += $(1))
-$(eval SHELL.names.$(1).type := $(or $(2),$(error Empty shell_type in definition of '$(1)')))
-$(eval SHELL.names.$(1).isactive = $$(if $$(filter $(1),$$(SHELL.name)),$(TRUE.m),$(FALSE.m)))
-$(eval SHELL.names.$(1).print = $$(call print.var,$(foreach prop,$(SHELL.names.properties),SHELL.names.$(1).$(prop))))
-$(eval SHELL.names.$(1).activate = $$(if $$(SHELL.names.$(1).isactive),,$$(eval SHELL.name := $(1))$$(eval SHELL := $$(SHELL.path))$$(eval .SHELLFLAGS := $$(SHELL.flags))))
-$(foreach prop,$(filter-out type isactive print activate,$(SHELL.names.properties)),$(call variable.set_with_alternatives,SHELL.names.$(1).$(prop),?=,,  SHELL.names.$(1).$(prop).$$(OS.name)  SHELL.names.$(1).$(prop).$$(OS.type)  SHELL.names.$(1).$(prop).default  SHELL.types.$(2).$(prop)  ))
+shell.names := $(EMPTY)
+define shell.names.define
+$(eval shell.names += $(1))
+$(eval shell.names.$(1).type := $(or $(2),$(error Empty shell_type in definition of '$(1)')))
+$(eval shell.names.$(1).isactive = $$(if $$(filter $(1),$$(shell.name)),$(TRUE.m),$(FALSE.m)))
+$(eval shell.names.$(1).print = $$(call print.var,$(foreach prop,$(shell.names.properties),shell.names.$(1).$(prop))))
+$(eval shell.names.$(1).activate = $$(if $$(shell.names.$(1).isactive),,$$(eval shell.name := $(1))$$(eval SHELL := $$(shell.path))$$(eval .SHELLFLAGS := $$(shell.flags))))
+$(foreach prop,$(filter-out type isactive print activate,$(shell.names.properties)),$(call variable.set_with_alternatives,shell.names.$(1).$(prop),?=,,  shell.names.$(1).$(prop).$$(os.name)  shell.names.$(1).$(prop).$$(os.type)  shell.names.$(1).$(prop).default  shell.types.$(2).$(prop)  ))
 endef
 
 
 
 #-----------------------------------------------------------
-$(call SHELL.names.define,default,unknown)
+$(call shell.names.define,default,unknown)
 #-----------------------------------------------------------
 # Contains the original shell configuration that make was started with.
 #
 # Must be defined before $(SHELL) or $(.SHELLFLAGS) are modified.
-# SHELL.names.default has the unique property SHELL.default.identity,
-#  which searches SHELL.names.*.aliases for a matching executable,
+# shell.names.default has the unique property shell.default.identity,
+#  which searches shell.names.*.aliases for a matching executable,
 #  then returns the name of the match.
 #-----------------------------------------------------------
-SHELL.names.default.path := $(SHELL)
-SHELL.names.default.flags := $(.SHELLFLAGS)
-SHELL.names.default.identity = $(strip $(firstword $(foreach name,$(filter-out default,$(SHELL.names)),$(if $(filter $(SHELL.names.$(name).aliases),$(notdir $(lastword $(SHELL.names.default.path)))),$(name)))))
-$(foreach prop,$(filter-out path flags isactive,$(SHELL.names.properties)),$(eval SHELL.names.default.$(prop) = $$(SHELL.names.$$(SHELL.names.default.identity).$(prop))))
+shell.names.default.path := $(SHELL)
+shell.names.default.flags := $(.SHELLFLAGS)
+shell.names.default.identity = $(strip $(firstword $(foreach name,$(filter-out default,$(shell.names)),$(if $(filter $(shell.names.$(name).aliases),$(notdir $(lastword $(shell.names.default.path)))),$(name)))))
+$(foreach prop,$(filter-out path flags isactive,$(shell.names.properties)),$(eval shell.names.default.$(prop) = $$(shell.names.$$(shell.names.default.identity).$(prop))))
 
 
 
 #-----------------------------------------------------------
-$(call SHELL.names.define,bash,posix)
+$(call shell.names.define,bash,posix)
 #-----------------------------------------------------------
 # Common default shell on Linux-based systems.
 #
@@ -224,94 +224,95 @@ $(call SHELL.names.define,bash,posix)
 #	--posix            Improve compatibility with POSIX standard
 #	-e                 Exit immediately if any command line fails
 #	-o pipefail        Exit if any part of a piped | command fails
-#	-c                 Make appends the command line after this
+#	-c                 Run the final argument as a command
+#	--                 No more options; next arg is the command
 #-----------------------------------------------------------
-SHELL.names.bash.path.default := bash
-  SHELL.names.bash.path.windows := bash.exe
-  SHELL.names.bash.path.unix := bash
-SHELL.names.bash.flags.default := --noprofile --norc --posix -e -o pipefail -c
-SHELL.names.bash.aliases.default :=
-  SHELL.names.bash.aliases.windows := bash.exe git-bash.exe
-  SHELL.names.bash.aliases.unix := bash zsh fish
+shell.names.bash.path.default := bash
+  shell.names.bash.path.windows := bash.exe
+  shell.names.bash.path.unix := bash
+shell.names.bash.flags.default := --noprofile --norc --posix -eco pipefail --
+shell.names.bash.aliases.default :=
+  shell.names.bash.aliases.windows := bash.exe git-bash.exe
+  shell.names.bash.aliases.unix := bash zsh fish
 
 
 
 #-----------------------------------------------------------
-$(call SHELL.names.define,sh,posix)
+$(call shell.names.define,sh,posix)
 #-----------------------------------------------------------
 # Available on most POSIX-compliant systems, but rarely the default shell.
 #
 # This definition just defers to the defaults for posix-type shells.
-# See definion of SHELL.types.posix for details.
+# See definion of shell.types.posix for details.
 #-----------------------------------------------------------
 
 
 
 #-----------------------------------------------------------
-$(call SHELL.names.define,ash,posix)
+$(call shell.names.define,ash,posix)
 #-----------------------------------------------------------
 # Ash is the shell function of the busybox multitool.
 # Default shell in many small distros like Alpine Linux.
 #-----------------------------------------------------------
-SHELL.names.ash.path.default := busybox
-  SHELL.names.ash.path.unix := busybox
-    SHELL.names.ash.path.alpine := /bin/busybox
-SHELL.names.ash.flags.default :=
-SHELL.names.ash.aliases.default := ash busybox
+shell.names.ash.path.default := busybox
+  shell.names.ash.path.unix := busybox
+    shell.names.ash.path.alpine := /bin/busybox
+shell.names.ash.flags.default :=
+shell.names.ash.aliases.default := ash busybox
 
 
 
 #-----------------------------------------------------------
-$(call SHELL.names.define,cmd,cmd)
+$(call shell.names.define,cmd,cmd)
 #-----------------------------------------------------------
 # Default Windows command interpreter.
 #
 # This definition just defers to the defaults for cmd-type shells.
-# See definion of SHELL.types.cmd for details.
+# See definion of shell.types.cmd for details.
 #-----------------------------------------------------------
 
 
 
 #-----------------------------------------------------------
-$(call SHELL.names.define,powershell,powershell)
+$(call shell.names.define,powershell,powershell)
 # PowerShell is generally a better alternative to cmd.exe.
 #-----------------------------------------------------------
 # This definition just defers to the defaults for PowerShell-type shells.
-# See definion of SHELL.types.powershell for details.
+# See definion of shell.types.powershell for details.
 #-----------------------------------------------------------
 
 
 
 #-----------------------------------------------------------
-$(call SHELL.names.define,msys,posix)
+$(call shell.names.define,msys,posix)
 # MSYS is a POSIX-compliant shell for Windows.
 #-----------------------------------------------------------
-SHELL.names.msys.path.default :=
-SHELL.names.msys.flags.default :=
+shell.names.msys.path.default :=
+shell.names.msys.flags.default :=
 
 
 
 #-----------------------------------------------------------
-$(call SHELL.names.define,cygwin,posix)
+$(call shell.names.define,cygwin,posix)
 # Cygwin is a POSIX-compliant shell for Windows.
 #-----------------------------------------------------------
-SHELL.names.cygwin.path.default :=
-SHELL.names.cygwin.flags.default :=
+shell.names.cygwin.path.default :=
+shell.names.cygwin.flags.default :=
 
 
 
 #-----------------------------------------------------------
-$(call SHELL.names.define,python,python)
+$(call shell.names.define,python,python)
 # Run Python syntax directly from make recipes!
 #-----------------------------------------------------------
 # This definition just defers to the defaults for Python-type shells.
-# See definition of SHELL.types.python for details.
+# See definition of shell.types.python for details.
 #-----------------------------------------------------------
 
 
 
 #===============================================================================
-# SHELL.types.*
+# shell.types.*
 #===============================================================================
 # Namespaces for each shell type definition.
 #
@@ -325,51 +326,51 @@ $(call SHELL.names.define,python,python)
 #
 # Top-level properties are intended to be read-only, and are set automatically:
 #
-#	SHELL.types.{type}.{prop}
+#	shell.types.{type}.{prop}
 #
 # Each top-level property is its own namespace, and the property's value is
 # determined by the contents of its namespace, which are fully user-writeable:
 #
-#	SHELL.types.{type}.{prop}.*
+#	shell.types.{type}.{prop}.*
 #
 # Property value is assigned as the first non-empty string, in order:
 #
-#	1. SHELL.types.{type}.{prop}.{OS_name}    1st priority, if $(OS.name) matches
-#	2. SHELL.types.{type}.{prop}.{OS_type}    2nd priority, if $(OS.type) matches
-#	3. SHELL.types.{type}.{prop}.default      3rd priority
+#	1. shell.types.{type}.{prop}.{OS_name}    1st priority, if $(os.name) matches
+#	2. shell.types.{type}.{prop}.{OS_type}    2nd priority, if $(os.type) matches
+#	3. shell.types.{type}.{prop}.default      3rd priority
 #
 # User should define as many of 1,2,3 as are applicable to the shell configuration.
 #===============================================================================
 
 #-----------------------------------------------------------
-# $(call SHELL.types.define,{name})
+# $(call shell.types.define,{name})
 #-----------------------------------------------------------
-SHELL.types := $(EMPTY)
-define SHELL.types.define
-$(eval SHELL.types += $(1))
-$(eval SHELL.types.$(1).isactive = $$(if $$(filter $(1),$$(SHELL.type)),$(TRUE.m),$(FALSE.m)))
-$(eval SHELL.types.$(1).print = $$(call print.var,$(foreach prop,$(SHELL.types.properties),SHELL.types.$(1).$(prop))))
-$(foreach prop,$(filter-out isactive print,$(SHELL.types.properties)),$(call variable.set_with_alternatives,SHELL.types.$(1).$(prop),?=,,  SHELL.types.$(1).$(prop).$$(OS.name)  SHELL.types.$(1).$(prop).$$(OS.type)  SHELL.types.$(1).$(prop).default  SHELL.types.$(2).$(prop)  ))
+shell.types := $(EMPTY)
+define shell.types.define
+$(eval shell.types += $(1))
+$(eval shell.types.$(1).isactive = $$(if $$(filter $(1),$$(shell.type)),$(TRUE.m),$(FALSE.m)))
+$(eval shell.types.$(1).print = $$(call print.var,$(foreach prop,$(shell.types.properties),shell.types.$(1).$(prop))))
+$(foreach prop,$(filter-out isactive print,$(shell.types.properties)),$(call variable.set_with_alternatives,shell.types.$(1).$(prop),?=,,  shell.types.$(1).$(prop).$$(os.name)  shell.types.$(1).$(prop).$$(os.type)  shell.types.$(1).$(prop).default  shell.types.$(2).$(prop)  ))
 endef
 
 
 
 #-----------------------------------------------------------
-$(call SHELL.types.define,unknown)
+$(call shell.types.define,unknown)
 #-----------------------------------------------------------
 # Sensible defaults for when the shell type is unknown.
 #-----------------------------------------------------------
-SHELL.types.unknown.path.default :=
-SHELL.types.unknown.flags.default :=
-SHELL.types.unknown.aliases.default :=
-SHELL.types.unknown.sep.path.default := $(OS.sep.path)
-SHELL.types.unknown.sep.list.default := $(OS.sep.list)
-SHELL.types.unknown.ext.script.default :=
+shell.types.unknown.path.default :=
+shell.types.unknown.flags.default :=
+shell.types.unknown.aliases.default :=
+shell.types.unknown.sep.path.default := $(os.sep.path)
+shell.types.unknown.sep.list.default := $(os.sep.list)
+shell.types.unknown.ext.script.default :=
 
 
 
 #-----------------------------------------------------------
-$(call SHELL.types.define,posix)
+$(call shell.types.define,posix)
 #-----------------------------------------------------------
 # Syntax definitions and default launch config for POSIX-type shells.
 #
@@ -377,27 +378,27 @@ $(call SHELL.types.define,posix)
 #	-e                 Exit immediately if any command line fails
 #	-c                 Make appends the command line after this
 #-----------------------------------------------------------
-SHELL.types.posix.path.default := sh
-  SHELL.types.posix.path.windows :=
-  SHELL.types.posix.path.unix :=
-SHELL.types.posix.flags.default := -e -c
-  SHELL.types.posix.flags.windows :=
-  SHELL.types.posix.flags.unix :=
-SHELL.types.posix.aliases.default := sh sh.exe
-  SHELL.types.posix.aliases.windows :=
-  SHELL.types.posix.aliases.unix :=
-SHELL.types.posix.sep.path.default := $(FSLASH)
-  SHELL.types.posix.sep.path.windows :=
-  SHELL.types.posix.sep.path.unix :=
-SHELL.types.posix.sep.list.default := $(COLON)
-  SHELL.types.posix.sep.list.windows :=
-  SHELL.types.posix.sep.list.unix :=
-SHELL.types.posix.ext.script.default := .sh
+shell.types.posix.path.default := sh
+  shell.types.posix.path.windows :=
+  shell.types.posix.path.unix :=
+shell.types.posix.flags.default := -ec
+  shell.types.posix.flags.windows :=
+  shell.types.posix.flags.unix :=
+shell.types.posix.aliases.default := sh sh.exe
+  shell.types.posix.aliases.windows :=
+  shell.types.posix.aliases.unix :=
+shell.types.posix.sep.path.default := $(FSLASH)
+  shell.types.posix.sep.path.windows :=
+  shell.types.posix.sep.path.unix :=
+shell.types.posix.sep.list.default := $(COLON)
+  shell.types.posix.sep.list.windows :=
+  shell.types.posix.sep.list.unix :=
+shell.types.posix.ext.script.default := .sh
 
 
 
 #-----------------------------------------------------------
-$(call SHELL.types.define,cmd)
+$(call shell.types.define,cmd)
 #-----------------------------------------------------------
 # Syntax definitions and default launch config for Windows cmd.exe.
 #
@@ -409,27 +410,27 @@ $(call SHELL.types.define,cmd)
 #	/S                 Simpler, more reliable parsing of doublequotes '"'
 #	/C                 Make appends the command line after this
 #-----------------------------------------------------------
-SHELL.types.cmd.path.default := cmd
-  SHELL.types.cmd.path.windows := cmd.exe
-  SHELL.types.cmd.path.unix :=
-SHELL.types.cmd.flags.default := /Q /D /E:ON /V:OFF /S /C
-  SHELL.types.cmd.flags.windows :=
-  SHELL.types.cmd.flags.unix :=
-SHELL.types.cmd.aliases.default := cmd cmd.exe
-  SHELL.types.cmd.aliases.windows :=
-  SHELL.types.cmd.aliases.unix :=
-SHELL.types.cmd.sep.path.default := $(BSLASH)
-  SHELL.types.cmd.sep.path.windows :=
-  SHELL.types.cmd.sep.path.unix :=
-SHELL.types.cmd.sep.list.default := $(SEMICOLON)
-  SHELL.types.cmd.sep.list.windows :=
-  SHELL.types.cmd.sep.list.unix :=
-SHELL.types.cmd.ext.script.default := .bat
+shell.types.cmd.path.default := cmd
+  shell.types.cmd.path.windows := cmd.exe
+  shell.types.cmd.path.unix :=
+shell.types.cmd.flags.default := /Q /D /E:ON /V:OFF /S /C
+  shell.types.cmd.flags.windows :=
+  shell.types.cmd.flags.unix :=
+shell.types.cmd.aliases.default := cmd cmd.exe
+  shell.types.cmd.aliases.windows :=
+  shell.types.cmd.aliases.unix :=
+shell.types.cmd.sep.path.default := $(BSLASH)
+  shell.types.cmd.sep.path.windows :=
+  shell.types.cmd.sep.path.unix :=
+shell.types.cmd.sep.list.default := $(SEMICOLON)
+  shell.types.cmd.sep.list.windows :=
+  shell.types.cmd.sep.list.unix :=
+shell.types.cmd.ext.script.default := .bat
 
 
 
 #-----------------------------------------------------------
-$(call SHELL.types.define,powershell)
+$(call shell.types.define,powershell)
 #-----------------------------------------------------------
 # Syntax definitions and default launch config for PowerShell.
 #
@@ -437,27 +438,27 @@ $(call SHELL.types.define,powershell)
 #	-NoProfile         Skip reading profile.ps1 scripts at startup
 #	-Command           Make appends the command line after this
 #-----------------------------------------------------------
-SHELL.types.powershell.path.default := powershell
-  SHELL.types.powershell.path.windows := powershell.exe
-  SHELL.types.powershell.path.unix := pwsh
-SHELL.types.powershell.flags.default := -NoProfile -Command
-  SHELL.types.powershell.flags.windows :=
-  SHELL.types.powershell.flags.unix :=
-SHELL.types.powershell.aliases.default :=
-  SHELL.types.powershell.aliases.windows := powershell.exe pwsh.exe
-  SHELL.types.powershell.aliases.unix := powershell pwsh
-SHELL.types.powershell.sep.path.default := $(OS.sep.path)
-  SHELL.types.powershell.sep.path.windows :=
-  SHELL.types.powershell.sep.path.unix :=
-SHELL.types.powershell.sep.list.default := $(OS.sep.list)
-  SHELL.types.powershell.sep.list.windows :=
-  SHELL.types.powershell.sep.list.unix :=
-SHELL.types.powershell.ext.script.default := .ps1
+shell.types.powershell.path.default := powershell
+  shell.types.powershell.path.windows := powershell.exe
+  shell.types.powershell.path.unix := pwsh
+shell.types.powershell.flags.default := -NoProfile -Command
+  shell.types.powershell.flags.windows :=
+  shell.types.powershell.flags.unix :=
+shell.types.powershell.aliases.default :=
+  shell.types.powershell.aliases.windows := powershell.exe pwsh.exe
+  shell.types.powershell.aliases.unix := powershell pwsh
+shell.types.powershell.sep.path.default := $(os.sep.path)
+  shell.types.powershell.sep.path.windows :=
+  shell.types.powershell.sep.path.unix :=
+shell.types.powershell.sep.list.default := $(os.sep.list)
+  shell.types.powershell.sep.list.windows :=
+  shell.types.powershell.sep.list.unix :=
+shell.types.powershell.ext.script.default := .ps1
 
 
 
 #-----------------------------------------------------------
-$(call SHELL.types.define,python)
+$(call shell.types.define,python)
 #-----------------------------------------------------------
 # Syntax definitions and default launch config for Python.
 #
@@ -465,43 +466,53 @@ $(call SHELL.types.define,python)
 #	-q                 Dont print version and copyright messages
 #	-c                 Make appends the command line after this
 #-----------------------------------------------------------
-SHELL.types.python.path.default := python
-  SHELL.types.python.path.windows = python.exe
-  SHELL.types.python.path.unix = python
-    SHELL.types.python.path.ubuntu = python3
-SHELL.types.python.flags.default := -q -c
-  SHELL.types.python.flags.windows :=
-  SHELL.types.python.flags.unix :=
-SHELL.types.python.aliases.default :=
-  SHELL.types.python.aliases.windows := python.exe python3.exe py.exe
-  SHELL.types.python.aliases.unix := python python3
-SHELL.types.python.sep.path.default := $(OS.sep.path)
-  SHELL.types.python.sep.path.windows :=
-  SHELL.types.python.sep.path.unix :=
-SHELL.types.python.sep.list.default := $(OS.sep.list)
-  SHELL.types.python.sep.list.windows :=
-  SHELL.types.python.sep.list.unix :=
-SHELL.types.python.ext.script.default := .py
+shell.types.python.path.default := python
+  shell.types.python.path.windows = python.exe
+  shell.types.python.path.unix = python
+    shell.types.python.path.ubuntu = python3
+shell.types.python.flags.default := -q -c
+  shell.types.python.flags.windows :=
+  shell.types.python.flags.unix :=
+shell.types.python.aliases.default :=
+  shell.types.python.aliases.windows := python.exe python3.exe py.exe
+  shell.types.python.aliases.unix := python python3
+shell.types.python.sep.path.default := $(os.sep.path)
+  shell.types.python.sep.path.windows :=
+  shell.types.python.sep.path.unix :=
+shell.types.python.sep.list.default := $(os.sep.list)
+  shell.types.python.sep.list.windows :=
+  shell.types.python.sep.list.unix :=
+shell.types.python.ext.script.default := .py
 
 
-
-$(info )
-$(call SHELL.print)
-$(info )
-$(shell )
-$(call SHELL.names.cmd.activate)
-$(call SHELL.print)
-$(info )
-$(call SHELL.names.powershell.activate)
-$(call SHELL.print)
-$(info )
-$(call SHELL.names.bash.activate)
-$(call SHELL.print)
-$(info )
-$(call SHELL.names.python.activate)
-$(call SHELL.print)
-$(info )
-$(error Exiting here.)
+#-----------------------------------------------------------
+# An interesting test
+#-----------------------------------------------------------
+#
+# $(info )
+# $(call shell.print)
+# $(info )
+# $(call shell.names.cmd.activate)
+# $(call shell.print)
+# $(info )
+# $(info $(shell echo Is this cmd.exe? cmdcmdline=$(PERCENT)cmdcmdline$(PERCENT)))
+# $(info )
+# $(call shell.names.powershell.activate)
+# $(call shell.print)
+# $(info )
+# $(info $(shell Write-Output 'Is this powershell? $(DOLLAR)MyInvocation='; $(DOLLAR)MyInvocation))
+# $(info )
+# $(call shell.names.bash.activate)
+# $(call shell.print)
+# $(info )
+# $(info $(shell echo $(DQUOTE)Is this bash? $(DOLLAR)0 -$(DOLLAR)- $(DOLLAR)SHELLOPTS $(DOLLAR)* $(DQUOTE)))
+# $(info )
+# $(call shell.names.python.activate)
+# $(call shell.print)
+# $(info )
+# $(info $(shell import sys; print$(OPAREN)$(DQUOTE)Is this python? sys.argv[0]=[$(DQUOTE)+sys.argv[0]+$(DQUOTE)]$(DQUOTE)$(CPAREN)))
+# $(info )
+# $(error Exiting here.)
 
 
 
@@ -595,6 +606,3 @@ ifeq "$(SHELL_TYPE)" "POSIX"
 endif
 
 
-$(info os.type:     $(os.type))
-$(info SHELL_TYPE:  $(SHELL_TYPE))
-$(info SHELL:       $(SHELL) $(.SHELLFLAGS))
