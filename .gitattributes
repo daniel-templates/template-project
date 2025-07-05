@@ -28,7 +28,9 @@
 
 # Set certain unrecognized filetypes as text to allow git diffs
 *.csv   text diff
+*.drawio text diff
 *.tsv   text diff
+*.json  text diff
 *.xml   text diff
 *.yml   text diff
 

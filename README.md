@@ -43,34 +43,45 @@ REPO:   template-project
 
 ## Initial Setup
 
-### Creating a new project from this template:
-1. Create a new repository on Github, i.e. `new_repo`.
-2. Create a new local repository with a remote named `origin` pointing to Github,
-and a remote for each parent template:
-```
+### Creating a new project from this template
+
+01. Create a new repository on Github, i.e. `new_repo`.
+
+01. Create a new local repository with a remote named `origin` pointing to Github,
+    and a remote for each parent template:
+
+    ```
     mkdir new_repo
     cd new_repo
     git init
     git remote add origin git@github.com:my_organization/new_repo.git
     git remote add template-project https://github.com/daniel-templates/template-project.git
     git fetch --all
-```
-3. Create branch `main` (setting as default), point it at the parent's `main`, and set its *upstream* (push/pull) to `origin`.
-```
+    ```
+
+01. Create branch `main` (setting as default), point it at the parent's `main`,
+    and set its *upstream* (push/pull) to `origin`.
+
+    ```
     git branch -M main
     git reset --hard template-project/main
     git push --force -u origin main
-```
-4. Create branch `dev`, point it to the same commit as `main`, and set its *upstream* (push/pull) to `origin`.
-```
+    ```
+
+01. Create branch `dev`, point it to the same commit as `main`, and set its
+    *upstream* (push/pull) to `origin`.
+
+    ```
     git checkout -B dev main
     git push --force -u origin dev
-```
-5. Install the repo's .gitconfig file and make scripts executable:
-```
+    ```
+
+01. Install the repo's .gitconfig file and make scripts executable:
+
+    ```
     git config --local include.path ../.project/git/.gitconfig
     chmod --recursive --verbose +x ".project"
-```
+    ```
 
 
 <!-- OPTIONAL: Add download and installation instructions -->

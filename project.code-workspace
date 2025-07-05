@@ -144,6 +144,18 @@
 				"overrideName": true,
 				"icon": "terminal-bash"
 			},
+			"sh": {
+				"path": "sh",
+				"args": [],
+				"overrideName": true,
+				"icon": "terminal-bash"
+			},
+			"sh": {
+				"path": "sh",
+				"args": [],
+				"overrideName": true,
+				"icon": "terminal-bash"
+			},
 
 		},
 
@@ -169,7 +181,7 @@
 				"overrideName": true,
 				"icon": "terminal-powershell",
 			},
-			"Git Bash": {
+			"Bash (Git for Windows)": {
 				"path": [
 					"${userHome}\\.local\\bin\\git\\bin\\bash.exe",
                 	"${env:localappdata}\\Programs\\Git\\bin\\bash.exe",
@@ -181,13 +193,13 @@
 				"overrideName": true,
 				"icon": "terminal-bash"
 			},
-			"WSL2 (Default Distro)": {
+			"Bash (WSL: Default)": {
 				"path": [
 					"wsl.exe",
 					"${env:localappdata}\\Microsoft\\WindowsApps\\wsl.exe",
 					"${env:windir}\\System32\\wsl.exe"
 				],
-				//"args": [ "-d DistributionName" ],
+				//"args": [ "-d Ubuntu-24.04" ],
 				"overrideName": true,
 				"icon": "terminal-bash"
 			},

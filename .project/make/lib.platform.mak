@@ -83,6 +83,168 @@ os.ext.dll = $(os.ext.dll.$(os.type))
   os.ext.lib.unix := .a
   os.ext.dll.unix := .so
 
+#-------------------------------------------------------------------------------
+# Shells called from Windows Host
+#-------------------------------------------------------------------------------
+#
+# cmd:
+#	Invocation:			cmd.exe
+#	echo %OS%			Windows_NT
+#	echo %cmdcmdline%	C:\Windows\System32\cmd.exe
+#	echo %USERPROFILE%	C:\Users\{User}
+#
+# powershell:
+#	Invocation:			powershell.exe
+#	echo $env:OS		Windows_NT
+#	echo $env:USERPROFILE C:\Users\{User}
+#
+# git-bash:
+#	Invocation:			bash.exe -i -l
+#	echo $OS			Windows_NT
+#	echo $0				/usr/bin/bash
+#	echo $-				himBHs
+#	echo $HOME			/c/Users/{User}		(actual Windows home)
+#	uname -sro			MINGW64_NT-10.0-22631 3.3.6-bec3d608-341.x86_64 Msys
+#	cat /etc/*release	file not found
+#	cat "/proc/registry/HKEY_LOCAL_MACHINE/SOFTWARE/Microsoft/Windows NT/CurrentVersion/ProductName"
+#						Windows 10 Home
+#
+# cygwin:
+#	Invocation:			cygwin64\bin\bash.exe -i -l
+#	echo $OS			Windows_NT
+#	echo $0				/usr/bin/bash
+#	echo $-				himBHs
+#	echo $HOME				/home/{User}	(cygwin home, does not correspond to Windows home)
+#	real home:			/cygdrive/c/Users/{user}
+#	uname -sro			CYGWIN_NT-10.0-22631 3.6.3-1.x86_64 Cygwin
+#	cat /etc/*release	file not found
+#	cat "/proc/registry/HKEY_LOCAL_MACHINE/SOFTWARE/Microsoft/Windows NT/CurrentVersion/ProductName"
+#						file not found
+#
+# CLANG32 (MSYS2):
+#	Invocation:			msys2_shell.cmd -defterm -here -no-start -clang32 -shell bash
+#	echo $OS			Windows_NT
+#	echo $0				/usr/bin/bash
+#	echo $-				himBHs
+#	echo $HOME			/home/{User}	(msys home, does not correspond to Windows home)
+#	real home:				/c/Users/{User}
+#	uname -sro			MINGW32_NT-10.0-22631 3.4.7.x86_64 Msys
+#	cat /etc/*release	ID=msys2
+#						ID_LIKE="cygwin arch"
+#	cat "/proc/registry/HKEY_LOCAL_MACHINE/SOFTWARE/Microsoft/Windows NT/CurrentVersion/ProductName"
+#						Windows 10 Home
+#
+# CLANG64 (MSYS2):
+#	Invocation:			msys2_shell.cmd -defterm -here -no-start -clang64 -shell bash
+#	echo $OS			Windows_NT
+#	echo $0				/usr/bin/bash
+#	echo $-				himBHs
+#	echo $HOME			/home/{User}	(msys home, does not correspond to Windows home)
+#	real home:				/c/Users/{User}
+#	uname -sro			MINGW64_NT-10.0-22631 3.4.7.x86_64 Msys
+#	cat /etc/*release	ID=msys2
+#						ID_LIKE="cygwin arch"
+#	cat "/proc/registry/HKEY_LOCAL_MACHINE/SOFTWARE/Microsoft/Windows NT/CurrentVersion/ProductName"
+#						Windows 10 Home
+#
+# MINGW32 (MSYS2):
+#	Invocation:			msys2_shell.cmd -defterm -here -no-start -mingw32 -shell bash
+#	echo $OS			Windows_NT
+#	echo $0				/usr/bin/bash
+#	echo $-				himBHs
+#	echo $HOME			/home/{User}	(msys home, does not correspond to Windows home)
+#	real home:				/c/Users/{User}
+#	uname -sro			MINGW32_NT-10.0-22631 3.4.7.x86_64 Msys
+#	cat /etc/*release	ID=msys2
+#						ID_LIKE="cygwin arch"
+#	cat "/proc/registry/HKEY_LOCAL_MACHINE/SOFTWARE/Microsoft/Windows NT/CurrentVersion/ProductName"
+#						Windows 10 Home
+#
+# MINGW64 (MSYS2):
+#	Invocation:			msys2_shell.cmd -defterm -here -no-start -mingw64 -shell bash
+#	echo $OS			Windows_NT
+#	echo $0				/usr/bin/bash
+#	echo $-				himBHs
+#	echo $HOME			/home/{User}	(msys home, does not correspond to Windows home)
+#	real home:				/c/Users/{User}
+#	uname -sro			MINGW64_NT-10.0-22631 3.4.7.x86_64 Msys
+#	cat /etc/*release	ID=msys2
+#						ID_LIKE="cygwin arch"
+#	cat "/proc/registry/HKEY_LOCAL_MACHINE/SOFTWARE/Microsoft/Windows NT/CurrentVersion/ProductName"
+#						Windows 10 Home
+#
+# UCRT64 (MSYS2):
+#	Invocation:			msys2_shell.cmd -defterm -here -no-start -ucrt64 -shell bash
+#	echo $OS			Windows_NT
+#	echo $0				/usr/bin/bash
+#	echo $-				himBHs
+#	echo $HOME			/home/{User}	(msys home, does not correspond to Windows home)
+#	real home:				/c/Users/{User}
+#	uname -sro			MINGW64_NT-10.0-22631 3.4.7.x86_64 Msys
+#	cat /etc/*release	ID=msys2
+#						ID_LIKE="cygwin arch"
+#	cat "/proc/registry/HKEY_LOCAL_MACHINE/SOFTWARE/Microsoft/Windows NT/CurrentVersion/ProductName"
+#						Windows 10 Home
+#
+# MSYS2 (MSYS2):
+#	Invocation:			msys2_shell.cmd -defterm -here -no-start -msys2 -shell bash
+#	echo $OS			Windows_NT
+#	echo $0				/usr/bin/bash
+#	echo $-				himBHs
+#	echo $HOME			/home/{User}	(msys home, does not correspond to Windows home)
+#	real home:				/c/Users/{User}
+#	uname -sro			MSYS_NT-10.0-22631 3.4.7.x86_64 Msys
+#	cat /etc/*release	ID=msys2
+#						ID_LIKE="cygwin arch"
+#	cat "/proc/registry/HKEY_LOCAL_MACHINE/SOFTWARE/Microsoft/Windows NT/CurrentVersion/ProductName"
+#						Windows 10 Home
+#
+# Ubuntu 24.04 (WSL2)
+#	Invocation:			wsl.exe -d Ubuntu-24.04
+#	echo $OS
+#	echo $0				-bash
+#	echo $-				himBHs
+#	echo $HOME			/home/{User}	(linux home, does not correspond to Windows home)
+#	real home:				/mnt/c/Users/{User}
+#	uname -sro			Linux 6.6.87.2-microsoft-standard-WSL2 GNU/Linux
+#	cat /etc/*release	ID=ubuntu
+#						ID_LIKE=debian
+#						VERSION_ID="24.04"
+#
+# Debian (WSL2)
+#	Invocation:			wsl.exe -d Debian
+#	echo $OS
+#	echo $0				-bash
+#	echo $-				himBHs
+#	echo $HOME			/home/{User}	(linux home, does not correspond to Windows home)
+#	real home:				/mnt/c/Users/{User}
+#	uname -sro			Linux 6.6.87.2-microsoft-standard-WSL2 GNU/Linux
+#	cat /etc/*release	ID=debian
+#						VERSION_ID="12"
+#
+# Alpine (WSL2)
+#	Invocation:			wsl.exe -d Alpine
+#	echo $OS
+#	echo $0				-sh
+#	echo $-				smi
+#	echo $HOME			/home/{User}	(linux home, does not correspond to Windows home)
+#	real home:				/mnt/c/Users/{User}
+#	uname -sro			Linux 6.6.87.2-microsoft-standard-WSL2 GNU/Linux
+#	cat /etc/*release	ID=alpine
+#						VERSION_ID=3.21.3
+#
+# miniwsl (WSL2):
+#	Invocation:			wsl.exe -d miniwsl
+#	echo $OS
+#	echo $0				-sh
+#	echo $-				smi
+#	echo $HOME			/home/{User}	(linux home, does not correspond to Windows home)
+#	real home:				/mnt/c/Users/{User}
+#	uname -sro			Linux 6.6.87.2-microsoft-standard-WSL2 GNU/Linux
+#	cat /etc/*release	file not found
+
+
+
 #===============================================================================
 # Shell Properties
 #===============================================================================
@@ -144,7 +306,7 @@ shell.types.properties = isactive path flags aliases sep.path sep.list ext.scrip
 # the active shell's definition.
 #===============================================================================
 shell.name := default
-shell.print = $(call print.var,$(foreach prop,$(shell.properties),shell.$(prop)))
+shell.print = $(call print.vars,$(foreach prop,$(shell.properties),shell.$(prop)))
 $(foreach prop,$(filter-out name print,$(shell.properties)),$(eval shell.$(prop) = $$(shell.names.$$(shell.name).$(prop))))
 
 
@@ -189,7 +351,7 @@ define shell.names.define
 $(eval shell.names += $(1))
 $(eval shell.names.$(1).type := $(or $(2),$(error Empty shell_type in definition of '$(1)')))
 $(eval shell.names.$(1).isactive = $$(if $$(filter $(1),$$(shell.name)),$(TRUE.m),$(FALSE.m)))
-$(eval shell.names.$(1).print = $$(call print.var,$(foreach prop,$(shell.names.properties),shell.names.$(1).$(prop))))
+$(eval shell.names.$(1).print = $$(call print.vars,$(foreach prop,$(shell.names.properties),shell.names.$(1).$(prop))))
 $(eval shell.names.$(1).activate = $$(if $$(shell.names.$(1).isactive),,$$(eval shell.name := $(1))$$(eval SHELL := $$(shell.path))$$(eval .SHELLFLAGS := $$(shell.flags))))
 $(foreach prop,$(filter-out type isactive print activate,$(shell.names.properties)),$(call variable.set_with_alternatives,shell.names.$(1).$(prop),?=,,  shell.names.$(1).$(prop).$$(os.name)  shell.names.$(1).$(prop).$$(os.type)  shell.names.$(1).$(prop).default  shell.types.$(2).$(prop)  ))
 endef
@@ -349,7 +511,7 @@ shell.types := $(EMPTY)
 define shell.types.define
 $(eval shell.types += $(1))
 $(eval shell.types.$(1).isactive = $$(if $$(filter $(1),$$(shell.type)),$(TRUE.m),$(FALSE.m)))
-$(eval shell.types.$(1).print = $$(call print.var,$(foreach prop,$(shell.types.properties),shell.types.$(1).$(prop))))
+$(eval shell.types.$(1).print = $$(call print.vars,$(foreach prop,$(shell.types.properties),shell.types.$(1).$(prop))))
 $(foreach prop,$(filter-out isactive print,$(shell.types.properties)),$(call variable.set_with_alternatives,shell.types.$(1).$(prop),?=,,  shell.types.$(1).$(prop).$$(os.name)  shell.types.$(1).$(prop).$$(os.type)  shell.types.$(1).$(prop).default  shell.types.$(2).$(prop)  ))
 endef
 

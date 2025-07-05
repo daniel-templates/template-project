@@ -6,8 +6,62 @@
     "git.autofetch": "all",
 
 
+    "markdownlint.config": {
+        "MD001": false,
+        "MD003": { "style": "consistent" },
+        "MD007": { "indent": 4 },
+        "MD012": false,
+        "MD013": true,
+        "MD014": false,
+        "MD033": false,
+        "MD040": false,
+        "MD053": false,
+    },
+
+
+	"makefile.configurations": [
+	],
+    "makefile.defaultLaunchConfiguration": null
+
+
+    "shellcheck.exclude": [
+        "2181",
+    ],
+    "shellcheck.useWorkspaceRootAsCwd": true,
+    
+    
+    "yaml.extension.recommendations": "false",
+
+
+    "JSON-zain.json.autorefresh": true,
+
+
+    "svg.preview.autoShow": true,
+
+
+    "hediet.vscode-drawio.offline": true,
+    "hediet.vscode-drawio.codeLinkActivated": true,
+    "hediet.vscode-drawio.globalVars": {},
+    "hediet.vscode-drawio.plugins": [],
+    "hediet.vscode-drawio.knownPlugins": [],
+    "hediet.vscode-drawio.customLibraries": [],
+    "hediet.vscode-drawio.appearance": "automatic",
+    "hediet.vscode-drawio.customColorSchemes": [],
+    "hediet.vscode-drawio.customFonts": [],
+    "hediet.vscode-drawio.theme": "automatic",
+
+
     "files.eol": "\n",
     "files.encoding": "utf8",
+    "[markdown]": {
+        "editor.formatOnSave": true,
+        "editor.formatOnPaste": true
+    },
+    "[makefile]": {
+        "editor.renderWhitespace": "boundary",
+        "editor.detectIndentation": false,
+        "editor.insertSpaces": false
+    },
     "[bat]": {
         "files.encoding": "cp437",
         "files.eol": "\r\n",
@@ -48,21 +102,6 @@
         "files.encoding": "utf16le",
         "files.eol": "\r\n"
     },
-    "[makefile]": {
-        "editor.renderWhitespace": "boundary",
-        "editor.detectIndentation": false,
-        "editor.insertSpaces": false
-    },
 
 
-    "shellcheck.exclude": [
-        "2181"
-    ],
-    "shellcheck.useWorkspaceRootAsCwd": true,
-
-
-	"makefile.configurations": [
-
-	],
-    "makefile.defaultLaunchConfiguration": null
 }

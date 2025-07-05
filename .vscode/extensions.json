@@ -7,7 +7,12 @@
         "actboy168.tasks",
         "foxundermoon.shell-format",
         "timonwong.shellcheck",
+        "DavidAnson.vscode-markdownlint",
         "tomoki1207.pdf",
+        "jock.svg",
+        "redhat.vscode-xml",
+        "redhat.vscode-yaml",
+        "ZainChen.json",
 
         //----------------------------------------------------------------------
         //  UPSTREAM: CURRENT PROJECT
