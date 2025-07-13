@@ -156,16 +156,6 @@ print.trace = $(if $(findstring $(print.trace.enable),true),$(info $(LF)======= 
 
 
 #-----------------------------------------------------------
-# $(call print.break)
-#-----------------------------------------------------------
-# Prints the values of each variable in {vars}, then
-# exits Make.
-#-----------------------------------------------------------
-
-
-
-
-#-----------------------------------------------------------
 # str = $(call str.expand,{expr})
 #-----------------------------------------------------------
 # Performs an additional $-expansion on a string.
