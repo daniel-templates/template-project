@@ -69,7 +69,7 @@ os.ext.dll = $(os.ext.dll.$(os.type))
   os.user.home.windows = $(USERPROFILE)
   os.temp.root.windows = $(or $(TEMP),$(TMP),$(os.user.home.windows)\\AppData\\Local\\Temp)
   os.sep.path.windows := $(BSLASH)
-  os.sep.list.windows := $(SEMICOLON)
+  os.sep.list.windows := $(SEMIC)
   os.ext.exe.windows := .exe
   os.ext.lib.windows := .lib
   os.ext.dll.windows := .dll
@@ -173,7 +173,7 @@ os.ext.dll = $(os.ext.dll.$(os.type))
 #	cat "/proc/registry/HKEY_LOCAL_MACHINE/SOFTWARE/Microsoft/Windows NT/CurrentVersion/ProductName"
 #						Windows 10 Home
 #
-# UCRT64 (MSYS2):
+# CARET64 (MSYS2):
 #	Invocation:			msys2_shell.cmd -defterm -here -no-start -ucrt64 -shell bash
 #	echo $OS			Windows_NT
 #	echo $0				/usr/bin/bash
@@ -584,7 +584,7 @@ shell.types.cmd.aliases.default := cmd cmd.exe
 shell.types.cmd.sep.path.default := $(BSLASH)
   shell.types.cmd.sep.path.windows :=
   shell.types.cmd.sep.path.unix :=
-shell.types.cmd.sep.list.default := $(SEMICOLON)
+shell.types.cmd.sep.list.default := $(SEMIC)
   shell.types.cmd.sep.list.windows :=
   shell.types.cmd.sep.list.unix :=
 shell.types.cmd.ext.script.default := .bat

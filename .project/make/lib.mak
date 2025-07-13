@@ -26,44 +26,53 @@
 # AND BY GOD don't let your IDE substitute TAB with SPACE!
 #-----------------------------------------------------------
 
-EMPTY :=
-SPACE := $(EMPTY) $(EMPTY)
-TAB := $(EMPTY)	$(EMPTY)
+
+# Source: https://ftp.gnu.org/old-gnu/Manuals/make-3.79.1/html_chapter/make_6.html
+# "A variable name may be any sequence of characters not containing `:', `#', `=', or leading or trailing whitespace."
+#
+ EMPTY :=
+ SPACE := $(EMPTY) $(EMPTY)
+   TAB := $(EMPTY)	$(EMPTY)
 define LF
 
 
 endef
-COMMA := ,$(EMPTY)
-PERCENT := %$(EMPTY)
-BSLASH := \$(EMPTY)
-FSLASH := /$(EMPTY)
-POUND := \#$(EMPTY)
+ BTICK := `$(EMPTY)
+ TILDE := ~$(EMPTY)
+ EXCLM := !$(EMPTY)
+    AT := @$(EMPTY)
+ POUND := \#$(EMPTY)
 DOLLAR := $$$(EMPTY)
+PERCENT := %$(EMPTY)
+ CARET := ^$(EMPTY)
+ AMPER := &$(EMPTY)
+   AST := *$(EMPTY)
 OPAREN := ($(EMPTY)
 CPAREN := )$(EMPTY)
+ EQUAL := =$(EMPTY)
+BSLASH := \$(EMPTY)
+  PIPE := |$(EMPTY)
+ SEMIC := ;$(EMPTY)
+ COLON := :$(EMPTY)
 SQUOTE := '$(EMPTY)
 DQUOTE := "$(EMPTY)
-TILDE := ~$(EMPTY)
-BTICK := `$(EMPTY)
-COLON := :$(EMPTY)
-SEMICOLON := ;$(EMPTY)
-EQUAL := =$(EMPTY)
-QUESTION := ?$(EMPTY)
-EXC := !$(EMPTY)
-AT := @$(EMPTY)
-AST := *$(EMPTY)
-AMPERSAND := &$(EMPTY)
-PIPE := |$(EMPTY)
-UCRT := ^$(EMPTY)
-LCRT := <$(EMPTY)
-RCRT := >$(EMPTY)
+ COMMA := ,$(EMPTY)
+LCARET := <$(EMPTY)
 PERIOD := .$(EMPTY)
-chr.lowers := a b c d e f g h i j k l m n o p q r s t u v w x y z
-chr.uppers := A B C D E F G H I J K L M N O P Q R S T U V W X Y Z
-chr.digits := 0 1 2 3 4 5 6 7 8 9
-chr.whitespace := $(SPACE)$(TAB)$(LF)
+RCARET := >$(EMPTY)
+FSLASH := /$(EMPTY)
+ QUEST := ?$(EMPTY)
+
+# Character sets
+       chr.lowers := a b c d e f g h i j k l m n o p q r s t u v w x y z
+       chr.uppers := A B C D E F G H I J K L M N O P Q R S T U V W X Y Z
+       chr.digits := 0 1 2 3 4 5 6 7 8 9
+   chr.whitespace := $(SPACE)$(TAB)$(LF)
+   chr.whitespace.vars := SPACE TAB LF
 chr.nonwhitespace := $(chr.lowers) $(chr.uppers) $(chr.digits) ` ~ ! @ \# $$ % ^ & * ( ) - _ = + [ ] { } \ | ; : ' " , < . > / ?
-chr.varnames := $(chr.lowers) $(chr.uppers) $(chr.digits) ` ~ ! @ $$ % ^ & * ( ) - _ + { } [ ] | \ ; ' " , < . > / ?
+     chr.varnames := $(chr.lowers) $(chr.uppers) $(chr.digits) ` ~ ! @    $$ % ^ & * ( ) - _   + { } [ ] \ | ;   ' " , < . > / ?
+
+
 
 # Indentation preferences
 INDENT := $(SPACE)$(SPACE)
@@ -194,6 +203,7 @@ str.indent.byline = $(1)$(subst $$(str.indent.byline.lf),,$(subst $$(str.indent.
 #-----------------------------------------------------------
 # Pads str with whitespace so the total length is the same as col.
 # Col is a sequence of "." to specify the column width.
+# Strings containing LF characters may not be padded correctly.
 #
 # Example:
 #   col := ..............................
@@ -204,11 +214,9 @@ str.indent.byline = $(1)$(subst $$(str.indent.byline.lf),,$(subst $$(str.indent.
 #   $(info [$(call str.lpad,$(str),$(col))])    [                     Some Text]
 #-----------------------------------------------------------
 
-str.pad.subst := $(chr.lowers) $(chr.uppers) $(chr.digits) $(EXC) $(AT) $(POUND) $(DOLLAR) $(UCRT) $(AMPERSAND) $(AST) $(OPAREN) $(CPAREN) - _ + $(EQUAL) [ ] { } $(PIPE) $(BSLASH) $(COLON) $(SEMICOLON) $(DQUOTE) $(SQUOTE) $(COMMA) $(LCRT) $(RCRT) $(PERIOD) $(QUESTION) $(FSLASH) $(TILDE) $(BTICK)
-str.pad.recurse = $(if $(strip $(1)),$(call str.pad.recurse,$(filter-out $(firstword $(1)),$(1)),$(2),$(subst $(firstword $(1)),$(2),$(3))),$(3))
+str.rpad = $(if $(1),$(1)$(subst .,$(SPACE),$(call str.pad.clear_if_eq,$(2:$(call str.subst.list_to_str,$(chr.nonwhitespace),.,$(call str.subst.vars_to_str,$(chr.whitespace.vars),.,$(1)))%=%),$(2))),$(subst .,$(SPACE),$(2)))
+str.lpad = $(if $(1),$(subst .,$(SPACE),$(call str.pad.clear_if_eq,$(2:$(call str.subst.list_to_str,$(chr.nonwhitespace),.,$(call str.subst.vars_to_str,$(chr.whitespace.vars),.,$(1)))%=%),$(2)))$(1),$(subst .,$(SPACE),$(2)))
 str.pad.clear_if_eq = $(if $(subst $(2),,$(1)),$(1),)
-str.rpad = $(if $(1),$(1)$(subst .,$(SPACE),$(call str.pad.clear_if_eq,$(2:$(call str.pad.recurse,$(str.pad.subst),.,$(subst %,.,$(subst $(SPACE),.,$(1))))%=%),$(2))),$(subst .,$(SPACE),$(2)))
-str.lpad = $(if $(1),$(subst .,$(SPACE),$(call str.pad.clear_if_eq,$(2:$(call str.pad.recurse,$(str.pad.subst),.,$(subst %,.,$(subst $(SPACE),.,$(1))))%=%),$(2)))$(1),$(subst .,$(SPACE),$(2)))
 
 
 
@@ -499,17 +507,3 @@ pretarget.define = $(eval $(subst $(LF)$(SPACE),$(LF),$(LF)\
 	$(strip $(1)).pre:$(LF)\
 	$(call str.indent.byline,$(TAB),$(3))$(LF)\
 ))
-
-
-aaa := This is variable "aaa"
-b := This is variable "b" line 1$(LF)This is variable "b" line 2$(LF)THis is variable "b" line 3
-cc := This is list "cc"
-
-$(info $(LF)$$(call print.vars,aaa b cc) =)
-$(call print.vars,aaa b cc)
-
-$(info $(LF)$$(call print.list,cc) =)
-$(call print.list,cc)
-
-$(info )
-$(error Exiting...)
