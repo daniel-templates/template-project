@@ -5,18 +5,164 @@
 #
 # Usage:
 #
-#	Include in makefile:
+#  Include in makefile:
 #
-#		include .project/make/lib.mak
+#     include path/to/lib.mak
 #
-#	Call a function:
+#  Call a function:
 #
-#		filename := $(this.filename)
-#		list = $(call list.concat,$(COLON),item1 item2 item3)
-#		$(call print.vars,filename list)
+#     filename := $(this.filename)
+#     list = $(call list.concat,$(COLON),item1 item2 item3)
+#     $(call print.vars,filename list)
 #
 #===============================================================================
-
+# Data Types:
+#
+#   Make does not explicitly differentiate between different data types;
+#
+#
+# {str}                String:
+# |                    All variables in Make are strings.
+# |
+# |
+# |--{bool}            Boolean:
+# |                    Make convention defines logical 'true' as *any* nonempty string,
+# |                      logical 'false' as the empty string.
+# |                    Make built-ins which operate on {bool} include $(if), $(and), $(or).
+# |
+# |
+# |--{list}            List:
+# |  |                 A {str} containing a space-delimited list of {item}s.
+# |  |                 Most Make built-ins operate item-for-item on {list}s:
+# |  |                   $(firstword) $(foreach) $(addprefix) $(wordlist) etc.
+# |  |                 Lists are 1-indexed. Empty or invalid idx should no-op.
+# |  |                 Consecutive whitespace is treated as one delimiter.
+# |  |                 The empty list is an empty string, or a string with only whitespace.
+# |  |                 This library automatically escapes/expands special characters whenever
+# |  |                   list items are added, removed, indexed, or modified:
+# |  |                    - Dollar "$" is escaped as literal "$(DOLLAR)".
+# |  |                    - Whitespace is escaped as literal "$(SPACE)", "$(TAB)", "$(LF)".
+# |  |                    - Empty items are stored as literal "$(EMPTY)".
+# |  |                 Since these escape sequences are valid Make syntax, lists are
+# |  |                   automatically de-escaped by $(eval), expanding each item to its
+# |  |                   original literal value; however, the space delimiters will remain.
+# |  |
+# |  |--{{type}s}      List of {type}:
+# |  |--{strs}         This library uses plurals to refer to lists containing
+# |  |--{vars}           items of a specific {type}.
+# |  |--(etc)
+# |
+# |
+# |--{item}            List Item:
+# |                    A {str} representing an individual list item.
+# |                    Nonempty, and no whitespace. Special characters are
+# |                      escaped according to the rules in {list} above.
+# |                    Used internally by this library's list functions;
+# |                      typically no need to work with {item} types directly.
+# |
+# |
+# |--{var}             Variable:
+# |  |                 A {str} containing the name of a variable.
+# |  |                 Variable names can include any characters except "#", "=", ":",
+# |  |                   but whitespace, "$", "(", ")" are problematic and should always be avoided.
+# |  |                 Make built-ins which operate on {var} include $(origin), $(value), $(foreach).
+# |  |
+# |  |--{fcn}          Function:
+# |  |                 A {var} naming a callable "function".
+# |  |                 Make built-ins which operate on {fcn} include $(call).
+# |  |
+# |  |--{ns}           Namespace:
+# |                    A {var} naming a variable "namespace".
+# |                    This library defines a "namespace" as a collection of associated variables:
+# |                    - The namespace root is a variable named   "{ns}" .
+# |                    - Each variable {var} within {ns} is named "{ns}.{var}" .
+# |                    - The value of $({ns}) is a list of all variables in the namespace.
+# |                    Example: Define a namespace "root", containing another namespace "sub"
+# |                      root = root.var1 root.var2 $(root.sub)
+# |                      root.var1 = Value 1
+# |                      root.var2 = Value 2
+# |                      root.sub = root.sub.var3
+# |                      root.sub.var3 = Value 3
+# |                      $(info $(root)) --> root.var1 root.var2 root.sub.var3
+# |
+# |
+# |--{int}             Integer:
+# |  |                 A {str} containing an integer value:
+# |  |                   Positive, negative, 0, or $(NaN) (empty string).
+# |  |                 Operations on $(NaN) should always return $(NaN).
+# |  |                 Make built-ins which operate on {int} include $(intcmp) (not available prior to Make 4.4.)
+# |  |
+# |  |--{uint}         Unsigned Integer:
+# |     |              An {int} which is positive, 0, or $(NaN) (empty string).
+# |     |              Operations on $(NaN) should always return $(NaN).
+# |     |
+# |     |--{idx}       List Index:
+# |                    A {uint} representing a position in a {list}.
+# |                    Lists are 1-indexed; typical range for {idx} is [1,len],
+# |                      though some operations (list.insert, wordlist) support [0,len+1].
+# |                    Out-of-range idx or idx=$(NaN) (empty string) are considered
+# |                      a valid no-op.
+# |                    Make built-ins which operate on {idx} include $(word), $(wordlist).
+# |                      WARNING: Built-ins typically return $(error) if passed {idx}=$(EMPTY).
+# |
+# |
+# |--{digit}           Digit:
+# |                    A {str} containing an optional prefix followed by a digit (0-9) or $(EMPTY).
+# |                    Empty number is treated as digit "0".
+# |                    Used internally by this library's {int} functions;
+# |                      typically no need to work with {digit} types directly.
+# |
+# |
+# |--{dynamic}         Make Syntax:
+# |                    A {str} containing valid Make syntax.
+# |                    Used for dynamic programming.
+# |                    Make built-ins which operate on {dynamic} include $(eval).
+# |
+# |--{path}            Path:
+# |  |                 A {str} containing a system path or $(EMPTY).
+# |  |                 Can be an absolute or relative path, file or directory path.
+# |  |                 Formatting requirements:
+# |  |                 - Path separator should always be forward-slash "/".
+# |  |                 - Spaces should always be escaped as "\ ".
+# |  |                     WARNING: Make Built-ins do not always handle spaces correctly.
+# |  |                 - Directories should not have trailing "/".
+# |  |                 - No leading or trailing whitespace.
+# |  |                 - $(EMPTY) path is a valid no-op.
+# |  |
+# |  |--{file}         File Path:
+# |  |  |              A {path} to a non-directory file, or $(EMPTY).
+# |  |  |              Make built-ins which operate on {file} include $(file).
+# |  |  |
+# |  |  |--{filename}  File Name:
+# |  |                 A {file} with no parent directory; just "{basename}{ext}".
+# |  |
+# |  |--{dir}          Directory Path:
+# |     |              A {path} to a directory, or $(EMPTY).
+# |     |
+# |     |--{dirname}   Directory Name:
+# |                    A {dir} with no parent directory; just "{basename}".
+# |
+# |
+# |--{basename}        Basename:
+# |                    A {str} containing a file/directory basename, or $(EMPTY).
+# |                    Valid values are that which would be returned by:
+# |                    - GNU utility 'basename -s'
+# |                    - Make built-in $(basename)
+# |                    Formatting requirements:
+# |                    - Spaces should always be escaped as "\ ".
+# |                        WARNING: Make Built-ins do not always handle spaces correctly.
+# |                    - No leading or trailing whitespace.
+# |                    - $(EMPTY) basename is a valid no-op.
+# |
+# |
+# |--{ext}             File Type Extension:
+# |                    A {str} containing a file extension, or $(EMPTY).
+# |                    Includes the leading "." .
+# |                    $(EMPTY) ext is valid (and common).
+#
+#
+#
+#===============================================================================
 
 #-----------------------------------------------------------
 # Special Characters
@@ -62,6 +208,7 @@ PERIOD := .$(EMPTY)
 RCARET := >$(EMPTY)
 FSLASH := /$(EMPTY)
  QUEST := ?$(EMPTY)
+   NaN := $(EMPTY)
 
 # Character sets
        chr.lowers := a b c d e f g h i j k l m n o p q r s t u v w x y z
@@ -400,9 +547,10 @@ variable.set_with_alternatives = $(eval $(strip $(1)) $(strip $(2)) $(if $(or $(
 # digit := $(call digit.inc,{digit},[prefix])
 # digit := $(call digit.dec,{digit},[prefix])
 #-----------------------------------------------------------
-# Increments or decrements {digit} by 1.
-# inc/dec over max/min wraps to min/max.
-# digit=$(EMPTY) implies digit=0.
+# Increments or decrements digit by 1.
+# Optional prefix is stripped before operation, and reapplied after.
+# Over/underflow wraps to 0/9.
+# $(EMPTY) is handled as digit=0.
 #
 #   $(call digit.inc,$(EMPTY))    --> 1
 #   $(call digit.inc,9)           --> 0
@@ -416,12 +564,12 @@ digit.dec  = $(addprefix $(2),$(word 1$(1:$(2)%=%),9 x x x x x x x x 9 0 1 2 3 4
 
 
 #-----------------------------------------------------------
-# num := $(call int.inc,{int})
-# num := $(call int.dec,{int})
+# int := $(call int.inc,{int})
+# int := $(call int.dec,{int})
 #-----------------------------------------------------------
 # Increments or decrements an integer by 1.
 # Negative numbers are supported.
-# Returns empty if {int} is empty.
+# Returns empty if int is empty.
 #-----------------------------------------------------------
 
 int.inc = $(if $(filter -%,$(1:-1=)),-)$(subst .,,$(call int.$(if $(1:-%=),inc,dec).recurse,$(call str.digits.addprefix,.,$(1:-%=%))))
@@ -433,15 +581,36 @@ int.dec.recurse = $(if $(basename $(1)),$(if $(1:%0=),$(basename $(1))$(call dig
 
 
 #-----------------------------------------------------------
-# equ.0 = $(call int.equ.0,{int})
-# neq.0 = $(call int.neq.0,{int})
-# gtr.0 = $(call int.gtr.0,{int})
-# geq.0 = $(call int.geq.0,{int})
-# leq.0 = $(call int.leq.0,{int})
-# lss.0 = $(call int.lss.0,{int})
+# Integer comparisons
 #-----------------------------------------------------------
+# bool = $(call int.equ.0,{int})
+# bool = $(call int.neq.0,{int})
+# bool = $(call int.gtr.0,{int})
+# bool = $(call int.geq.0,{int})
+# bool = $(call int.leq.0,{int})
+# bool = $(call int.lss.0,{int})
+#
 # Compares {int} to 0.
-# Returns nonempty if true, empty if false or if {int} is empty.
+# Returns nonempty if comparison is true.
+# Returns empty if comparison is false or if {int} is empty.
+#
+# Integer math
+#   int = $(call int.abs,{int})
+#   int = $(call int.neg,{int})
+#
+#   digit = $(call digit.inc,{digit},[prefix])
+#   digit = $(call digit.dec,{digit},[prefix])
+#-----------------------------------------------------------
+# Increments or decrements digit by 1.
+# Optional prefix is stripped before operation, and reapplied after.
+# Over/underflow wraps to 0/9.
+# $(EMPTY) is handled as digit=0.
+#
+#   $(call digit.inc,$(EMPTY))    --> 1
+#   $(call digit.inc,9)           --> 0
+#   $(call digit.dec,$(EMPTY))    --> 9
+#   $(call digit.dec,0)           --> 9
+#-----------------------------------------------------------
 #-----------------------------------------------------------
 
 int.equ.0 = $(filter 0,$(1))
@@ -457,8 +626,6 @@ int.lss.0 = $(filter -%,$(1))
 
 
 #-----------------------------------------------------------
-#   num = $(call int.abs,{int})
-#   num = $(call int.neg,{int})
 #-----------------------------------------------------------
 # int.abs:  Returns absolute value of {int};
 #                   empty if {int} is empty.
@@ -471,7 +638,7 @@ int.neg = $(if $(1:-%=),$(if $(1:0=),-$(1),$(1)),$(1:-%=%))
 
 
 #-----------------------------------------------------------
-#   num = $(call int.clamp.lower.0,{int})
+# int = $(call int.clamp.lower.0,{int})
 #-----------------------------------------------------------
 # int.clamp.lower.0:  Returns {int} if int > 0; 0 otherwise.
 #-----------------------------------------------------------
@@ -546,37 +713,6 @@ target.define = $(eval $(call target.define.template,$(1),$(2),$(3),$(4),$(5),$(
 target.pre.define = $(call target.define,$(1).pre,,,,$(2),$(3))
 
 
-#-----------------------------------------------------------
-# $(call str.foreach.list,{sep},{var},{str},{do},[join])
-#-----------------------------------------------------------
-
-
-# str.foreach.list = $(call str.expand.vars,LF TAB SPACE DOLLAR,
-# $(subst $(SPACE),$(5),
-# 	$(foreach $(2),
-# 	$(call str.subst.list_to_str,
-# 		$(call str.escape.vars,DOLLAR,$(1)),
-# 		$(SPACE),
-# 		$(call str.escape.vars,DOLLAR SPACE TAB LF,$(3))
-# 	),
-# 	$(subst $$(DOLLAR)($(2)),$$($(2)),)
-# 	)
-# )
-# )
-# # 4 = $(subst $$(DOLLAR)($(2)),$$($(2)),$(call str.escape.vars,DOLLAR SPACE TAB LF,$(4)))
-
-# #-----------------------------------------------------------
-# # $(call list.foreach,{var},{str},{do})
-# #-----------------------------------------------------------
-# list.foreach = $(foreach $(1),
-# 	$(call str.subst.list_to_str,
-# 		$(call str.escape.vars,DOLLAR,$(1)),
-# 		$(SPACE),
-# 		$(call str.escape.vars,DOLLAR SPACE TAB LF,$(3))
-# 	),
-# 	$(subst $$($(2)),$($(2)),$(4))
-# 	)
-# )
 
 
 #-----------------------------------------------------------
@@ -691,6 +827,13 @@ list.item.set.prev     = $(call list.item.set,$(1),$(call list.idx.dec,$(1) $$,$
 list.item.set.next     = $(call list.item.set,$(1),$(call list.idx.inc,$$ $(1),$(2)),$(3))
 list.item.set.first    = $(call list.item.set,$(1),$(call list.idx.first,$(1)),$(2))
 list.item.set.last     = $(call list.item.set,$(1),$(call list.idx.last,$(1)),$(2))
+
+
+$(info )
+$(info )
+$(info )
+$(error Exiting...)
+
 
 
 list0 :=
