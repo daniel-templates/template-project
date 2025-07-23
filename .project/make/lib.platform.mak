@@ -402,7 +402,7 @@ shell.names.bash.aliases.default :=
 #-----------------------------------------------------------
 $(call shell.names.define,sh,posix)
 #-----------------------------------------------------------
-# Available on most POSIX-compliant systems, but rarely the default shell.
+# Available on POSIX-compliant systems, but is rarely the default shell.
 #
 # This definition just defers to the defaults for posix-type shells.
 # See definion of shell.types.posix for details.
@@ -466,6 +466,7 @@ shell.names.cygwin.flags.default :=
 #-----------------------------------------------------------
 $(call shell.names.define,python,python)
 # Run Python syntax directly from make recipes!
+# If running more than one command, best to use .ONESHELL.
 #-----------------------------------------------------------
 # This definition just defers to the defaults for Python-type shells.
 # See definition of shell.types.python for details.

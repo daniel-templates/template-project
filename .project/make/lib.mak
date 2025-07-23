@@ -165,17 +165,17 @@ print.trace = $(if $(findstring $(print.trace.enable),true),$(info $(LF)======= 
 
 
 #-----------------------------------------------------------
-# str = $(call str.expand,{expr})
+# str = $(call str.eval,{expr})
 #-----------------------------------------------------------
 # Performs an additional $-expansion on a string.
 #
 # Example:
-#   expr := $$(call ...)                   expr contains a single literal '$'
-#   expr2 := $(call str.expand,$(expr))        expr2 contains the result of $(call ...)
+#   expr := $$(call ...)                     expr contains literal syntax '$(call ...)'
+#   expr2 := $(call str.eval,$(expr))      expr2 contains the result of $(call ...)
 #-----------------------------------------------------------
 
-str.expand = $(eval str.expand.tmp := $(1))$(str.expand.tmp)$(eval str.expand.tmp :=)
-
+str.eval.tmp := $(EMPTY)
+str.eval = $(eval str.eval.tmp := $(1))$(str.eval.tmp)$(eval str.eval.tmp :=)
 
 
 #-----------------------------------------------------------
@@ -214,9 +214,9 @@ str.indent.byline = $(1)$(subst $$(str.indent.byline.lf),,$(subst $$(str.indent.
 #   $(info [$(call str.lpad,$(str),$(col))])    [                     Some Text]
 #-----------------------------------------------------------
 
+str.pad.clear_if_eq = $(if $(subst $(2),,$(1)),$(1),)
 str.rpad = $(if $(1),$(1)$(subst .,$(SPACE),$(call str.pad.clear_if_eq,$(2:$(call str.subst.list_to_str,$(chr.nonwhitespace),.,$(call str.subst.vars_to_str,$(chr.whitespace.vars),.,$(1)))%=%),$(2))),$(subst .,$(SPACE),$(2)))
 str.lpad = $(if $(1),$(subst .,$(SPACE),$(call str.pad.clear_if_eq,$(2:$(call str.subst.list_to_str,$(chr.nonwhitespace),.,$(call str.subst.vars_to_str,$(chr.whitespace.vars),.,$(1)))%=%),$(2)))$(1),$(subst .,$(SPACE),$(2)))
-str.pad.clear_if_eq = $(if $(subst $(2),,$(1)),$(1),)
 
 
 
@@ -312,19 +312,20 @@ str.subst.list_to_list = $(if $(and $(3),$(firstword $(1)),$(firstword $(2))),$(
    str.subst.wrap_vars = $(if $(and $(4),$(or $(1),$(2)),$(firstword $(3))),$(call str.subst.wrap_vars,$(1),$(2),$(wordlist 2,$(words $(3)),$(3)),$(subst $($(firstword $(3))),$(1)$($(firstword $(3)))$(2),$(4))),$(4))
    str.subst.wrap_list = $(if $(and $(4),$(or $(1),$(2)),$(firstword $(3))),$(call str.subst.wrap_list,$(1),$(2),$(wordlist 2,$(words $(3)),$(3)),$(subst $(firstword $(3)),$(1)$(firstword $(3))$(2),$(4))),$(4))
 
-# str_original = This is a string
-# from_list = from1 from1 from1
-# from1 := is
-# from2 := a
-# from3 := $(SPACE)
-# to_list = to1 to1 to1
-# to1 := isis
-# to2 := REP2
-# to3 := REP3
-# prefix = {
-# suffix = }
-# str_final = $(call str.subst.list_to_list,is is is,isis isis,$(str_original))
-# $(call print.break,str_original from_list from1 from2 from3 to_list to1 to2 to3 prefix suffix str_final)
+
+
+#-----------------------------------------------------------
+# str = $(call str.escape.vars,{vars},{str})
+# str = $(call str.expand.vars,{vars},{str})
+#-----------------------------------------------------------
+# .escape      Substitutes each $(var) with literal "$(var)".
+# .expand      Substitutes each literal "$(var)" with $(var).
+#-----------------------------------------------------------
+
+str.escape.vars = $(call str.subst.vars_to_list,$(1),$(foreach var,$(1),$$($(var))),$(2))
+str.expand.vars = $(call str.subst.list_to_vars,$(foreach var,$(1),$$($(var))),$(1),$(2))
+
+
 
 #-----------------------------------------------------------
 # newlist = $(call list.map,function,list)
@@ -470,7 +471,61 @@ int.neg = $(if $(1:-%=),$(if $(1:0=),-$(1),$(1)),$(1:-%=%))
 
 
 #-----------------------------------------------------------
-# $(call pretarget.define,{target},{list of prereqs},\
+#   num = $(call int.clamp.lower.0,{int})
+#-----------------------------------------------------------
+# int.clamp.lower.0:  Returns {int} if int > 0; 0 otherwise.
+#-----------------------------------------------------------
+int.clamp.lower.0 = $(or $(filter-out -%,$(2)),0)
+
+
+#-----------------------------------------------------------
+# $(call target.define,{target},\
+#      [prereqs],[orderonly],\
+#      [prereq_of],[orderonly_of],\
+# 	COMMANDS$(LF)\
+# )
+#-----------------------------------------------------------
+# Defines a new target.
+#
+#   target               name of target
+#   prereqs              (space-separated) list of prerequisites
+#   orderonly            (space-separated) list of order-only prereqs
+#   prereq_of            adds this target as a prerequisite of each target in this list
+#   orderonly_of         adds this target as an order-only prereq of each target in this list
+#   COMMANDS             Recipe commands to make this target.
+#
+# COMMAND formatting requirements:
+# - Escape runtime variables:
+#     instead of $@, use $$@.
+#     instead of $(VAR), use $$(VAR).
+#     instead of $(func ...), use $$(func ...).
+#
+# - Escape consectutive whitespace characters:
+#     $$(SPACE)
+#     $$(TAB)
+#
+# - Terminate each command line with $(LF), $$(LF), $(LF)\ or $$(LF)\.
+#     Line indentation is automatically corrected.
+#
+# Quick reference:
+#	$$(basename $$@)    Name of target this pretarget belongs to
+#	$$^                 List of prerequisites
+#
+#-----------------------------------------------------------
+
+
+define target.define.template
+$(subst $(LF)$(SPACE),$(LF),$(foreach target,$(4),$(target): $(strip $(1))$(LF)))
+$(subst $(LF)$(SPACE),$(LF),$(foreach target,$(5),$(target): | $(strip $(1))$(LF)))
+$(strip $(1): $(2) $(if $(strip $(3)),| $(strip $(3))))
+$(if $(strip $(6)),$(TAB)$(subst $$(LF),$(LF)$(TAB),$(subst $$(LF)$(SPACE),$$(LF),$(strip $(subst $(LF),$$(LF)$(LF),$(subst $$(LF),$(LF),$(6)))))))
+endef
+
+target.define = $(eval $(call target.define.template,$(1),$(2),$(3),$(4),$(5),$(6)))
+
+
+#-----------------------------------------------------------
+# $(call target.pre.define,{target},{prereqs},\
 # 	COMMANDS$(LF)\
 # )
 #-----------------------------------------------------------
@@ -478,32 +533,177 @@ int.neg = $(if $(1:-%=),$(if $(1:0=),-$(1),$(1)),$(1:-%=%))
 # target's prerequisites.
 #
 # If target has no prerequisites, this pretarget never runs;
-# To force pretarget to run even without prereqs, include the target name
-# along with the list of its prereqs.
+# To force the pretarget to run even without prereqs,
+#   include {target} along with the list of its prereqs.
 #
-# Command formatting requirements:
-#	Variables which should be evaluated at runtime should be escaped;
-#	 instead of $(VAR), use $$(VAR).
-#	 instead of $@, use $$@.
-#
-#	Each line should end with $(LF)\
-#	Recipe line indentation is corrected automatically.
+# See "target.define" for command formatting requirements.
 #
 # Quick reference:
-#	$$(basename $$@)	Name of target this pretarget belongs to
-#	$$^					List of prerequisites
-#
-# WARNING:
-#   Consecutive whitespace chars collapsed to a single space!
-#   Replace important whitespace with:
-#     $$(SPACE)
-#     $$(TAB)
-#     $$(LF)
+#	$$(basename $$@)    Name of target this pretarget belongs to
+#	$$^                 List of prerequisites
 #-----------------------------------------------------------
 
-pretarget.define = $(eval $(subst $(LF)$(SPACE),$(LF),$(LF)\
-	.PHONY: $(strip $(1)).pre$(LF)\
-	$(strip $(2)): | $(strip $(1)).pre$(LF)\
-	$(strip $(1)).pre:$(LF)\
-	$(call str.indent.byline,$(TAB),$(3))$(LF)\
-))
+target.pre.define = $(call target.define,$(1).pre,,,,$(2),$(3))
+
+
+#-----------------------------------------------------------
+# $(call str.foreach.list,{sep},{var},{str},{do},[join])
+#-----------------------------------------------------------
+
+
+# str.foreach.list = $(call str.expand.vars,LF TAB SPACE DOLLAR,
+# $(subst $(SPACE),$(5),
+# 	$(foreach $(2),
+# 	$(call str.subst.list_to_str,
+# 		$(call str.escape.vars,DOLLAR,$(1)),
+# 		$(SPACE),
+# 		$(call str.escape.vars,DOLLAR SPACE TAB LF,$(3))
+# 	),
+# 	$(subst $$(DOLLAR)($(2)),$$($(2)),)
+# 	)
+# )
+# )
+# # 4 = $(subst $$(DOLLAR)($(2)),$$($(2)),$(call str.escape.vars,DOLLAR SPACE TAB LF,$(4)))
+
+# #-----------------------------------------------------------
+# # $(call list.foreach,{var},{str},{do})
+# #-----------------------------------------------------------
+# list.foreach = $(foreach $(1),
+# 	$(call str.subst.list_to_str,
+# 		$(call str.escape.vars,DOLLAR,$(1)),
+# 		$(SPACE),
+# 		$(call str.escape.vars,DOLLAR SPACE TAB LF,$(3))
+# 	),
+# 	$(subst $$($(2)),$($(2)),$(4))
+# 	)
+# )
+
+
+#-----------------------------------------------------------
+# len  = $(call list.length,{list})                     Returns number of items in list; 0 if list is empty.
+#
+# item = $(call list.str.escape,{str})                  Internal. Returns a list item containing str with special chars escaped.
+# str  = $(call list.item.expand,{item})                Internal. Returns the original contents of str without escaping.
+#
+# idx  = $(call list.idx,{list},{idx})                  Returns idx   if (1<=idx<=len); empty otherwise.
+# idx  = $(call list.idx.dec,{list},{idx})              Returns clamp(idx-1,0,len)
+# idx  = $(call list.idx.inc,{list},{idx})              Returns clamp(idx+1,1,len+1)
+# idx  = $(call list.idx.prev,{list},{idx})             Returns idx-1 if (1<=idx-1<=len); empty otherwise.
+# idx  = $(call list.idx.next,{list},{idx})             Returns idx+1 if (1<=idx+1<=len); empty otherwise.
+# idx  = $(call list.idx.first,{list},{idx})            Returns 1     if list is nonempty; empty otherwise.
+# idx  = $(call list.idx.last,{list},{idx})             Returns len   if list is nonempty; empty otherwise.
+#
+# list = $(call list.insert,{list},{idx},{str})         Inserts item at index = idx    for 1<=idx  <=len+1 . Invalid idx returns list unchanged.
+# list = $(call list.insert.prev,{list},{idx},{str})    Inserts item at index = idx-1  for 1<=idx-1<=len+1 . Invalid idx returns list unchanged.
+# list = $(call list.insert.next,{list},{idx},{str})    Inserts item at index = idx+1  for 1<=idx+1<=len+1 . Invalid idx returns list unchanged.
+# list = $(call list.prepend,{list},{str})              Inserts item at index = 1     .
+# list = $(call list.append,{list},{str})               Inserts item at index = len+1 .
+#
+# list = $(call list.remove,{list},{idx})               Removes item at index = idx    for 1<=idx<=len   . Invalid idx returns list unchanged.
+# list = $(call list.remove.prev,{list},{idx})          Removes item at index = idx-1  for 1<=idx-1<=len . Invalid idx returns list unchanged.
+# list = $(call list.remove.next,{list},{idx})          Removes item at index = idx+1  for 1<=idx+1<=len . Invalid idx returns list unchanged.
+# list = $(call list.remove.first,{list})               Removes item at index = 1   .
+# list = $(call list.remove.last,{list})                Removes item at index = len .
+#
+# str  = $(call list.get,{list},{idx})                  Returns (unescaped) str at in
+# str  = $(call list.get.prev,{list},{idx})
+# str  = $(call list.get.next,{list},{idx})
+# str  = $(call list.get.first,{list})
+# str  = $(call list.get.last,{list})
+#
+# list = $(call list.set,{list},{idx},{str})
+# list = $(call list.set.prev,{list},{idx},{str})
+# list = $(call list.set.next,{list},{idx},{str})
+# list = $(call list.set.first,{list},{str})
+# list = $(call list.set.last,{list},{str})
+#
+#-----------------------------------------------------------
+
+
+
+# misc
+list.str.escape        = $(if $(1),$(subst $(LF),$$(LF),$(subst $(TAB),$$(TAB),$(subst $(SPACE),$$(SPACE),$(subst $(DOLLAR),$$(DOLLAR),$(1))))),$$(EMPTY))
+list.item.expand       = $(subst $$(DOLLAR),$(DOLLAR),$(subst $$(SPACE),$(SPACE),$(subst $$(TAB),$(TAB),$(subst $$(LF),$(LF),$(subst $$(EMPTY),$(EMPTY),$(1))))))
+list.length            = $(words $(1))
+list.trim              = $(strip $(subst $$(EMPTY),,$(1)))
+
+# list.idx
+list.idx               = $(if $(and $(filter-out 0 -%,$(2)),$(word $(2),$(1))),$(2),$(EMPTY))
+list.idx.dec           = $(words $(wordlist 2,$(or $(filter-out -%,$(2)),0),$(1) $$))
+list.idx.inc           = $(words $(wordlist 1,$(or $(filter-out -%,$(2)),$(words $(1))),$(1)) $$)
+list.idx.prev          = $(call list.idx,$(1),$(call list.idx.dec,$(1),$(2)))
+list.idx.next          = $(call list.idx,$(1),$(call list.idx.inc,$(1),$(2)))
+list.idx.first         = $(if $(filter-out 0,$(words $(1))),1,$(EMPTY))
+list.idx.last          = $(filter-out 0,$(words $(1)))
+
+# list.insert
+list.insert            = $(call list.item.insert,$(1),$(2),$(call list.str.escape,$(3)))
+list.insert.prev       = $(call list.item.insert.prev,$(1),$(2),$(call list.str.escape,$(3)))
+list.insert.next       = $(call list.item.insert.next,$(1),$(2),$(call list.str.escape,$(3)))
+list.prepend           = $(call list.item.prepend,$(1),$(call list.str.escape,$(2)))
+list.append            = $(call list.item.append,$(1),$(call list.str.escape,$(2)))
+
+# list.item.insert
+list.item.insert       = $(strip $(if $(call list.idx,$(1) $$,$(2)),$(wordlist 1,$(call list.idx.dec,$(1),$(2)),$(1)) $(3) $(wordlist $(2),$(words $(1)),$(1)),$(1)))
+list.item.insert.prev  = $(call list.item.insert,$(1),$(call list.idx.dec,$(1) $$,$(2)),$(3))
+list.item.insert.next  = $(call list.item.insert,$(1),$(call list.idx.inc,$$ $(1),$(2)),$(3))
+list.item.prepend      = $(strip $(2) $(1))
+list.item.append       = $(strip $(1) $(2))
+
+# list.remove
+list.remove            = $(call list.item.remove,$(1),$(2))
+list.remove.prev       = $(call list.item.remove.prev,$(1),$(2))
+list.remove.next       = $(call list.item.remove.next,$(1),$(2))
+list.remove.first      = $(call list.item.remove.first,$(1))
+list.remove.last       = $(call list.item.remove.last,$(1))
+
+# list.item.remove
+list.item.remove       = $(strip $(if $(call list.idx,$(1),$(2)),$(wordlist 1,$(call list.idx.dec,$(1),$(2)),$(1)) $(wordlist $(call list.idx.inc,$(1),$(2)),$(words $(1)),$(1)),$(1)))
+list.item.remove.prev  = $(call list.item.remove,$(1),$(call list.idx.dec,$(1) $$,$(2)))
+list.item.remove.next  = $(call list.item.remove,$(1),$(call list.idx.inc,$$ $(1),$(2)))
+list.item.remove.first = $(call list.item.remove,$(1),$(call list.idx.first,$(1)))
+list.item.remove.last  = $(call list.item.remove,$(1),$(call list.idx.last,$(1)))
+
+# list.get
+list.get               = $(call list.item.expand,$(call list.item.get,$(1),$(2)))
+list.get.prev          = $(call list.item.expand,$(call list.item.get.prev,$(1),$(2)))
+list.get.next          = $(call list.item.expand,$(call list.item.get.next,$(1),$(2)))
+list.get.first         = $(call list.item.expand,$(call list.item.get.first,$(1),$(2)))
+list.get.last          = $(call list.item.expand,$(call list.item.get.last,$(1),$(2)))
+
+# list.item.get
+list.item.get          = $(if $(call list.idx,$(1),$(2)),$(word $(2),$(1)),$(EMPTY))
+list.item.get.prev     = $(call list.item.get,$(1),$(call list.idx.dec,$(1) $$,$(2)))
+list.item.get.next     = $(call list.item.get,$(1),$(call list.idx.inc,$$ $(1),$(2)))
+list.item.get.first    = $(firstword $(1))
+list.item.get.last     = $(lastword $(1))
+
+# list.set
+list.set               = $(call list.item.set,$(1),$(2),$(call list.str.escape,$(3)))
+list.set.prev          = $(call list.item.set.prev,$(1),$(2),$(call list.str.escape,$(3)))
+list.set.next          = $(call list.item.set.next,$(1),$(2),$(call list.str.escape,$(3)))
+list.set.first         = $(call list.item.set.first,$(1),$(call list.str.escape,$(2)))
+list.set.last          = $(call list.item.set.last,$(1),$(call list.str.escape,$(2)))
+
+# list.item.set
+list.item.set          = $(strip $(if $(call list.idx,$(1),$(2)),$(wordlist 1,$(call list.idx.dec,$(1),$(2)),$(1)) $(3) $(wordlist $(call list.idx.inc,$(1),$(2)),$(words $(1)),$(1)),$(1)))
+list.item.set.prev     = $(call list.item.set,$(1),$(call list.idx.dec,$(1) $$,$(2)),$(3))
+list.item.set.next     = $(call list.item.set,$(1),$(call list.idx.inc,$$ $(1),$(2)),$(3))
+list.item.set.first    = $(call list.item.set,$(1),$(call list.idx.first,$(1)),$(2))
+list.item.set.last     = $(call list.item.set,$(1),$(call list.idx.last,$(1)),$(2))
+
+
+list0 :=
+list1 := $(call list.str.escape,Item 1)
+list2 := $(list1) $(call list.str.escape,Item 2)
+list3 := $(list2) $(call list.str.escape,Item 3)
+
+list.org := $(list3)
+idx := 5
+rep := New Item
+list.new := $(call list.insert.prev,$(list.org),$(idx),$(rep))
+
+$(info )
+$(call print.vars,list.org idx rep list.new)
+$(info )
+$(error Exiting...)

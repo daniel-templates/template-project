@@ -58,7 +58,7 @@
 # Pretarget
 #   Runs exactly once before any number of prereqs
 #
-# $(call pretarget.define,TARGET,$(TARGET.prereqs),\
+# $(call target.pre.define,TARGET,$(TARGET.prereqs),\
 # 	$$(call print.trace,make $$(basename $$@))$(LF)\
 # 	[OTHER COMMANDS]$(LF)\
 # )
@@ -111,7 +111,7 @@ $(call help.targets.define,init,\
 )
 
 # Pretarget; runs exactly once before any number of prereqs
-$(call pretarget.define,init,$(init.prereqs),\
+$(call target.pre.define,init,$(init.prereqs),\
 	$$(call print.trace,make $$(basename $$@))$(LF)\
 )
 
@@ -161,16 +161,16 @@ init.create: $(init.create.prereqs.normal) | $(init.create.prereqs.orderonly)
 	$(if $($@.dirs)$($@.files),$(call print.trace))
 	@$(call shell.nop)
 	@$(if $($@.dirs),\
-	  $(call str.expand,$(foreach path,$($@.dirs),$$(call shell.mkdir,$(path))$$(LF)))\
+	  $(call str.eval,$(foreach path,$($@.dirs),$$(call shell.mkdir,$(path))$$(LF)))\
 	)
 	@$(if $($@.dirs),$(if $($@.dirs.perms),\
-	  $(call str.expand,$(call list.foreach.pair,path,$($@.dirs),perm,$($@.dirs.perms),$$(call shell.chmod,,$$(perm),$$(path)),$$(LF)))\
+	  $(call str.eval,$(call list.foreach.pair,path,$($@.dirs),perm,$($@.dirs.perms),$$(call shell.chmod,,$$(perm),$$(path)),$$(LF)))\
 	))
 	@$(if $($@.files),\
-	  $(call str.expand,$(foreach path,$($@.files),$$(call shell.touch,$(path))$$(LF)))\
+	  $(call str.eval,$(foreach path,$($@.files),$$(call shell.touch,$(path))$$(LF)))\
 	)
 	@$(if $($@.files),$(if $($@.files.perms),\
-	  $(call str.expand,$(call list.foreach.pair,path,$($@.files),perm,$($@.files.perms),$$(call shell.chmod,,$$(perm),$$(path)),$$(LF)))\
+	  $(call str.eval,$(call list.foreach.pair,path,$($@.files),perm,$($@.files.perms),$$(call shell.chmod,,$$(perm),$$(path)),$$(LF)))\
 	))
 
 

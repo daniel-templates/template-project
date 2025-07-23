@@ -58,7 +58,7 @@
 # Pretarget
 #   Runs exactly once before any number of prereqs
 #
-# $(call pretarget.define,TARGET,$(TARGET.prereqs),\
+# $(call target.pre.define,TARGET,$(TARGET.prereqs),\
 # 	$$(call print.trace,make $$(basename $$@))$(LF)\
 # 	[OTHER COMMANDS]$(LF)\
 # )
@@ -109,7 +109,7 @@ $(call help.targets.define,all,\
 )
 
 # Pretarget; runs exactly once before any number of prereqs
-$(call pretarget.define,all,$(all.prereqs),\
+$(call target.pre.define,all,$(all.prereqs),\
 	$$(call print.trace,make $$(basename $$@))$(LF)\
 )
 
