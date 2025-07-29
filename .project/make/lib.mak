@@ -1,7 +1,7 @@
 #===============================================================================
 # lib.mak
 #
-# Common library of callable "functions" for use in target definitions, etc.
+# Common library of types, constants, and callable functions for use.
 #
 # Usage:
 #
@@ -18,149 +18,301 @@
 #===============================================================================
 # Data Types:
 #
-#   Make does not explicitly differentiate between different data types;
+#  Like most scripting languages, GNU Make does not explicitly differentiate
+#    between data types; all variables are strings.
+#  However, the built-in Make functions do share a common set of usage conventions,
+#    formatting expectations, and error conditions.
+#  This library attempts to provide a taxonomy of "types" which cover each unique
+#    usage of strings among the inputs and outputs of the Make built-ins.
+#  Using these types as a basis, new types and functions can be defined which
+#    expand on the basic features of Make while remaining maximally interoperable
+#    with existing Makefiles.
+#
+# $([var:name]) --> [str]
+#
+#   Expands to the value of a variable named [name].
+#     Expands recursively if [name] was assigned with the recursive-assignment operator '='.
+#   Returns empty if [name] is empty, [name] contains empty, or [name] is undefined.
 #
 #
-# {str}                String:
-# |                    All variables in Make are strings.
-# |
-# |
-# |--{bool}            Boolean:
-# |                    Make convention defines logical 'true' as *any* nonempty string,
-# |                      logical 'false' as the empty string.
-# |                    Make built-ins which operate on {bool} include $(if), $(and), $(or).
-# |
-# |
-# |--{list}            List:
-# |  |                 A {str} containing a space-delimited list of {item}s.
-# |  |                 Most Make built-ins operate item-for-item on {list}s:
-# |  |                   $(firstword) $(foreach) $(addprefix) $(wordlist) etc.
-# |  |                 Lists are 1-indexed. Empty or invalid idx should no-op.
-# |  |                 Consecutive whitespace is treated as one delimiter.
-# |  |                 The empty list is an empty string, or a string with only whitespace.
-# |  |                 This library automatically escapes/expands special characters whenever
-# |  |                   list items are added, removed, indexed, or modified:
-# |  |                    - Dollar "$" is escaped as literal "$(DOLLAR)".
-# |  |                    - Whitespace is escaped as literal "$(SPACE)", "$(TAB)", "$(LF)".
-# |  |                    - Empty items are stored as literal "$(EMPTY)".
-# |  |                 Since these escape sequences are valid Make syntax, lists are
-# |  |                   automatically de-escaped by $(eval), expanding each item to its
-# |  |                   original literal value; however, the space delimiters will remain.
-# |  |
-# |  |--{{type}s}      List of {type}:
-# |  |--{strs}         This library uses plurals to refer to lists containing
-# |  |--{vars}           items of a specific {type}.
-# |  |--(etc)
-# |
-# |
-# |--{item}            List Item:
-# |                    A {str} representing an individual list item.
-# |                    Nonempty, and no whitespace. Special characters are
-# |                      escaped according to the rules in {list} above.
-# |                    Used internally by this library's list functions;
-# |                      typically no need to work with {item} types directly.
-# |
-# |
-# |--{var}             Variable:
-# |  |                 A {str} containing the name of a variable.
-# |  |                 Variable names can include any characters except "#", "=", ":",
-# |  |                   but whitespace, "$", "(", ")" are problematic and should always be avoided.
-# |  |                 Make built-ins which operate on {var} include $(origin), $(value), $(foreach).
-# |  |
-# |  |--{fcn}          Function:
-# |  |                 A {var} naming a callable "function".
-# |  |                 Make built-ins which operate on {fcn} include $(call).
-# |  |
-# |  |--{ns}           Namespace:
-# |                    A {var} naming a variable "namespace".
-# |                    This library defines a "namespace" as a collection of associated variables:
-# |                    - The namespace root is a variable named   "{ns}" .
-# |                    - Each variable {var} within {ns} is named "{ns}.{var}" .
-# |                    - The value of $({ns}) is a list of all variables in the namespace.
-# |                    Example: Define a namespace "root", containing another namespace "sub"
-# |                      root = root.var1 root.var2 $(root.sub)
-# |                      root.var1 = Value 1
-# |                      root.var2 = Value 2
-# |                      root.sub = root.sub.var3
-# |                      root.sub.var3 = Value 3
-# |                      $(info $(root)) --> root.var1 root.var2 root.sub.var3
-# |
-# |
-# |--{int}             Integer:
-# |  |                 A {str} containing an integer value:
-# |  |                   Positive, negative, 0, or $(NaN) (empty string).
-# |  |                 Operations on $(NaN) should always return $(NaN).
-# |  |                 Make built-ins which operate on {int} include $(intcmp) (not available prior to Make 4.4.)
-# |  |
-# |  |--{uint}         Unsigned Integer:
-# |     |              An {int} which is positive, 0, or $(NaN) (empty string).
-# |     |              Operations on $(NaN) should always return $(NaN).
-# |     |
-# |     |--{idx}       List Index:
-# |                    A {uint} representing a position in a {list}.
-# |                    Lists are 1-indexed; typical range for {idx} is [1,len],
-# |                      though some operations (list.insert, wordlist) support [0,len+1].
-# |                    Out-of-range idx or idx=$(NaN) (empty string) are considered
-# |                      a valid no-op.
-# |                    Make built-ins which operate on {idx} include $(word), $(wordlist).
-# |                      WARNING: Built-ins typically return $(error) if passed {idx}=$(EMPTY).
-# |
-# |
-# |--{digit}           Digit:
-# |                    A {str} containing an optional prefix followed by a digit (0-9) or $(EMPTY).
-# |                    Empty number is treated as digit "0".
-# |                    Used internally by this library's {int} functions;
-# |                      typically no need to work with {digit} types directly.
-# |
-# |
-# |--{dynamic}         Make Syntax:
-# |                    A {str} containing valid Make syntax.
-# |                    Used for dynamic programming.
-# |                    Make built-ins which operate on {dynamic} include $(eval).
-# |
-# |--{path}            Path:
-# |  |                 A {str} containing a system path or $(EMPTY).
-# |  |                 Can be an absolute or relative path, file or directory path.
-# |  |                 Formatting requirements:
-# |  |                 - Path separator should always be forward-slash "/".
-# |  |                 - Spaces should always be escaped as "\ ".
-# |  |                     WARNING: Make Built-ins do not always handle spaces correctly.
-# |  |                 - Directories should not have trailing "/".
-# |  |                 - No leading or trailing whitespace.
-# |  |                 - $(EMPTY) path is a valid no-op.
-# |  |
-# |  |--{file}         File Path:
-# |  |  |              A {path} to a non-directory file, or $(EMPTY).
-# |  |  |              Make built-ins which operate on {file} include $(file).
-# |  |  |
-# |  |  |--{filename}  File Name:
-# |  |                 A {file} with no parent directory; just "{basename}{ext}".
-# |  |
-# |  |--{dir}          Directory Path:
-# |     |              A {path} to a directory, or $(EMPTY).
-# |     |
-# |     |--{dirname}   Directory Name:
-# |                    A {dir} with no parent directory; just "{basename}".
-# |
-# |
-# |--{basename}        Basename:
-# |                    A {str} containing a file/directory basename, or $(EMPTY).
-# |                    Valid values are that which would be returned by:
-# |                    - GNU utility 'basename -s'
-# |                    - Make built-in $(basename)
-# |                    Formatting requirements:
-# |                    - Spaces should always be escaped as "\ ".
-# |                        WARNING: Make Built-ins do not always handle spaces correctly.
-# |                    - No leading or trailing whitespace.
-# |                    - $(EMPTY) basename is a valid no-op.
-# |
-# |
-# |--{ext}             File Type Extension:
-# |                    A {str} containing a file extension, or $(EMPTY).
-# |                    Includes the leading "." .
-# |                    $(EMPTY) ext is valid (and common).
+# $([var:list]:[pattern:match]=[pattern:replace]) --> [list]
+#
+#   Expands a list variable, performing a pattern substitution on each word.
+#   If [pattern.match] contains a wildcard '%', equivalent to:
+#     $(patsubst [pattern.match],[pattern.replace],$([var:list]))
+#   If [pattern.match] contains no wildcard, assumes pattern is a suffix:
+#     $(patsubst %[pattern.match],%[pattern.replace],$([var:list]))
 #
 #
+# $(subst [str:find],[str:repl],[str:in]) --> [str]
+#
+#   Substitutes each occurrance of [str:find] in [str:in] with [str:repl].
+#
+#
+# $(patsubst [pattern.match],[pattern.replace],[list]) --> [list]
+#
+#   For each word in [list] matching [pattern.match],
+#     replaces that word with [pattern.replace].
+#   If both patterns contain a wildcard '%', the value of '%' in the
+#     original word is is substituted for '%' in the replacement word.
+#   [pattern.match] may contain either a wildcard, or whitespace, but not both.
+#   [pattern.replace] may contain both a wildcard and whitespace.
+#   Returns a list with no leading/trailing whitespace and a single space ' ' between words.
+#     However, additional whitespace inserted via [pattern.replace] is maintained.
+#     Therefore, it's possible for the returned list to have more words than the original.
+#   See definition of type "pattern" for more details.
+#
+#
+# $(strip [str]) --> [str]
+#
+#   Removes leading and trailing whitespace characters.
+#   Replaces tab and linefeed chars with spaces.
+#   Consecutive whitespace is reduced to a single space ' '.
+#
+#
+# $(findstring [str:find],[str:in]) --> [str:find]
+# $(findstring [str:find],[str:in]) --> [bool:found]
+#
+#   Returns [str:find] if [str:in] contains [str:find]; empty otherwise.
+#
+#
+# $(filter [pattern.matches],[list])     --> [list]
+# $(filter-out [pattern.matches],[list]) --> [list]
+#
+#   For each word in [list], keeps (filter) or rejects (filter-out) the word
+#     if matched by any pattern in [pattern.matches].
+#   Since [pattern.matches] is a space-separated list of patterns,
+#     they may not individually contain whitespace.
+#
+#
+# $(sort [list]) --> [list]
+#
+#   Returns the words of [list], sorted lexicographically.
+#
+#
+# $(words [list]) --> [uint]
+#
+#   Returns the number of words in [list], or 0 if [list] is empty or only contains whitespace.
+#
+#
+# $(word {idx},[list])                      --> [word]
+# $(wordlist {idx:start},{uint:end},[list]) --> [list]
+#
+#   Returns a single word or a sequence of words from [list].
+#   Returns empty for indicies > $(words [list])
+#   Returns empty if {idx:start} > {idx:end}.
+#   Returns error if {idx}, {idx:start} not positive, nonempty integers.
+#   Returns error if {uint:endidx} not positive, nonempty integer or 0.
+#
+#
+# $(firstword [list]) --> [word]
+# $(lastword [list])  --> [word]
+#
+#   Returns first or last word in a list.
+#   Returns empty if [list] is empty.
+#
+#
+# $(value [var]) --> [dynamic]
+# $(eval [dynamic])
+# $(origin [var]) --> [enum.origin]
+# $(flavor [var]) --> [enum.flavor]
+# $(info [str:message])
+# $(error [str:message])
+# $(warning [str:message])
+# $(shell [str:command])
+# [dirs] = $(dir [paths])
+# [notdirs] = $(notdir [paths])
+# [exts] = $(suffix [paths])
+# [basenames] = $(basename [paths])
+# [strs] = $(addprefix [str:prefix],[strs])
+# [strs] = $(addsuffix [str:suffix],[strs])
+# [strs] = $(join [strs],[strs])
+# [paths] = $(wildcard [wildcards])
+# [paths] = $(realpath [paths])
+# [paths] = $(abspath [paths])
+# [str] = $(if bool:condition,str:then[,str:else])
+# [str] = $(or bool:condition[,str:cond2[,bool:cond3]])
+# [str] = $(and bool:condition[,str:cond2[,bool:cond3]])
+# [str] = $(intcmp int:lhs,int:rhs[,str:lss,[str:equ,[str:gtr]]])      (GNU Make 4.4+ only)
+# [str] = $(let vars,vals,expr)
+# [str] = $(foreath var,strs,expr)
+# [str] = $(file < file)
+#         $(file > file,str)
+#         $(file >> file,str)
+# [str] = $(call fcn[,arg1[,arg2[,...]]])
+#
+# [pattern]
+#  |  A string which optionally contains a wildcard: '%'.
+#  |  The wildcard is a placeholder for some other operation to fill in.
+#  |    Before the '%' wildcard, literal '%' must be escaped as '\%' and '\' as '\\'.
+#  |    After the '%' wildcard, all '%' and '\' are literal and should not be escaped!
+#  |    Therefore, only the first '%' is wild.
+#  |
+#  +--[pattern.match]
+#  |     A pattern for comparison against a [word] or [list].
+#  |     An operation is then applied to each [word] (or group of [words]) that match the pattern.
+#  |       - Wildcard '%' in pattern represents zero or more chars in [word]; as many chars as possible.
+#  |       - Whitespace in pattern can match multiple consecutive [words] as one.
+#  |       - Pattern may contain either a wildcard or whitespace, but not both!
+#  |     Invalid patterns do not match anything, which should typically result in a no-op:
+#  |       - Patterns containing both '%' and whitespace characters
+#  |       - Patterns containing leading or trailing whitespace
+#  |       - Patterns that are empty
+#  |
+#  +--[pattern.replace]
+#         A pattern used to form new strings.
+#         An operation substitutes the wildcard '%' in [pattern] with some other value,
+#           then returns the result or uses it for subsequent operations.
+#         Pattern may contain both wildcard and whitespace.
+#
+ EMPTY :=
+ SPACE := $(EMPTY) $(EMPTY)
+    TAB := $(EMPTY)	$(EMPTY)
+define LF
+
+
+endef
+
+pat.find = /path/with$(SPACE)spaces/%
+pat.repl = {%}
+ list.in = /path/without/spaces/file.x /path/with$(SPACE)spaces/file.x
+  result := $(patsubst $(pat.find),$(pat.repl),$(list.in))
+
+$(info )
+$(info pat.find=[$(pat.find)])
+$(info pat.repl=[$(pat.repl)])
+$(info $(SPACE)list.in=[$(list.in)])
+$(info $(SPACE)$(SPACE)result=[$(result)])
+$(info )
+$(error Exiting...)
+
+#
+# TAXONOMY OF DATA TYPES IN GNU MAKE
+#
+#
+#  /str
+#  /str/bool
+#  /str/bool/true
+#  /str/bool/false
+#  /str/bool/false/empty
+#  /str/list
+#  /str/list/list<type>
+#  /str/list/list<type>/word<type>
+#  /str/list/word
+#  /str/list/word/int
+#  /str/list/word/int/uint
+#  /str/list/word/int/uint/idx
+#  /str/list/word/var
+#  /str/list/word/var/fcn
+#  /str/list/word/var/ns
+#  /str/list/word/digit
+#
+#  str                    String:
+#  |                        All variables in Make are strings.
+#  |
+#  +--bool                Boolean:
+#  |  |                     Logical true or false, for use in conditional expansion.
+#  |  |
+#  |  +--true             True:
+#  |  |                     A nonempty string.
+#  |  |
+#  |  +--false            False:
+#  |     |                  The empty string.
+#  |     |
+#  |     +--empty         Empty:
+#  |                        The empty string. Given an independent name to clarify its meaning in a non-logical context.
+#  |
+#  +--list                List:
+#  |  |                     A string containing a whitespace-delimited list of words.
+#  |  |                       --> Words cannot contain whitespace.
+#  |  |                     Consecutive whitespace is treated as a single delimiter.
+#  |  |                       --> Words cannot be empty or contain only whitespace.
+#  |  |                     Lists are 1-indexed. Out-of-bounds indices should result in a no-op (where possible).
+#  |  |                     The empty list is an empty string, or a string with only whitespace.
+#  |  |
+#  |  +--list<type>       List of Word <type>, or List of Word-Packed <type>:
+#  |  |  |                  A list which only contains words of a specific <type> (or descendents of that <type>).
+#  |  |  |                  Words are nonempty and cannot contain whitespace; <type> must be <word> or descended from <word>
+#  |  |  |                  If <type> is <word> or descended from <word>, values of that <type> are list-compatible as-is.
+#  |  |  |                  If <type> is one that allows empty strings or whitespace (incompatible with lists),
+#  |  |  |                    then <type> is actually shorthand for <word<type>> (compatible with lists). See below for details.
+#  |  |  |
+#  |  |  +--word<type>    Word-Packed <type>:
+#  |  |                     A word containing a potentially dangerous <type>, which has been modified to be list-safe.
+#  |  |                     Operations that produce word<type> must guarantee the result is nonempty and contains no whitespace,
+#  |  |                       and that the original value is able to be reconstituted by future operations.
+#  |  |                     For general strings, this implies (at a minimum) escaping whitespace, escape characters, and empty strings;
+#  |  |                       simpler types (such as bool) may be less work to make list-compatible.
+#  |  |
+#  |  +--word             Word:
+#  |     |                  A nonempty string with no whitespace.
+#  |     |                  An individual element of a list; a list with 1 element.
+#  |     |
+#  |     +--int           Integer:
+#  |     |  |               A word containing an integer value: positive, negative, or 0.
+#  |     |  |
+#  |     |  +-uint        Unsigned Integer:
+#  |     |    |             A word containing a positive integer, or 0.
+#  |     |    |
+#  |     |    +--idx      List Index:
+#  |     |                  A word containing a positive integer.
+#  |     |                  Lists are 1-indexed.
+#  |     |                  - idx > $(words [list]) is a valid no-op.
+#  |     |                  - idx < 1 is an error.
+#  |     |
+#  |     +--var           Variable:
+#  |        |               A word containing the name of a variable.
+#  |        |               Variable names can include any characters except "#", "=", ":",
+#  |        |                 but whitespace, "$", "(", ")" are problematic and should always be avoided.
+#  |        |
+#  |        +--fcn        Function:
+#  |        |               A word containing the name of a callable "function";
+#  |        |                 a variable containing a recursively-expanded expression which takes parameters
+#  |        |                 ( $(1) ... $(9) ) and/or produces side effects ( $(shell), $(info), $(eval), ... )
+#  |        |               See documentation for Make built-in $(call) for more details.
+#  |        |
+#  |        +--ns         Namespace:
+#  |                        A word containing the name of a "namespace": a collection of associated variables.
+#  |                        A namespace definition consists of:
+#  |                          1. A root variable {ns} of type list<var>, containing a list of all variables "within" the namespace.
+#  |                          2. A collection of variables, functions, etc, each named {ns}.{var}.
+#  |                        Example: Define a namespace "root", containing another namespace "root.sub"
+#  |                          root = root.var1 root.var2 $(root.sub)
+#  |                          root.var1 = Value 1
+#  |                          root.var2 = Value 2
+#  |                          root.sub = root.sub.var3
+#  |                          root.sub.var3 = Value 3
+#  |                          $(info $(root)) --> root.var1 root.var2 root.sub.var3
+#  |
+#  +--dynamic             Make Syntax:
+#  |                        A string containing valid Make syntax.
+#  |                        Used for dynamic programming.
+#  |
+#  +--path                Path:
+#  |  |                     A nonempty string containing a system file or directory path.
+#  |  |                     Absolute or relative paths allowed, symlinks allowed.
+#  |  |                     Path may contain whitespace.
+#  |  |                     Path separator should always be forward-slash "/".
+#  |  |                     Directories may or may not have trailing "/".
+#  |  |                     No leading or trailing whitespace.
+#  |  |                     No quotes around path.
+#  |  |
+#  |  +--file             File Path:
+#  |  |  |                  A path to a non-directory file.
+#  |  |  |
+#  |  |  +--filename      File Name:
+#  |  |                     A file with no directory part.
+#  |  |
+#  |  +--dir              Directory Path:
+#  |     |                  A path to a directory.
+#  |     |
+#  |     +--dirname       Directory Name:
+#  |                        A dir with no parent directory part.
+#  |
+#  |
+#  +--basename            Basename:
+#  |
+#  |--ext                 File Type Extension:
 #
 #===============================================================================
 
