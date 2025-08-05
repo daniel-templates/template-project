@@ -95,13 +95,13 @@ $(call help.targets.define,install, \
 	through two methods:$(LF)\
 	$(LF)\
 	1: Define new targets and append them as prereqs;$(LF)\
-	$$(INDENT) In config.mak$$(COMMA) add the lines:$(LF)\
+	$$(STR.INFO.INDENT) In config.mak$$(COMMA) add the lines:$(LF)\
 	$(LF)\
-	$$(INDENT)$$(INDENT) $$@.prereqs.normal = TARGETS$(LF)\
-	$$(INDENT)$$(INDENT) $$@.prereqs.orderonly = TARGETS$(LF)\
+	$$(STR.INFO.INDENT)$$(STR.INFO.INDENT) $$@.prereqs.normal = TARGETS$(LF)\
+	$$(STR.INFO.INDENT)$$(STR.INFO.INDENT) $$@.prereqs.orderonly = TARGETS$(LF)\
 	$(LF)\
 	2: Leverage existing targets by overriding their variables.$(LF)\
-	$$(INDENT) See Related Targets below.$(LF)\
+	$$(STR.INFO.INDENT) See Related Targets below.$(LF)\
 	,\
 	$$@.prereqs.normal\
 	$$@.prereqs.orderonly\

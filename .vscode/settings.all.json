@@ -13,6 +13,7 @@
         "MD012": false,
         "MD013": true,
         "MD014": false,
+        "MD024": false,
         "MD033": false,
         "MD040": false,
         "MD053": false,
@@ -28,8 +29,8 @@
         "2181",
     ],
     "shellcheck.useWorkspaceRootAsCwd": true,
-    
-    
+
+
     "yaml.extension.recommendations": "false",
 
 
@@ -60,7 +61,7 @@
     "[makefile]": {
         "editor.renderWhitespace": "boundary",
         "editor.detectIndentation": false,
-        "editor.insertSpaces": false
+        "editor.insertSpaces": true
     },
     "[bat]": {
         "files.encoding": "cp437",

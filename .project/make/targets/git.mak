@@ -97,13 +97,13 @@ $(call help.targets.define,git,\
 	through two methods:$(LF)\
 	$(LF)\
 	1: Define new targets and append them as prereqs;$(LF)\
-	$$(INDENT) In config.mak$$(COMMA) add the lines:$(LF)\
+	$$(STR.INFO.INDENT) In config.mak$$(COMMA) add the lines:$(LF)\
 	$(LF)\
-	$$(INDENT)$$(INDENT) $$@.prereqs.normal = TARGETS$(LF)\
-	$$(INDENT)$$(INDENT) $$@.prereqs.orderonly = TARGETS$(LF)\
+	$$(STR.INFO.INDENT)$$(STR.INFO.INDENT) $$@.prereqs.normal = TARGETS$(LF)\
+	$$(STR.INFO.INDENT)$$(STR.INFO.INDENT) $$@.prereqs.orderonly = TARGETS$(LF)\
 	$(LF)\
 	2: Leverage existing targets by overriding their variables.$(LF)\
-	$$(INDENT) See Related Targets below.$(LF)\
+	$$(STR.INFO.INDENT) See Related Targets below.$(LF)\
 	,\
 	$$@.prereqs.normal\
 	$$@.prereqs.orderonly\
@@ -181,9 +181,9 @@ $(call help.targets.define,git.gitignore,\
 	$(LF)\
 	This process is equivalent to running:$(LF)\
 	$(LF)\
-	$$(INDENT.COMMAND) git rm -rf --cached --quiet .$(LF)\
-	$$(INDENT.COMMAND) git add --all$(LF)\
-	$$(INDENT.COMMAND) git commit -m "$$$$($$@.commitmsg)"$(LF)\
+	$$(COMMAND.INDENT) git rm -rf --cached --quiet .$(LF)\
+	$$(COMMAND.INDENT) git add --all$(LF)\
+	$$(COMMAND.INDENT) git commit -m "$$$$($$@.commitmsg)"$(LF)\
 	,\
 	$$@.prereqs.normal\
 	$$@.prereqs.orderonly\
@@ -229,10 +229,10 @@ $(call help.targets.define,git.gitattributes,\
 	$(LF)\
 	This process is equivalent to running:$(LF)\
 	$(LF)\
-	$$(INDENT.COMMAND) git add --renormalize .$(LF)\
-	$$(INDENT.COMMAND) git commit -m "$$$$($$@.commitmsg)"$(LF)\
-	$$(INDENT.COMMAND) git rm -rf --cached --quiet .$(LF)\
-	$$(INDENT.COMMAND) git reset --hard$(LF)\
+	$$(COMMAND.INDENT) git add --renormalize .$(LF)\
+	$$(COMMAND.INDENT) git commit -m "$$$$($$@.commitmsg)"$(LF)\
+	$$(COMMAND.INDENT) git rm -rf --cached --quiet .$(LF)\
+	$$(COMMAND.INDENT) git reset --hard$(LF)\
 	$(LF)\
 	Be sure these changes are also reflected in .vscode/settings.all.json$(LF)\
 	$(LF)\
@@ -273,7 +273,7 @@ $(call help.targets.define,git.require.no-uncommitted-changes,\
 	$(LF)\
 	This process is equivalent to running:$(LF)\
 	$(LF)\
-	$$(INDENT.COMMAND) git diff --quiet && git diff --cached --quiet$(LF)\
+	$$(COMMAND.INDENT) git diff --quiet && git diff --cached --quiet$(LF)\
 	,\
 	$$@.prereqs.normal\
 	$$@.prereqs.orderonly\

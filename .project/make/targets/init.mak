@@ -98,13 +98,13 @@ $(call help.targets.define,init,\
 	through two methods:$(LF)\
 	$(LF)\
 	1: Define new targets and append them as prereqs;$(LF)\
-	$$(INDENT) In config.mak$$(COMMA) add the lines:$(LF)\
+	$$(STR.INFO.INDENT) In config.mak$$(COMMA) add the lines:$(LF)\
 	$(LF)\
-	$$(INDENT)$$(INDENT) $$@.prereqs.normal = TARGETS$(LF)\
-	$$(INDENT)$$(INDENT) $$@.prereqs.orderonly = TARGETS$(LF)\
+	$$(STR.INFO.INDENT)$$(STR.INFO.INDENT) $$@.prereqs.normal = TARGETS$(LF)\
+	$$(STR.INFO.INDENT)$$(STR.INFO.INDENT) $$@.prereqs.orderonly = TARGETS$(LF)\
 	$(LF)\
 	2: Leverage existing targets by overriding their variables.$(LF)\
-	$$(INDENT) See Related Targets below.$(LF)\
+	$$(STR.INFO.INDENT) See Related Targets below.$(LF)\
 	,\
 	$$@.prereqs.normal\
 	$$@.prereqs.orderonly\
@@ -140,12 +140,12 @@ $(call help.targets.define,init.create,\
 	$(EMPTY)\
 	,\
 	For each directory listed in $$$$($$@.dirs):$(LF)\
-	$$(INDENT)1. Creates directory$$(COMMA) if it doesn't already exist.$(LF)\
-	$$(INDENT)2. Sets permissions according to $$$$($$@.dirs.perms).$(LF)\
-	$$(INDENT)   Permissions are applied non-recursively.$(LF)\
+	$$(STR.INFO.INDENT)1. Creates directory$$(COMMA) if it doesn't already exist.$(LF)\
+	$$(STR.INFO.INDENT)2. Sets permissions according to $$$$($$@.dirs.perms).$(LF)\
+	$$(STR.INFO.INDENT)   Permissions are applied non-recursively.$(LF)\
 	For each file listed in $$$$($$@.files):$(LF)\
-	$$(INDENT)1. Creates empty file$$(COMMA) if it doesn't already exist.$(LF)\
-	$$(INDENT)2. Sets permissions according to $$$$($$@.files.perms).$(LF)\
+	$$(STR.INFO.INDENT)1. Creates empty file$$(COMMA) if it doesn't already exist.$(LF)\
+	$$(STR.INFO.INDENT)2. Sets permissions according to $$$$($$@.files.perms).$(LF)\
 	,\
 	$$@.prereqs.normal\
 	$$@.prereqs.orderonly\

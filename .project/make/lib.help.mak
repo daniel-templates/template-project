@@ -89,11 +89,11 @@ help:
 	@$(call nop)
 	$(info )
 	$(info Usage:)
-	$(info $(INDENT)make [target] [variable=value])
+	$(info $(STR.INFO.INDENT)make [target] [variable=value])
 	$(info )
 	$(info Targets:)
 	$(foreach tgt,$(sort $(help.targets)),$(if $($(tgt).shortdesc),\
-	  $(info $(INDENT)$(call str.rpad,$(patsubst help.%,%,$(tgt)),$(help.colwidth)) $($(tgt).shortdesc))\
+	  $(info $(STR.INFO.INDENT)$(call str.pad.right,$(patsubst help.%,%,$(tgt)),$(help.colwidth)) $($(tgt).shortdesc))\
 	))
 	$(info )
 
@@ -124,37 +124,37 @@ help.%:
 	  $(info )\
 	  $(info Usage:)\
 	  $(info )\
-	  $(info $(INDENT)make $(patsubst help.%,%,$@) [variable=value])\
+	  $(info $(STR.INFO.INDENT)make $(patsubst help.%,%,$@) [variable=value])\
 	  $(if $($@.shortdesc),\
 	    $(info )\
-	    $(info $(INDENT)$($@.shortdesc))\
+	    $(info $(STR.INFO.INDENT)$($@.shortdesc))\
 	  )\
 	  $(if $($@.longdesc),\
 	    $(info )\
-	    $(info $(INDENT)$(subst $(LF),$(LF)$(INDENT),$($@.longdesc)))\
+	    $(info $(STR.INFO.INDENT)$(subst $(LF),$(LF)$(STR.INFO.INDENT),$($@.longdesc)))\
 	  )\
 	  $(if $($@.variables),\
 	    $(info )\
 	    $(if $(findstring true,$(expand)),\
-	      $(info $(call str.rpad,Variables:,....................) Values expanded recursively.)\
+	      $(info $(call str.pad.right,Variables:,....................) Values expanded recursively.)\
 	      $(info )\
 	      $(foreach varn,$(sort $($@.variables)),\
-	        $(info $(INDENT)$(varn)=[$($(varn))])\
+	        $(info $(STR.INFO.INDENT)$(varn)=[$($(varn))])\
 	      ),\
-	      $(info $(call str.rpad,Variables:,....................) Expand values by rerunning with "expand=true".)\
+	      $(info $(call str.pad.right,Variables:,....................) Expand values by rerunning with "expand=true".)\
 	      $(info )\
 	      $(foreach varn,$(sort $($@.variables)),\
-	        $(info $(INDENT)$(varn)=[$(value $(varn))])\
+	        $(info $(STR.INFO.INDENT)$(varn)=[$(value $(varn))])\
 	      )\
 		)\
 	  )\
 	  $(if $(strip $(foreach tgt,$(filter-out $@,$(help.targets)),$(if $(findstring $(patsubst help.%,%,$@),$(tgt)),$(tgt)))),\
 	    $(info )\
-	    $(info $(call str.rpad,Related Targets:,....................) For more info$(COMMA) run "make help.[target]".)\
+	    $(info $(call str.pad.right,Related Targets:,....................) For more info$(COMMA) run "make help.[target]".)\
 	    $(info )\
 	    $(foreach tgt,$(sort $(filter-out $@,$(help.targets))),\
 	      $(if $(findstring $(patsubst help.%,%,$@),$(tgt)),\
-	        $(info $(INDENT)$(call str.rpad,$(patsubst help.%,%,$(tgt)),$(help.colwidth)) $($(tgt).shortdesc))\
+	        $(info $(STR.INFO.INDENT)$(call str.pad.right,$(patsubst help.%,%,$(tgt)),$(help.colwidth)) $($(tgt).shortdesc))\
 	      )\
 	    )\
 	  )\

@@ -1,9 +1,15 @@
 #===============================================================================
 # make_builtins.mak
 #
-# Sample output from "make -p", on Windows, in an empty directory.
-# Reran with --no-builtin-variables and --no-builtin-rules and commented-out
-# lines that changed.
+# Default and Automatic Variables
+# Make 3.81 for Windows
+#
+# In an empty directory, run:
+#   make -p > make_builtins_all.mak
+#   make -p --no-builtin-variables > make_builtins_no_vars.mak
+#   make -p --no-builtin-rules     > make_builtins_no_rules.mak
+#
+# Compare files and indicate which builtins are removed.
 #===============================================================================
 
 

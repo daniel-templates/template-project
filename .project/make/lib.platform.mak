@@ -173,7 +173,7 @@ os.ext.dll = $(os.ext.dll.$(os.type))
 #	cat "/proc/registry/HKEY_LOCAL_MACHINE/SOFTWARE/Microsoft/Windows NT/CurrentVersion/ProductName"
 #						Windows 10 Home
 #
-# CARET64 (MSYS2):
+# UCRT64 (MSYS2):
 #	Invocation:			msys2_shell.cmd -defterm -here -no-start -ucrt64 -shell bash
 #	echo $OS			Windows_NT
 #	echo $0				/usr/bin/bash
@@ -725,13 +725,13 @@ ifeq "$(SHELL_TYPE)" "CMD"
     shell.errlvl = $(call shell.subshell,exit $(1))
     shell.echo = $(call shell.subshell,echo$(OPAREN)$(1))
     shell.line = $(call shell.echo,)
-    shell.touch = ( if exist "$(call mkpath,$(1))" ( copy /Y /B "$(call mkpath,$(1))"+,, "$(call mkpath,$(1))" 1>nul ) else ( echo 1>nul 2>"$(call mkpath,$(1))" ) ) && echo $(INDENT)Touched: $(call mkpath,$(1))
+    shell.touch = ( if exist "$(call mkpath,$(1))" ( copy /Y /B "$(call mkpath,$(1))"+,, "$(call mkpath,$(1))" 1>nul ) else ( echo 1>nul 2>"$(call mkpath,$(1))" ) ) && echo $(STR.INFO.INDENT)Touched: $(call mkpath,$(1))
     shell.ls = dir /b "$(call mkpath,$(1))"
-    shell.chmod = $(info $(INDENT)(Skipping) chmod --changes --preserve-root $(strip $(1)) $(strip $(2)) "$(call mkpath,$(3))")
-    shell.chown = $(info $(INDENT)(Skipping) chown --changes --preserve-root $(strip $(1)) $(strip $(2)) "$(call mkpath,$(3))")
-    shell.mkdir = if not exist "$(call mkpath,$(1))\" ( mkdir "$(call mkpath,$(1))" 1>nul && echo $(INDENT)Created: $(call mkpath,$(1))$(sep.path) )
-    shell.rm = if exist "$(call mkpath,$(1))" ( del /f /q "$(call mkpath,$(1))" 1>nul && echo $(INDENT)Removed: $(call mkpath,$(1)) )
-    shell.rmdir = if exist "$(call mkpath,$(1))\" ( rmdir /s /q "$(call mkpath,$(1))" && echo $(INDENT)Removed: $(call mkpath,$(1))$(sep.path) )
+    shell.chmod = $(info $(STR.INFO.INDENT)(Skipping) chmod --changes --preserve-root $(strip $(1)) $(strip $(2)) "$(call mkpath,$(3))")
+    shell.chown = $(info $(STR.INFO.INDENT)(Skipping) chown --changes --preserve-root $(strip $(1)) $(strip $(2)) "$(call mkpath,$(3))")
+    shell.mkdir = if not exist "$(call mkpath,$(1))\" ( mkdir "$(call mkpath,$(1))" 1>nul && echo $(STR.INFO.INDENT)Created: $(call mkpath,$(1))$(sep.path) )
+    shell.rm = if exist "$(call mkpath,$(1))" ( del /f /q "$(call mkpath,$(1))" 1>nul && echo $(STR.INFO.INDENT)Removed: $(call mkpath,$(1)) )
+    shell.rmdir = if exist "$(call mkpath,$(1))\" ( rmdir /s /q "$(call mkpath,$(1))" && echo $(STR.INFO.INDENT)Removed: $(call mkpath,$(1))$(sep.path) )
     shell.copy = xcopy /Y /I /-I "$(call mkpath,$(1))" "$(call mkpath,$(2))"
     shell.copydir = xcopy /Y /I /E "$(call mkpath,$(1))" "$(call mkpath,$(2))"
     shell.silent = ( $(1) ) 1>nul
@@ -746,8 +746,8 @@ ifeq "$(SHELL_TYPE)" "POWERSHELL"
     shell.line = $(call shell.echo,)
     shell.touch = $(error Function "touch" is not implemented for SHELL_TYPE=$(SHELL_TYPE). See platform.mak for details.)
     shell.ls = Get-ChildItem -Name '$(call mkpath,$(1))'
-    shell.chmod = $(info $(INDENT)(Skipping) chmod --changes --preserve-root $(strip $(1)) $(strip $(2)) "$(call mkpath,$(3))")
-    shell.chown = $(info $(INDENT)(Skipping) chown --changes --preserve-root $(strip $(1)) $(strip $(2)) "$(call mkpath,$(3))")
+    shell.chmod = $(info $(STR.INFO.INDENT)(Skipping) chmod --changes --preserve-root $(strip $(1)) $(strip $(2)) "$(call mkpath,$(3))")
+    shell.chown = $(info $(STR.INFO.INDENT)(Skipping) chown --changes --preserve-root $(strip $(1)) $(strip $(2)) "$(call mkpath,$(3))")
     shell.mkdir = New-Item -ItemType Directory -Force -Path '$(call mkpath,$(1))'
     shell.rm = Remove-Item -Force -Path '$(call mkpath,$(1))'
     shell.rmdir = Remove-Item -Force -Recurse -Path '$(call mkpath,$(1))'
@@ -763,13 +763,13 @@ ifeq "$(SHELL_TYPE)" "POSIX"
     shell.errlvl = $(call shell.subshell,exit $(1))
     shell.echo = echo "$(1)"
     shell.line = $(call shell.echo,)
-    shell.touch = touch "$(call mkpath,$(1))" && echo "$(INDENT)Touched: $(call mkpath,$(1))"
+    shell.touch = touch "$(call mkpath,$(1))" && echo "$(STR.INFO.INDENT)Touched: $(call mkpath,$(1))"
     shell.ls = ls -A -1 --color=no "$(call mkpath,$(1))"
     shell.chmod = $(if $(strip $(2)),chmod --changes --preserve-root $(strip $(1)) $(strip $(2)) "$(call mkpath,$(3))")
     shell.chown = $(if $(strip $(2)),chown --changes --preserve-root $(strip $(1)) $(strip $(2)) "$(call mkpath,$(3))")
-    shell.mkdir = if [ ! -d "$(call mkpath,$(1))" ]; then mkdir -p "$(call mkpath,$(1))" > /dev/null && echo "$(INDENT)Created: $(call mkpath,$(1))$(sep.path)"; fi
-    shell.rm = if [ -e "$(call mkpath,$(1))" ]; then rm --preserve-root --verbose -f "$(call mkpath,$(1))" > /dev/null && echo "$(INDENT)Removed: $(call mkpath,$(1))"; fi
-    shell.rmdir = if [ -e "$(call mkpath,$(1))" ]; then rm --preserve-root --verbose -rf "$(call mkpath,$(1))" && echo "$(INDENT)Removed: $(call mkpath,$(1))$(sep.path)"; fi
+    shell.mkdir = if [ ! -d "$(call mkpath,$(1))" ]; then mkdir -p "$(call mkpath,$(1))" > /dev/null && echo "$(STR.INFO.INDENT)Created: $(call mkpath,$(1))$(sep.path)"; fi
+    shell.rm = if [ -e "$(call mkpath,$(1))" ]; then rm --preserve-root --verbose -f "$(call mkpath,$(1))" > /dev/null && echo "$(STR.INFO.INDENT)Removed: $(call mkpath,$(1))"; fi
+    shell.rmdir = if [ -e "$(call mkpath,$(1))" ]; then rm --preserve-root --verbose -rf "$(call mkpath,$(1))" && echo "$(STR.INFO.INDENT)Removed: $(call mkpath,$(1))$(sep.path)"; fi
     shell.copy = cp -f "$(call mkpath,$(1))" "$(call mkpath,$(2))"
     shell.copydir = cp -rf "$(call mkpath,$(1))/." "$(call mkpath,$(2))"
     shell.silent = ( $(1) ) > /dev/null
