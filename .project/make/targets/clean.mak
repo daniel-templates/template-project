@@ -99,7 +99,7 @@ $(call help.targets.define,clean,\
 	through two methods:$(LF)\
 	$(LF)\
 	1: Define new targets and append them as prereqs;$(LF)\
-	$$(STR.INFO.INDENT) In config.mak$$(COMMA) add the lines:$(LF)\
+	$$(STR.INFO.INDENT) In config.mak$$(CMA) add the lines:$(LF)\
 	$(LF)\
 	$$(STR.INFO.INDENT)$$(STR.INFO.INDENT) $$@.prereqs.normal = TARGETS$(LF)\
 	$$(STR.INFO.INDENT)$$(STR.INFO.INDENT) $$@.prereqs.orderonly = TARGETS$(LF)\
@@ -136,7 +136,7 @@ clean.remove.dirs ?=
 
 # Help text
 $(call help.targets.define,clean.remove.dirs,\
-	$(EMPTY)\
+	$(empty)\
 	,\
 	Removes each file in $$$$($$@.files).$(LF)\
 	Removes each directory in $$$$($$@.dirs).$(LF)\

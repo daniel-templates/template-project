@@ -98,7 +98,7 @@ $(call help.targets.define,init,\
 	through two methods:$(LF)\
 	$(LF)\
 	1: Define new targets and append them as prereqs;$(LF)\
-	$$(STR.INFO.INDENT) In config.mak$$(COMMA) add the lines:$(LF)\
+	$$(STR.INFO.INDENT) In config.mak$$(CMA) add the lines:$(LF)\
 	$(LF)\
 	$$(STR.INFO.INDENT)$$(STR.INFO.INDENT) $$@.prereqs.normal = TARGETS$(LF)\
 	$$(STR.INFO.INDENT)$$(STR.INFO.INDENT) $$@.prereqs.orderonly = TARGETS$(LF)\
@@ -137,14 +137,14 @@ init.create.files.perms ?= $(foreach path,$(init.create.files),u+rwx)
 
 # Help Text
 $(call help.targets.define,init.create,\
-	$(EMPTY)\
+	$(empty)\
 	,\
 	For each directory listed in $$$$($$@.dirs):$(LF)\
-	$$(STR.INFO.INDENT)1. Creates directory$$(COMMA) if it doesn't already exist.$(LF)\
+	$$(STR.INFO.INDENT)1. Creates directory$$(CMA) if it doesn't already exist.$(LF)\
 	$$(STR.INFO.INDENT)2. Sets permissions according to $$$$($$@.dirs.perms).$(LF)\
 	$$(STR.INFO.INDENT)   Permissions are applied non-recursively.$(LF)\
 	For each file listed in $$$$($$@.files):$(LF)\
-	$$(STR.INFO.INDENT)1. Creates empty file$$(COMMA) if it doesn't already exist.$(LF)\
+	$$(STR.INFO.INDENT)1. Creates empty file$$(CMA) if it doesn't already exist.$(LF)\
 	$$(STR.INFO.INDENT)2. Sets permissions according to $$$$($$@.files.perms).$(LF)\
 	,\
 	$$@.prereqs.normal\

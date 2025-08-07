@@ -97,7 +97,7 @@ $(call help.targets.define,git,\
 	through two methods:$(LF)\
 	$(LF)\
 	1: Define new targets and append them as prereqs;$(LF)\
-	$$(STR.INFO.INDENT) In config.mak$$(COMMA) add the lines:$(LF)\
+	$$(STR.INFO.INDENT) In config.mak$$(CMA) add the lines:$(LF)\
 	$(LF)\
 	$$(STR.INFO.INDENT)$$(STR.INFO.INDENT) $$@.prereqs.normal = TARGETS$(LF)\
 	$$(STR.INFO.INDENT)$$(STR.INFO.INDENT) $$@.prereqs.orderonly = TARGETS$(LF)\
@@ -135,7 +135,7 @@ git.gitconfig.hooksdir ?= .project/git/hooks
 
 # Help Text
 $(call help.targets.define,git.gitconfig,\
-	$(EMPTY)\
+	$(empty)\
 	,\
 	Sets Git property "include.path" to ../$$$$($$@.file).$(LF)\
 	Also sets executable bit on files in $$$$($$@.hooksdir).$(LF)\
@@ -169,14 +169,14 @@ git.gitignore.commitmsg ?= $(if $(commitmsg),$(commitmsg),Updated file tracking 
 
 # Help Text
 $(call help.targets.define,git.gitignore,\
-	$(EMPTY)\
+	$(empty)\
 	,\
 	Untrack files identified in the repo's .gitignore.$(LF)\
 	$(LF)\
 	Modifies Git repo only. Local working tree is unaffected.$(LF)\
 	$(LF)\
-	If a file has already been committed to the repo$$(COMMA) and$(LF)\
-	is later added to .gitignore$$(COMMA) the file remains in the$(LF)\
+	If a file has already been committed to the repo$$(CMA) and$(LF)\
+	is later added to .gitignore$$(CMA) the file remains in the$(LF)\
 	repo until it is explicitly removed from tracking.$(LF)\
 	$(LF)\
 	This process is equivalent to running:$(LF)\
@@ -215,15 +215,15 @@ git.gitattributes.commitmsg ?= $(if $(commitmsg),$(commitmsg),Reencoded files ac
 
 # Help Text
 $(call help.targets.define,git.gitattributes,\
-	$(EMPTY)\
+	$(empty)\
 	,\
 	Reencode files according to the repo's .gitattributes.$(LF)\
 	$(LF)\
 	Modifies local files AND Git repo.$(LF)\
 	$(LF)\
-	When .gitattributes is changed$$(COMMA) some files may not have$(LF)\
+	When .gitattributes is changed$$(CMA) some files may not have$(LF)\
 	the correct encoding or line ending format anymore.$(LF)\
-	This renormalizes and commits changes to all files in the repo$$(COMMA)$(LF)\
+	This renormalizes and commits changes to all files in the repo$$(CMA)$(LF)\
 	then hard-resets to that commit so these changes are reflected$(LF)\
 	in the working-tree as well.$(LF)\
 	$(LF)\
@@ -266,10 +266,10 @@ git.require.no-uncommitted-changes.prereqs = $(git.require.no-uncommitted-change
 
 # Help Text
 $(call help.targets.define,git.require.no-uncommitted-changes,\
-	$(EMPTY)\
+	$(empty)\
 	,\
 	Terminates make with an error message if repository contains$(LF)\
-	unstaged changes$$(COMMA) or staged but uncommitted changes.$(LF)\
+	unstaged changes$$(CMA) or staged but uncommitted changes.$(LF)\
 	$(LF)\
 	This process is equivalent to running:$(LF)\
 	$(LF)\

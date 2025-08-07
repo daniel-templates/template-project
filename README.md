@@ -13,7 +13,7 @@ REPO:   template-project
 # [![daniel-templates/][icon_daniel-templates]][home_daniel-templates]  template-project
 
 <!-- TODO: Edit description. -->
-##### A base template for Git-managed projects. Other project templates can be found at [daniel-templates][home_daniel-templates].
+##### A base template for Git-managed projects. Other project templates can be found at [daniel-templates][home_daniel-templates]
 
 <!-- OPTIONAL: Add Title Image -->
 <!--
@@ -110,7 +110,7 @@ make install
 
 ## Usage
 
-### Project file structure:
+### Project file structure
 
 All projects will contain the following files (at minimum):
 
@@ -177,9 +177,11 @@ tests/                      Unit testing scripts.
 ```
 
 
-### Committing changes to the project:
+### Committing changes to the project
+
 1. Only commit changes to `dev` branch; **never** commit directly to `main`!
 Commits (other than Merge commits) to `main` will be blocked by the pre-commit hook. See .project/git/hooks/pre-commit for details.
+
 ```
     git checkout dev
     ... change files ...
@@ -187,7 +189,9 @@ Commits (other than Merge commits) to `main` will be blocked by the pre-commit h
     git commit -m "commit message"
     git push origin dev
 ```
+
 2. Fast-forward `main` to `dev` when ready to release:
+
 ```
     git checkout main
     git merge --ff-only dev
@@ -196,12 +200,16 @@ Commits (other than Merge commits) to `main` will be blocked by the pre-commit h
 ```
 
 
-### Merging changes from the parent template into the project:
+### Merging changes from the parent template into the project
+
 1. Check for updates:
+
 ```
     git fetch --all
 ```
+
 2. Merge each parent template's `main` branch into the local `dev` branch:
+
 ```
     git checkout dev
     git merge --no-ff template-project/main
@@ -240,6 +248,7 @@ Please refer to documentation directory: [doc/](doc/)
 References:
 
 - *GNU Make Standard Library (GMSL)*: jgrahamc ([GitHub][ref_gmsl])
+- *crossplatform.mk (from ecere-sdk)*: ecere ([GitHub][ref_crossplatform])
 
 <br/>
 
@@ -262,3 +271,4 @@ References:
 [icon_daniel-robotics]: https://avatars.githubusercontent.com/u/107002723?s=60 "Github Organization: daniel-robotics"
 [icon_daniel-utilities]: https://avatars.githubusercontent.com/u/107002832?s=60 "Github Organization: daniel-utilities"
 [ref_gmsl]: https://github.com/jgrahamc/gmsl
+[ref_crossplatform]: https://github.com/ecere/ecere-sdk

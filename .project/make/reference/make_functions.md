@@ -1,24 +1,6 @@
-# Data Types
-
-Like most scripting languages, GNU Make does not explicitly differentiate
-between data types; all variables are strings.
-
-However, the built-in Make functions do share a common set of usage conventions,
-formatting expectations, and error conditions.
-
-This library attempts to provide a taxonomy of "types" which cover each unique
-usage of strings among the inputs and outputs of the Make built-ins.
-Using these types as a basis, new types and functions can be defined which
-expand on the basic features of Make while remaining maximally interoperable
-with existing Makefiles.
-
-
-
-
+# GNU Make - Built-In Functions
 
 ## Variable References
-
-
 
 ### `$(name)`
 
@@ -34,20 +16,19 @@ further expansion occurs.
 ##### Specification
 
 ```
-$([str*:name]) --> [str]
+$([var[str]:name]) --> [str]
 ```
 
 ##### Parameters
 
-- `name`: Name of variable (`str*`), or `empty`.
+- `name`: Name of variable (`var[str]`), or `[empty]`.
 
 ##### Expands To
 
-- `str`: The contents of the variable `name`, references expanded recursively.
-
-- `empty`:
+- `{str}`: The contents of the variable `name`, references expanded recursively.
+- `[empty]`:
     - If `name` is omitted.
-    - If the value of the variable `name` is `empty`.
+    - If the value of the variable `name` is `[empty]`.
 
 
 
@@ -74,14 +55,13 @@ $(patsubst match,replace,$(name))
 ##### Specification
 
 ```
-$([list*:name]:{pattern<word>:match}=[pattern<str>:replace]) --> [list]
+$([list*:name]:{word.pattern:match}=[str.pattern:replace]) --> [list]
 ```
 
 ##### Parameters
 
-- `name`: Name of variable to expand (`list*`), or `empty`.
-
-- `match`: Single-word wildcard pattern (`pattern<word>`), nonempty.
+- `name`: Name of variable to expand (`list*`), or `[empty]`.
+- `match`: Single-word wildcard pattern (`word.pattern`), nonempty.
     - Cannot contain `'='` or whitespace.
     - Contains exactly one wildcard `'%'`, which matches zero or more
       characters in each `word`; as many characters as possible.
@@ -89,8 +69,7 @@ $([list*:name]:{pattern<word>:match}=[pattern<str>:replace]) --> [list]
       `'\\'`.
     - After the wild `'%'`, all `'%'` and `'\'` are literal, and should *not* be
       escaped.
-
-- `replace`: Replacement wildcard pattern (`pattern<str>`), or `empty`.
+- `replace`: Replacement wildcard pattern (`str.pattern`), or `[empty]`.
     - Contains zero or one wildcard `'%'`, which is substituted
       for the value of `'%'` in each matched `word`.
     - Before the wild `'%'`, escape each literal `'%'` with `'\%'` and `'\'` with
@@ -101,15 +80,14 @@ $([list*:name]:{pattern<word>:match}=[pattern<str>:replace]) --> [list]
 
 ##### Expands To
 
-- `list`: Performs the match/replace operation on each word of `$(name)`
+- `{list}`: Performs the match/replace operation on each word of `$(name)`
           then concatenates each nonempty result with a single space `' '`.
-    - Extra whitespace added by `replace` is maintained, so the resulting `list`
+    - Extra whitespace added by `replace` is maintained, so the resulting `{list}`
        may have more words than the original list `$(name)`.
-
-- `empty`:
+- `[empty]`:
     - If `name` is omitted.
-    - If `$(name)` is `empty` or only contains whitespace.
-    - If `match` matches every word in $(name) and `replace` is `empty`.
+    - If `$(name)` is `[empty]` or only contains whitespace.
+    - If `match` matches every word in $(name) and `replace` is `[empty]`.
 
 
 #### Suffix Match & Replace: When `match` does not contain `'%'`
@@ -137,33 +115,28 @@ $([list*:name]:[word:match]=[str:replace]) --> [list]
 
 ##### Parameters
 
-- `name`: Name of variable to expand (`list*`), or `empty`.
-
-- `match`: Single-word suffix (`word`), or `empty`.
+- `name`: Name of variable to expand (`list*`), or `[empty]`.
+- `match`: Single-word suffix (`word`), or `[empty]`.
     - Cannot contain `'='` or whitespace.
     - Escape all `'%'` with `'\%'` and `'\'` with `'\\'`.
-
-- `replace`: Replacement suffix (`str`), or `empty`.
+- `replace`: Replacement suffix (`{str}`), or `[empty]`.
     - Escape all `'%'` with `'\%'` and `'\'` with `'\\'`.
 
 ##### Expands To
 
-- `list`: Performs the match/replace operation on each word of `$(name)`
+- `{list}`: Performs the match/replace operation on each word of `$(name)`
           then concatenates each nonempty result with a single space `' '`.
-    - Extra whitespace added by `replace` is maintained, so the resulting `list`
+    - Extra whitespace added by `replace` is maintained, so the resulting `{list}`
        may have more words than the original list `$(name)`.
-
-- `empty`:
+- `[empty]`:
     - If `name` is omitted.
-    - If `$(name)` is `empty` or only contains whitespace.
+    - If `$(name)` is `[empty]` or only contains whitespace.
 
 
 
 
 
 ## Built-in Functions
-
-
 
 ### `$(patsubst match,replace,in)`
 
@@ -176,7 +149,7 @@ There are two distinct modes of operation, differentiated by whether `match`
 contains one word or multiple words.
 
 
-#### Wildcard Match & Replace: When `$(words match)` == 1
+#### Wildcard Match & Replace: When `$(words [match])` == 1
 
 For each `word` in list `in`, if `word` matches wildcard pattern `match`,
 replaces `word` with wildcard pattern `replace`.
@@ -184,12 +157,12 @@ replaces `word` with wildcard pattern `replace`.
 ##### Specification
 
 ```
-$(patsubst {pattern<word>:match},[pattern<str>:replace],[list:in]) --> [list]
+$(patsubst {word.pattern:match},[str.pattern:replace],[list:in]) --> [list]
 ```
 
 ##### Parameters
 
-- `match`: Single-word wildcard pattern (`pattern<word>`), nonempty.
+- `match`: Single-word wildcard pattern (`word.pattern`), nonempty.
     - Contains zero or one wildcard `'%'`, which matches zero or more
       characters in each `word`; as many characters as possible.
     - Before the wild `'%'`, escape each literal `'%'` with `'\%'` and `'\'` with
@@ -197,8 +170,7 @@ $(patsubst {pattern<word>:match},[pattern<str>:replace],[list:in]) --> [list]
     - After the wild `'%'`, all `'%'` and `'\'` are literal, and should *not* be
       escaped.
     - If there is no wildcard, escape all `'\'`.
-
-- `replace`: Replacement wildcard pattern (`pattern<str>`), or `empty`.
+- `replace`: Replacement wildcard pattern (`str.pattern`), or `[empty]`.
     - Contains zero or one wildcard `'%'`, which is substituted
       for the value of `'%'` in each matched `word`.
     - Before the wild `'%'`, escape each literal `'%'` with `'\%'` and `'\'` with
@@ -206,22 +178,20 @@ $(patsubst {pattern<word>:match},[pattern<str>:replace],[list:in]) --> [list]
     - After the wild `'%'`, all `'%'` and `'\'` are literal, and should *not* be
       escaped.
     - If there is no wildcard, escape all `'%'` and `'\'`
-
-- `in`: List (`list`) of words to operate on, or `empty`
+- `in`: List (`{list}`) of words to operate on, or `[empty]`
 
 ##### Expands To
 
-- `list`: Performs the match/replace operation on each word of list `in`,
+- `{list}`: Performs the match/replace operation on each word of list `in`,
           then concatenates each nonempty result with a single space `' '`.
-    - Extra whitespace added by `replace` is maintained, so the resulting `list`
+    - Extra whitespace added by `replace` is maintained, so the resulting `{list}`
        may have more words than the original `in`.
+- `[empty]`:
+    - If `list` is `[empty]` or only contains whitespace.
+    - If `match` matches every word in `in` and `replace` is `[empty]`.
 
-- `empty`:
-    - If `list` is `empty` or only contains whitespace.
-    - If `match` matches every word in `in` and `replace` is `empty`.
 
-
-#### Sublist Match & Replace: When `$(words match)` != 1
+#### Sublist Match & Replace: When `$(words [match])` != 1
 
 For each sequence of `N` words in list `in`, where `N = $(words match)`,
 replaces that sequence of words with `replace`.
@@ -234,30 +204,28 @@ $(patsubst [list:match],[str:replace],[list:in])   --> [list]
 
 ##### Parameters
 
-- `match`: List (`list`) of two or more whitespace-separated words, or `empty`.
+- `match`: List (`{list}`) of two or more whitespace-separated words, or `[empty]`.
     - Cannot contain wildcards. Escape all `'%'` with `'\%'` and `'\'` with
       `'\\'`.
     - Cannot contain leading/trailing whitespace.
     - Whitespace between words of `match` must exactly equal whitespace
       between words of `[list]`. To ignore differences in whitespace and match
       word content only, use `$(strip match)` and `$(strip list)`.
-
-- `replace`: Replacement wildcard pattern (`pattern<str>`), or `empty`.
+- `replace`: Replacement wildcard pattern (`str.pattern`), or `[empty]`.
     - Cannot contain wildcards. Escape all `'%'` with `'\%'` and `'\'` with
       `'\\'`.
 
-- `in`: List (`list`) of words to operate on, or `empty`.
+- `in`: List (`{list}`) of words to operate on, or `[empty]`.
 
 ##### Expands To
 
-- `list`: Performs the match/replace operation on each word/sublist of `in`,
+- `{list}`: Performs the match/replace operation on each word/sublist of `in`,
           then concatenates each nonempty result with a single space `' '`.
-    - Extra whitespace added by `replace` is maintained, so the resulting `list`
+    - Extra whitespace added by `replace` is maintained, so the resulting `{list}`
        may have more words than the original `in`.
-
-- `empty`:
-    - If `list` is `empty` or only contains whitespace.
-    - If `match` matches every word/sublist in `in` and `replace` is `empty`.
+- `[empty]`:
+    - If `list` is `[empty]` or only contains whitespace.
+    - If `match` matches every word/sublist in `in` and `replace` is `[empty]`.
 
 
 
@@ -273,16 +241,16 @@ $(subst [str:find],[str:replace],[str:in]) --> [str]
 
 ##### Parameters
 
-- `find`: String to match within `in`, or `empty` to do nothing.
-- `replace`: String to substitute matched substrings with, or `empty` to remove.
+- `find`: String to match within `in`, or `[empty]` to do nothing.
+- `replace`: String to substitute matched substrings with, or `[empty]` to remove.
 - `in`: String to search.
 
 ##### Expands To
 
-- `str`: Value of `in` after substitutions.
-- `empty`:
-    - If `in` is `empty`
-    - If `find` equals `in` and `replace` is `empty`
+- `{str}`: Value of `in` after substitutions.
+- `[empty]`:
+    - If `in` is `[empty]`
+    - If `find` equals `in` and `replace` is `[empty]`
 
 
 
@@ -302,12 +270,12 @@ $(strip [str:string]) --> [str]
 
 ##### Parameters
 
-- `string`: String (`str`) to strip.
+- `string`: String (`{str}`) to strip.
 
 ##### Expands To
 
-- `str`: Value of `string` after whitespace removal.
-- `empty`: If `string` is `empty` or only contains whitespace
+- `{str}`: Value of `string` after whitespace removal.
+- `[empty]`: If `string` is `[empty]` or only contains whitespace
 
 
 
@@ -315,7 +283,7 @@ $(strip [str:string]) --> [str]
 
 Searches for substring `find` in string `in`.
 
-Returns [str:find] if [str:in] contains [str:find]; empty otherwise.
+Returns `find` if `in` contains `find`; `[empty]` otherwise.
 
 ##### Specification
 
@@ -325,16 +293,16 @@ $(findstring [str:find],[str:in]) --> [str:find]
 
 ##### Parameters
 
-- `find`: String (`str`) to search for.
+- `find`: String (`{str}`) to search for.
 - `in`: String to search.
 
 ##### Expands To
 
-- `find`: If `in` contains `find`.
-- `empty`:
+- `{str:find}`: If `in` contains `find`.
+- `[empty]`:
     - If `in` does not contain `find`
-    - If `find` is `empty`
-    - If `in` is `empty`
+    - If `find` is `[empty]`
+    - If `in` is `[empty]`
 
 
 
@@ -348,13 +316,13 @@ For each `word` in `list`, keeps (`filter`) or rejects (`filter-out`) that
 ##### Specification
 
 ```
-$(filter [list<pattern<word>>:patterns],[list])     --> [list]
-$(filter-out [list<pattern<word>>:patterns],[list]) --> [list]
+$(filter [list<word.pattern>:patterns],[list])     --> [list]
+$(filter-out [list<word.pattern>:patterns],[list]) --> [list]
 ```
 
 ##### Parameters
 
-- `patterns`: List of single-word patterns (`list<pattern<word>>`)
+- `patterns`: List of single-word patterns (`list<word.pattern>`)
     - Each pattern may contain zero or one wildcard `'%'`,
       which matches zero or more characters in each `word`;
       as many characters as possible.
@@ -363,17 +331,15 @@ $(filter-out [list<pattern<word>>:patterns],[list]) --> [list]
     - After the wild `'%'`, all `'%'` and `'\'` are literal, and should *not* be
       escaped.
     - If there is no wildcard in a pattern, escape all `'\'`.
-
-- `list`: List (`list`) of words to operate on, or `empty`.
+- `list`: List (`{list}`) of words to operate on, or `[empty]`.
 
 ##### Expands To
 
-- `list`: List of words taken from `in` which survived the `filter`/`filter-out`
+- `{list}`: List of words taken from `in` which survived the `filter`/`filter-out`
           operation, each separated by a single space `' '`.
-
-- `empty`:
-    - If `list` is `empty` or only contains whitespace.
-    - If `filter` is `empty` or only contains whitespace.
+- `[empty]`:
+    - If `list` is `[empty]` or only contains whitespace.
+    - If `filter` is `[empty]` or only contains whitespace.
     - If no word in `list` is matched by `filter`
     - If every word in `list` is matched by `filter-out`
 
@@ -391,13 +357,13 @@ $(sort [list]) --> [list]
 
 ##### Parameters
 
-- `list`: List (`list`) of words to sort, or `empty`
+- `list`: List (`{list}`) of words to sort, or `[empty]`
 
 ##### Expands To
 
-- `list`: Words taken from input `list`, sorted, each separated by a space `' '`.
-- `empty`:
-    - If `list` is `empty` or only contains whitespace.
+- `{list}`: Words taken from input `list`, sorted, each separated by a space `' '`.
+- `[empty]`:
+    - If `list` is `[empty]` or only contains whitespace.
 
 
 
@@ -413,12 +379,12 @@ $(words [list]) --> {uint}
 
 ##### Parameters
 
-- `list`: List (`list`) of words, or `empty`.
+- `list`: List (`{list}`) of words, or `[empty]`.
 
 ##### Expands To
 
-- `uint`: Number of words in `list`.
-    - `'0'` if `list` is `empty` or only contains whitespace.
+- `{uint}`: Number of words in `list`.
+    - `'0'` if `list` is `[empty]` or only contains whitespace.
 
 
 ### `$(word n,list)`
@@ -434,15 +400,15 @@ $(word {idx:n},[list]) --> [word]
 ##### Parameters
 
 - `n`: Word index (`idx`); nonempty, nonzero, positive integer.
-- `list`: List (`list`) of words, or `empty`.
+- `list`: List (`{list}`) of words, or `[empty]`.
 
 ##### Expands To
 
-- `word`: Word at position `n` in `list`, if `1 <= n <= $(words list)`.
-- `empty`:
+- `{word}`: Word at position `n` in `list`, if `1 <= n <= $(words list)`.
+- `[empty]`:
     - If `n > $(words list)`
-    - If `list` is `empty` or only contains whitespace.
-- `error`:
+    - If `list` is `[empty]` or only contains whitespace.
+- `[error]`:
     - If `n <= 0` or `n` is nonnumeric.
 
 
@@ -467,18 +433,19 @@ $(wordlist {idx:m},{uint:n},[list]) --> [list]
 
 - `m`: Start index (`idx`); nonempty, nonzero, positive integer.
 - `n`: End index (`uint`); nonempty, positive integer, or 0.
-- `list`: List (`list`) of words, or `empty`.
+- `list`: List (`{list}`) of words, or `[empty]`.
 
 ##### Expands To
 
-- `list`: Words from input `list`, starting from position `m` and ending at position `n`.
+- `{list}`: Words from input `list`, starting from position `m` and ending at
+   position `n`.
     - If `n >= m`
-    - Returns `empty` for positions > $(words list)
-- `empty`:
+    - Returns `[empty]` for positions > $(words list)
+- `[empty]`:
     - If `n,m > $(words list)`
     - If `n < m`
-    - If `list` is `empty` or only contains whitespace.
-- `error`:
+    - If `list` is `[empty]` or only contains whitespace.
+- `[error]`:
     - If `m <= 0` or `m` is nonnumeric.
     - If `n < 0` or `n` is nonnumeric.
 
@@ -499,13 +466,13 @@ $(lastword [list])  --> [word]
 
 ##### Parameters
 
-- `list`: List (`list`) of words, or `empty`.
+- `list`: List (`{list}`) of words, or `[empty]`.
 
 ##### Expands To
 
-- `word`: First or last `word` in `list`.
-- `empty`:
-    - If `list` is `empty` or only contains whitespace.
+- `[word]`: First or last `word` in `list`.
+- `[empty]`:
+    - If `list` is `[empty]` or only contains whitespace.
 
 
 
@@ -524,18 +491,18 @@ $(addsuffix [str:suffix],[list]) --> [list]
 
 ##### Parameters
 
-- `prefix`: String (`str`) to add to beginning of each word, or `empty`.
-- `suffix`: String (`str`) to add to end of each word, or `empty`.
-- `list`: List (`list`) of words, or `empty`.
+- `prefix`: String (`{str}`) to add to beginning of each word, or `[empty]`.
+- `suffix`: String (`{str}`) to add to end of each word, or `[empty]`.
+- `list`: List (`{list}`) of words, or `[empty]`.
 
 ##### Expands To
 
-- `list`: List of words, taken from the input `list`, prefixed or suffixed, and
+- `{list}`: List of words, taken from the input `list`, prefixed or suffixed, and
           concatenated with a single space `' '`.
     - Extra whitespace added by `prefix` or `suffix` is maintained, so the resulting
-      `list` may have more words than the original `list`.
-- `empty`:
-    - If `list` is `empty` or contains only whitespace.
+      `{list}` may have more words than the original `list`.
+- `[empty]`:
+    - If `list` is `[empty]` or contains only whitespace.
 
 
 
@@ -551,16 +518,16 @@ $(join [list:list1],[list:list2]) --> [list]
 
 ##### Parameters
 
-- `list1`: First list (`list`), or `empty`.
-- `list2`: Second list (`list`), or `empty`.
+- `list1`: First list (`{list}`), or `[empty]`.
+- `list2`: Second list (`{list}`), or `[empty]`.
 
 ##### Expands To
 
-- `list`: List of words, where each `word = [word1][word2]`.
-    - word1 may be `empty` if `list1` has fewer words than `list2`.
-    - word2 may be `empty` if `list2` has fewer words than `list1`.
-- `empty`:
-    - If `list1` and `list2` are both `empty` or contain only whitespace.
+- `{list}`: List of words, where each `word = [word1][word2]`.
+    - word1 may be `[empty]` if `list1` has fewer words than `list2`.
+    - word2 may be `[empty]` if `list2` has fewer words than `list1`.
+- `[empty]`:
+    - If `list1` and `list2` are both `[empty]` or contain only whitespace.
 
 
 
@@ -570,7 +537,7 @@ $(join [list:list1],[list:list2]) --> [list]
 
 ### `$(error message)`
 
-Each of these functions expands to `empty`,
+Each of these functions expands to `[empty]`,
 but upon expansion causes Make to print `message` to the console.
 
 - `$(warning)` and `$(error)`  also prints the file and line number at which
@@ -588,13 +555,11 @@ $(error [str:message])   --> [error]    Effect: Prints [trace][message]      to 
 
 ##### Parameters
 
-- `message`: String message to print, or `empty`.
+- `message`: String message to print, or `[empty]`.
 
 ##### Expands To
 
-- `empty`: `$(info)` and `$(warning)`
-- `error`: `$(error)`
-
+- `[empty]`
 
 
 ### `$(shell command)`
@@ -618,7 +583,7 @@ $(shell [str:command]) --> [str:stdout]   Effect: Runs the shell command, then s
 
 ##### Parameters
 
-- `command`: String (`str`) containing a shell command, or `empty`
+- `command`: String (`{str}`) containing a shell command, or `[empty]`
     - Variable `SHELL` contains the path to the shell executable.
         - Is usually set to an appropriate value by default.
         - Set path using `'/'`, not `'\'`, even on Windows.
@@ -628,10 +593,10 @@ $(shell [str:command]) --> [str:stdout]   Effect: Runs the shell command, then s
 ##### Expands To
 
 - `str:stdout`: String containing the non-error output of the shell command.
-- `empty`:
+- `[empty]`:
     - If Make failed to start the shell.
     - If the shell did not return any non-error output.
-    - If `command` is `empty`
+    - If `command` is `[empty]`
 
 ##### Side Effects
 
@@ -664,8 +629,8 @@ $(value [name]) --> [dynamic]
 ##### Expands To
 
 - `type`: Description
-- `empty`:
-    - If `param` is `empty`
+- `[empty]`:
+    - If `param` is `[empty]`
 
 
 
@@ -694,7 +659,6 @@ $(origin [var]) --> {origin}
   'command line'            [var] is specified via a command-line flag.
   'override'                [var] is assigned in a Makefile with the 'override' directive; it takes precidence over command-line assignment.
   'automatic'               [var] is an automatically-assigned, target-specific variable, like '@' (usually expanded as $@)
-
 
 
 
@@ -742,8 +706,8 @@ $(if [true:condition],[str:is_true],[str:is_false])  --> [str]
 ##### Expands To
 
 - `type`: Description
-- `empty`:
-    - If `param` is `empty`
+- `[empty]`:
+    - If `param` is `[empty]`
 
 
 
@@ -768,8 +732,8 @@ $(or [true:1],[true:2],...)  --> [true:N]
 ##### Expands To
 
 - `type`: Description
-- `empty`:
-    - If `param` is `empty`
+- `[empty]`:
+    - If `param` is `[empty]`
 
 
 
@@ -794,8 +758,8 @@ $(and [true:1],[true:2],...) --> [true:1]
 ##### Expands To
 
 - `type`: Description
-- `empty`:
-    - If `param` is `empty`
+- `[empty]`:
+    - If `param` is `[empty]`
 
 
 
@@ -820,8 +784,8 @@ $(intcmp {int:left},{int:right},[str:lss],[str:equ],[str:gtr]) --> [str]
 ##### Expands To
 
 - `type`: Description
-- `empty`:
-    - If `param` is `empty`
+- `[empty]`:
+    - If `param` is `[empty]`
 
 
 
@@ -845,8 +809,8 @@ $(foreach [var:word],[list],[str([var]):expr]) --> [list]
 ##### Expands To
 
 - `type`: Description
-- `empty`:
-    - If `param` is `empty`
+- `[empty]`:
+    - If `param` is `[empty]`
 
 
 
@@ -868,8 +832,8 @@ $(eval [dynamic])
 ##### Expands To
 
 - `type`: Description
-- `empty`:
-    - If `param` is `empty`
+- `[empty]`:
+    - If `param` is `[empty]`
 
 
 
@@ -891,8 +855,8 @@ $(call fcn[,arg1[,arg2[,...]]])
 ##### Expands To
 
 - `type`: Description
-- `empty`:
-    - If `param` is `empty`
+- `[empty]`:
+    - If `param` is `[empty]`
 
 
 
@@ -903,7 +867,7 @@ Description
 ##### Specification
 
 ```
-$(dir [list<pathwords>])      --> [list<dirwords>]
+$(dir [list<word.paths>])      --> [list<word.dirs>]
 ```
 
 ##### Parameters
@@ -914,8 +878,8 @@ $(dir [list<pathwords>])      --> [list<dirwords>]
 ##### Expands To
 
 - `type`: Description
-- `empty`:
-    - If `param` is `empty`
+- `[empty]`:
+    - If `param` is `[empty]`
 
 
 
@@ -926,7 +890,7 @@ Description
 ##### Specification
 
 ```
-$(notdir [list<pathwords>])   --> [list<filewords>]
+$(notdir [list<word.paths>])   --> [list<word.files>]
 ```
 
 ##### Parameters
@@ -937,8 +901,8 @@ $(notdir [list<pathwords>])   --> [list<filewords>]
 ##### Expands To
 
 - `type`: Description
-- `empty`:
-    - If `param` is `empty`
+- `[empty]`:
+    - If `param` is `[empty]`
 
 
 
@@ -949,7 +913,7 @@ Description
 ##### Specification
 
 ```
-$(suffix [list<pathwords>])   --> [list<extwords>]
+$(suffix [list<word.paths>])   --> [list<extwords>]
 ```
 
 ##### Parameters
@@ -960,8 +924,8 @@ $(suffix [list<pathwords>])   --> [list<extwords>]
 ##### Expands To
 
 - `type`: Description
-- `empty`:
-    - If `param` is `empty`
+- `[empty]`:
+    - If `param` is `[empty]`
 
 
 
@@ -972,7 +936,7 @@ Description
 ##### Specification
 
 ```
-$(basename [list<pathwords>]) -->
+$(basename [list<word.paths>]) -->
 ```
 
 ##### Parameters
@@ -983,8 +947,8 @@ $(basename [list<pathwords>]) -->
 ##### Expands To
 
 - `type`: Description
-- `empty`:
-    - If `param` is `empty`
+- `[empty]`:
+    - If `param` is `[empty]`
 
 
 
@@ -1006,8 +970,8 @@ $(wildcard [wildcards])
 ##### Expands To
 
 - `type`: Description
-- `empty`:
-    - If `param` is `empty`
+- `[empty]`:
+    - If `param` is `[empty]`
 
 
 
@@ -1029,8 +993,8 @@ $(realpath [paths])
 ##### Expands To
 
 - `type`: Description
-- `empty`:
-    - If `param` is `empty`
+- `[empty]`:
+    - If `param` is `[empty]`
 
 
 
@@ -1052,8 +1016,8 @@ $(abspath [paths])
 ##### Expands To
 
 - `type`: Description
-- `empty`:
-    - If `param` is `empty`
+- `[empty]`:
+    - If `param` is `[empty]`
 
 
 
@@ -1081,8 +1045,8 @@ $(file >> file,str)
 ##### Expands To
 
 - `type`: Description
-- `empty`:
-    - If `param` is `empty`
+- `[empty]`:
+    - If `param` is `[empty]`
 
 
 
@@ -1104,168 +1068,8 @@ $(let vars,vals,expr)
 ##### Expands To
 
 - `type`: Description
-- `empty`:
-    - If `param` is `empty`
+- `[empty]`:
+    - If `param` is `[empty]`
 
 
 
-
-TAXONOMY OF DATA TYPES IN GNU MAKE
-
-
-/str
-/str/bool
-/str/bool/true
-/str/bool/false
-/str/bool/false/empty
-/str/list
-/str/list/list<type>
-/str/list/list<type>/word<type>
-/str/list/word
-/str/list/word/int
-/str/list/word/int/uint
-/str/list/word/int/uint/idx
-/str/list/word/var
-/str/list/word/var/fcn
-/str/list/word/var/ns
-/str/list/word/digit
-
-str                         String:
-|                             All variables in Make are strings.
-|                             Strings may contain references to other variables and functions.
-|                             Whenever [str] is expanded, its references are expanded recursively.
-|
-+--type([var],...)          Expression:
-+--type({var},...)            A string which [optionally] or {mandatorily} contains references to a particular variable.
-|                             If "type" is not "str", the expression must expand to a value of that type.
-|
-+--bool                     Boolean:
-|  |                          Logical true or false, for use in conditional expansion.
-|  |
-|  +--true                  True:
-|  |                          A nonempty string.
-|  |
-|  +--false                 False:
-|     |                       The empty string.
-|     |
-|     +--empty              Empty:
-|                             The empty string. Given an independent name to clarify its meaning in a non-logical context.
-|
-|
-|
-+--list                     List:
-|  |                          A string containing a whitespace-delimited list of words.
-|  |                            --> Words cannot contain whitespace.
-|  |                          Consecutive whitespace is treated as a single delimiter.
-|  |                            --> Words cannot be empty or contain only whitespace.
-|  |                          Lists are 1-indexed. Out-of-bounds indices should result in a no-op (where possible).
-|  |                          The empty list is an empty string, or a string with only whitespace.
-|  |
-|  +--list<type>            List of Word <type>, or List of Word-Packed <type>:
-|  |  |                       A list which only contains words of a specific <type> (or descendents of that <type>).
-|  |  |                       Words are nonempty and cannot contain whitespace; <type> must be <word> or descended from <word>
-|  |  |                       If <type> is <word> or descended from <word>, values of that <type> are list-compatible as-is.
-|  |  |                       If <type> is one that allows empty strings or whitespace (incompatible with lists),
-|  |  |                         then <type> is actually shorthand for <word<type>> (compatible with lists). See below for details.
-|  |  |
-|  |  +--word<type>         Word-Packed <type>:
-|  |                          A word containing a potentially dangerous <type>, which has been modified to be list-safe.
-|  |                          Operations that produce word<type> must guarantee the result is nonempty and contains no whitespace,
-|  |                            and that the original value is able to be reconstituted by future operations.
-|  |                          For general strings, this implies (at a minimum) escaping whitespace, escape characters, and empty strings;
-|  |                            simpler types (such as bool) may be less work to make list-compatible.
-|  |
-|  +--word                  Word:
-|     |                       A nonempty string with no whitespace.
-|     |                       An individual element of a list; a list with 1 element.
-|     |
-|     +--int                Integer:
-|     |  |                    A word containing an integer value: positive, negative, or 0.
-|     |  |
-|     |  +-uint             Unsigned Integer:
-|     |    |                  A word containing a positive integer, or 0.
-|     |    |
-|     |    +--idx           List Index:
-|     |                       A word containing a positive integer.
-|     |                       Lists are 1-indexed.
-|     |                       - idx > $(words [list]) is a valid no-op.
-|     |                       - idx < 1 is an error.
-|     |
-|     +--var                Variable:
-|     |  |                    A word containing the name of a variable.
-|     |  |                    Variable names can include any characters except "#", "=", ":",
-|     |  |                      but whitespace, "$", "(", ")" are problematic and should always be avoided.
-|     |  |
-|     |  +--fcn             Function:
-|     |  |                    A word containing the name of a callable "function";
-|     |  |                      a variable containing a recursively-expanded expression which takes parameters
-|     |  |                      ( $(1) ... $(9) ) and/or produces side effects ( $(shell), $(info), $(eval), ... )
-|     |  |                    See documentation for Make built-in $(call) for more details.
-|     |  |
-|     |  +--ns              Namespace:
-|     |                       A word containing the name of a "namespace": a collection of associated variables.
-|     |                       A namespace definition consists of:
-|     |                         1. A root variable {ns} of type list<var>, containing the names of all variables "within" the namespace.
-|     |                         2. A collection of variables, functions, namespaces, etc. within the namespace, each named {ns}.{var}.
-|     |                       Example: Define a namespace "root", containing another namespace "root.sub"
-|     |                         root = root.var1 root.var2 $(root.sub)
-|     |                         root.var1 = Value 1
-|     |                         root.var2 = Value 2
-|     |                         root.sub = root.sub.var3
-|     |                         root.sub.var3 = Value 3
-|     |                         $(info $(root)) --> root.var1 root.var2 root.sub.var3
-|     |
-|     +--pathword           Simple Path:
-|     |  |                    A nonempty string containing a system file or directory path.
-|     |  |                    Absolute or relative paths allowed, symlinks allowed.
-|     |  |                    Path separator should always be forward-slash "/".
-|     |  |                    Directories may or may not have trailing "/".
-|     |  |                    No leading or trailing whitespace.
-|     |  |                    No quotes around path.
-|     |  |
-|     |  +--fileword        Simple File Path:
-|     |  |                    A path to a non-directory file.
-|     |  |
-|     |  +--dirword         Simple Directory Path (Whitespace-Free):
-|     |  |                    A path to a directory.
-|     |  |
-|     |  +--nameword        Simple Filename (Whitespace-Free):
-|     |                       A file or directory
-|     |
-|     |
-|     |
-|     +--basename           Basename:
-|     |
-|     |--ext                File Type Extension:
-|     |
-|     +--pattern<word>       Word Pattern:
-|     |                       A word (nonempty, no whitespace) containing a pattern used to match [word]s.
-|     |                       Pattern may have zero or one wildcards: '%'
-|     |                       - '%' matches zero or more characters in a [word]; as many chars as possible.
-|     |                           Before wildcard '%', literal '%' must be escaped as '\%' and '\' as '\\'.
-|     |                           After wildcard '%', all '%' and '\' are literal and should not be escaped!
-|     |                           Therefore, only the first '%' is wild.
-|     |
-|     +--pattern.pathword   Path (Whitespace-Free) Pattern:
-|                             A word (nonempty, no whitespace) containing a pattern used to match [pathword]s.
-|                             Pattern may have zero or more wildcards: '*', '**', '?'
-|                             - '*' matches zero or more characters in a [pathword].
-|
-+--pattern<str>
-|    A string containing a pattern used to replace part of a [str].
-|    Pattern may have zero or one wildcards: '%'
-|    - '%' is substituted for some [str] by another operation.
-|    Escaping wildcards:
-|    - Before the wildcard '%', literal '%' must be escaped as '\%' and '\' as '\\'.
-|    - After the wildcard '%', all '%' and '\' are literal and should not be escaped!
-|    Accepts zero or one occurrances of wildcard '%':
-|    An operation substitutes the wildcard '%' in [pattern] with some other value,
-|    then returns the result or uses it for subsequent operations.
-|    Pattern may contain both wildcard and whitespace.
-|
-
-|
-+--dynamic                  Make Syntax:
-|                             A string containing valid Make syntax.
-|                             Used for dynamic programming.
-|

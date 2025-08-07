@@ -54,11 +54,11 @@ $(if $(filter-out $(notdir $(MAKEFILE_LIST)), lib.mak ),$(error Makefile $(lastw
 # Other variables can be referenced as well, but also they must be $$(escaped).
 #-----------------------------------------------------------
 
-help.targets.define = $(eval $(subst $(LF)$(SPACE),$(LF),$(LF)\
+help.targets.define = $(eval $(subst $(LF)$(SP),$(LF),$(LF)\
 	help.targets += help.$(strip $(1))$(LF)\
 	$(subst $$@,$(strip $(1)),$(LF)\
 		help.$(strip $(1)).shortdesc := $(strip $(2))$(LF)\
-		help.$(strip $(1)).longdesc := $(strip $(subst $$(LF)$(SPACE),$$(LF),$(subst $(LF),$$(LF),$(3))))$(LF)\
+		help.$(strip $(1)).longdesc := $(strip $(subst $$(LF)$(SP),$$(LF),$(subst $(LF),$$(LF),$(3))))$(LF)\
 		help.$(strip $(1)).variables := $(strip $(4))$(LF)\
 	)$(LF)\
 ))
@@ -93,7 +93,7 @@ help:
 	$(info )
 	$(info Targets:)
 	$(foreach tgt,$(sort $(help.targets)),$(if $($(tgt).shortdesc),\
-	  $(info $(STR.INFO.INDENT)$(call str.pad.right,$(patsubst help.%,%,$(tgt)),$(help.colwidth)) $($(tgt).shortdesc))\
+	  $(info $(STR.INFO.INDENT)$(call str.justify.right,$(patsubst help.%,%,$(tgt)),$(help.colwidth)) $($(tgt).shortdesc))\
 	))
 	$(info )
 
@@ -136,12 +136,12 @@ help.%:
 	  $(if $($@.variables),\
 	    $(info )\
 	    $(if $(findstring true,$(expand)),\
-	      $(info $(call str.pad.right,Variables:,....................) Values expanded recursively.)\
+	      $(info $(call str.justify.right,Variables:,....................) Values expanded recursively.)\
 	      $(info )\
 	      $(foreach varn,$(sort $($@.variables)),\
 	        $(info $(STR.INFO.INDENT)$(varn)=[$($(varn))])\
 	      ),\
-	      $(info $(call str.pad.right,Variables:,....................) Expand values by rerunning with "expand=true".)\
+	      $(info $(call str.justify.right,Variables:,....................) Expand values by rerunning with "expand=true".)\
 	      $(info )\
 	      $(foreach varn,$(sort $($@.variables)),\
 	        $(info $(STR.INFO.INDENT)$(varn)=[$(value $(varn))])\
@@ -150,11 +150,11 @@ help.%:
 	  )\
 	  $(if $(strip $(foreach tgt,$(filter-out $@,$(help.targets)),$(if $(findstring $(patsubst help.%,%,$@),$(tgt)),$(tgt)))),\
 	    $(info )\
-	    $(info $(call str.pad.right,Related Targets:,....................) For more info$(COMMA) run "make help.[target]".)\
+	    $(info $(call str.justify.right,Related Targets:,....................) For more info$(CMA) run "make help.[target]".)\
 	    $(info )\
 	    $(foreach tgt,$(sort $(filter-out $@,$(help.targets))),\
 	      $(if $(findstring $(patsubst help.%,%,$@),$(tgt)),\
-	        $(info $(STR.INFO.INDENT)$(call str.pad.right,$(patsubst help.%,%,$(tgt)),$(help.colwidth)) $($(tgt).shortdesc))\
+	        $(info $(STR.INFO.INDENT)$(call str.justify.right,$(patsubst help.%,%,$(tgt)),$(help.colwidth)) $($(tgt).shortdesc))\
 	      )\
 	    )\
 	  )\

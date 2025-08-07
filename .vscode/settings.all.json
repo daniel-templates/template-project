@@ -56,12 +56,13 @@
     "files.encoding": "utf8",
     "[markdown]": {
         "editor.formatOnSave": true,
-        "editor.formatOnPaste": true
+        "editor.formatOnPaste": true,
+        "editor.insertSpaces": true
     },
     "[makefile]": {
         "editor.renderWhitespace": "boundary",
         "editor.detectIndentation": false,
-        "editor.insertSpaces": true
+        "editor.insertSpaces": false
     },
     "[bat]": {
         "files.encoding": "cp437",

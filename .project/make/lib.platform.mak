@@ -68,8 +68,8 @@ os.ext.dll = $(os.ext.dll.$(os.type))
   os.user.name.windows = $(USERNAME)
   os.user.home.windows = $(USERPROFILE)
   os.temp.root.windows = $(or $(TEMP),$(TMP),$(os.user.home.windows)\\AppData\\Local\\Temp)
-  os.sep.path.windows := $(BSLASH)
-  os.sep.list.windows := $(SEMIC)
+  os.sep.path.windows := $(BSOL)
+  os.sep.list.windows := $(SEMI)
   os.ext.exe.windows := .exe
   os.ext.lib.windows := .lib
   os.ext.dll.windows := .dll
@@ -77,8 +77,8 @@ os.ext.dll = $(os.ext.dll.$(os.type))
   os.user.name.unix = $(USER)
   os.user.home.unix = $(HOME)
   os.temp.root.unix = $(or $(TMPDIR),$(TEMP),$(TMP),/var/tmp)
-  os.sep.path.unix := $(FSLASH)
-  os.sep.list.unix := $(COLON)
+  os.sep.path.unix := $(SOL)
+  os.sep.list.unix := $(COL)
   os.ext.exe.unix :=
   os.ext.lib.unix := .a
   os.ext.dll.unix := .so
@@ -346,7 +346,7 @@ $(foreach prop,$(filter-out name print,$(shell.properties)),$(eval shell.$(prop)
 #-----------------------------------------------------------
 # $(call shell.names.define,{shell_name},{shell_type})
 #-----------------------------------------------------------
-shell.names := $(EMPTY)
+shell.names := $(empty)
 define shell.names.define
 $(eval shell.names += $(1))
 $(eval shell.names.$(1).type := $(or $(2),$(error Empty shell_type in definition of '$(1)')))
@@ -508,7 +508,7 @@ $(call shell.names.define,python,python)
 #-----------------------------------------------------------
 # $(call shell.types.define,{name})
 #-----------------------------------------------------------
-shell.types := $(EMPTY)
+shell.types := $(empty)
 define shell.types.define
 $(eval shell.types += $(1))
 $(eval shell.types.$(1).isactive = $$(if $$(filter $(1),$$(shell.type)),$(TRUE.m),$(FALSE.m)))
@@ -550,10 +550,10 @@ shell.types.posix.flags.default := -ec
 shell.types.posix.aliases.default := sh sh.exe
   shell.types.posix.aliases.windows :=
   shell.types.posix.aliases.unix :=
-shell.types.posix.sep.path.default := $(FSLASH)
+shell.types.posix.sep.path.default := $(SOL)
   shell.types.posix.sep.path.windows :=
   shell.types.posix.sep.path.unix :=
-shell.types.posix.sep.list.default := $(COLON)
+shell.types.posix.sep.list.default := $(COL)
   shell.types.posix.sep.list.windows :=
   shell.types.posix.sep.list.unix :=
 shell.types.posix.ext.script.default := .sh
@@ -582,10 +582,10 @@ shell.types.cmd.flags.default := /Q /D /E:ON /V:OFF /S /C
 shell.types.cmd.aliases.default := cmd cmd.exe
   shell.types.cmd.aliases.windows :=
   shell.types.cmd.aliases.unix :=
-shell.types.cmd.sep.path.default := $(BSLASH)
+shell.types.cmd.sep.path.default := $(BSOL)
   shell.types.cmd.sep.path.windows :=
   shell.types.cmd.sep.path.unix :=
-shell.types.cmd.sep.list.default := $(SEMIC)
+shell.types.cmd.sep.list.default := $(SEMI)
   shell.types.cmd.sep.list.windows :=
   shell.types.cmd.sep.list.unix :=
 shell.types.cmd.ext.script.default := .bat
@@ -658,22 +658,22 @@ shell.types.python.ext.script.default := .py
 # $(call shell.names.cmd.activate)
 # $(call shell.print)
 # $(info )
-# $(info $(shell echo Is this cmd.exe? cmdcmdline=$(PERCENT)cmdcmdline$(PERCENT)))
+# $(info $(shell echo Is this cmd.exe? cmdcmdline=$(PCT)cmdcmdline$(PCT)))
 # $(info )
 # $(call shell.names.powershell.activate)
 # $(call shell.print)
 # $(info )
-# $(info $(shell Write-Output 'Is this powershell? $(DOLLAR)MyInvocation='; $(DOLLAR)MyInvocation))
+# $(info $(shell Write-Output 'Is this powershell? $(DLR)MyInvocation='; $(DLR)MyInvocation))
 # $(info )
 # $(call shell.names.bash.activate)
 # $(call shell.print)
 # $(info )
-# $(info $(shell echo $(DQUOTE)Is this bash? $(DOLLAR)0 -$(DOLLAR)- $(DOLLAR)SHELLOPTS $(DOLLAR)* $(DQUOTE)))
+# $(info $(shell echo $(QUOT)Is this bash? $(DLR)0 -$(DLR)- $(DLR)SHELLOPTS $(DLR)* $(QUOT)))
 # $(info )
 # $(call shell.names.python.activate)
 # $(call shell.print)
 # $(info )
-# $(info $(shell import sys; print$(OPAREN)$(DQUOTE)Is this python? sys.argv[0]=[$(DQUOTE)+sys.argv[0]+$(DQUOTE)]$(DQUOTE)$(CPAREN)))
+# $(info $(shell import sys; print$(LPAR)$(QUOT)Is this python? sys.argv[0]=[$(QUOT)+sys.argv[0]+$(QUOT)]$(QUOT)$(RPAR)))
 # $(info )
 # $(error Exiting here.)
 
@@ -688,7 +688,7 @@ shell.types.python.ext.script.default := .py
 #-----------------------------------------------------------
 
 sep.path ?= /
-mkpath = $(subst /,$(sep.path),$(subst $(BSLASH),$(sep.path),$(call list.concat,$(sep.path),$(1),$(2),$(3),$(4),$(5),$(6),$(7),$(8))))
+mkpath = $(subst /,$(sep.path),$(subst $(BSOL),$(sep.path),$(call list.concat,$(sep.path),$(1),$(2),$(3),$(4),$(5),$(6),$(7),$(8))))
 
 
 
@@ -723,7 +723,7 @@ mkpath = $(subst /,$(sep.path),$(subst $(BSLASH),$(sep.path),$(call list.concat,
 ifeq "$(SHELL_TYPE)" "CMD"
     shell.nop = echo 1>nul
     shell.errlvl = $(call shell.subshell,exit $(1))
-    shell.echo = $(call shell.subshell,echo$(OPAREN)$(1))
+    shell.echo = $(call shell.subshell,echo$(LPAR)$(1))
     shell.line = $(call shell.echo,)
     shell.touch = ( if exist "$(call mkpath,$(1))" ( copy /Y /B "$(call mkpath,$(1))"+,, "$(call mkpath,$(1))" 1>nul ) else ( echo 1>nul 2>"$(call mkpath,$(1))" ) ) && echo $(STR.INFO.INDENT)Touched: $(call mkpath,$(1))
     shell.ls = dir /b "$(call mkpath,$(1))"
@@ -736,8 +736,8 @@ ifeq "$(SHELL_TYPE)" "CMD"
     shell.copydir = xcopy /Y /I /E "$(call mkpath,$(1))" "$(call mkpath,$(2))"
     shell.silent = ( $(1) ) 1>nul
     shell.subshell = $(SHELL) $(.SHELLFLAGS) "$(1)"
-    shell.and = ( $(call str.concat,$(CPAREN) & $(OPAREN),$(1),$(2),$(3),$(4),$(5),$(6),$(7),$(8)) )
-    shell.test = ( $(1) $(if $(2),$(CPAREN) && $(OPAREN) $(2)) $(if $(3),$(CPAREN) || $(OPAREN) $(3)) )
+    shell.and = ( $(call str.concat,$(RPAR) & $(LPAR),$(1),$(2),$(3),$(4),$(5),$(6),$(7),$(8)) )
+    shell.test = ( $(1) $(if $(2),$(RPAR) && $(LPAR) $(2)) $(if $(3),$(RPAR) || $(LPAR) $(3)) )
 endif
 ifeq "$(SHELL_TYPE)" "POWERSHELL"
     shell.nop = ? .
@@ -774,8 +774,8 @@ ifeq "$(SHELL_TYPE)" "POSIX"
     shell.copydir = cp -rf "$(call mkpath,$(1))/." "$(call mkpath,$(2))"
     shell.silent = ( $(1) ) > /dev/null
     shell.subshell = $(SHELL) $(.SHELLFLAGS) "$(1)"
-    shell.and = ( $(call str.concat,$(CPAREN) & $(OPAREN),$(1),$(2),$(3),$(4),$(5),$(6),$(7),$(8)) )
-    shell.test = ( $(1) $(if $(2),$(CPAREN) && $(OPAREN) $(2)) $(if $(3),$(CPAREN) || $(OPAREN) $(3)) )
+    shell.and = ( $(call str.concat,$(RPAR) & $(LPAR),$(1),$(2),$(3),$(4),$(5),$(6),$(7),$(8)) )
+    shell.test = ( $(1) $(if $(2),$(RPAR) && $(LPAR) $(2)) $(if $(3),$(RPAR) || $(LPAR) $(3)) )
 endif
 
 
