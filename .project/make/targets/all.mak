@@ -47,8 +47,8 @@
 # $(call help.targets.define,TARGET,\
 # 	Short Description\
 # 	,\
-# 	Long Multiline$(LF)\
-# 	description$(LF)\
+# 	Long Multiline$n\
+# 	description$n\
 # 	,\
 # 	$$@.prereqs.normal\
 # 	$$@.prereqs.orderonly\
@@ -59,8 +59,8 @@
 #   Runs exactly once before any number of prereqs
 #
 # $(call target.pre.define,TARGET,$(TARGET.prereqs),\
-# 	$$(call print.trace,make $$(basename $$@))$(LF)\
-# 	[OTHER COMMANDS]$(LF)\
+# 	$$(call print.trace,make $$(basename $$@))$n\
+# 	[OTHER COMMANDS]$n\
 # )
 #
 # Target Definition
@@ -92,17 +92,17 @@ all.prereqs = $(all.prereqs.normal) $(all.prereqs.orderonly)
 $(call help.targets.define,all,\
 	Build all artifacts\
 	,\
-	Projects can extend the behavior of this (or related) targets$(LF)\
-	through two methods:$(LF)\
-	$(LF)\
-	1: Define new targets and append them as prereqs;$(LF)\
-	$$(STR.INFO.INDENT) In config.mak$$(CMA) add the lines:$(LF)\
-	$(LF)\
-	$$(STR.INFO.INDENT)$$(STR.INFO.INDENT) $$@.prereqs.normal = TARGETS$(LF)\
-	$$(STR.INFO.INDENT)$$(STR.INFO.INDENT) $$@.prereqs.orderonly = TARGETS$(LF)\
-	$(LF)\
-	2: Leverage existing targets by overriding their variables.$(LF)\
-	$$(STR.INFO.INDENT) See Related Targets below.$(LF)\
+	Projects can extend the behavior of this (or related) targets$n\
+	through two methods:$n\
+	$n\
+	1: Define new targets and append them as prereqs;$n\
+	$$(line.indent) In config.mak$$c add the lines:$n\
+	$n\
+	$$(line.indent)$$(line.indent) $$@.prereqs.normal = TARGETS$n\
+	$$(line.indent)$$(line.indent) $$@.prereqs.orderonly = TARGETS$n\
+	$n\
+	2: Leverage existing targets by overriding their variables.$n\
+	$$(line.indent) See Related Targets below.$n\
 	,\
 	$$@.prereqs.normal\
 	$$@.prereqs.orderonly\
@@ -110,7 +110,7 @@ $(call help.targets.define,all,\
 
 # Pretarget; runs exactly once before any number of prereqs
 $(call target.pre.define,all,$(all.prereqs),\
-	$$(call print.trace,make $$(basename $$@))$(LF)\
+	$$(call print.trace,make $$(basename $$@))$n\
 )
 
 # Target Definition

@@ -68,8 +68,8 @@ os.ext.dll = $(os.ext.dll.$(os.type))
   os.user.name.windows = $(USERNAME)
   os.user.home.windows = $(USERPROFILE)
   os.temp.root.windows = $(or $(TEMP),$(TMP),$(os.user.home.windows)\\AppData\\Local\\Temp)
-  os.sep.path.windows := $(BSOL)
-  os.sep.list.windows := $(SEMI)
+  os.sep.path.windows := $(char.bsol)
+  os.sep.list.windows := $(char.semi)
   os.ext.exe.windows := .exe
   os.ext.lib.windows := .lib
   os.ext.dll.windows := .dll
@@ -77,8 +77,8 @@ os.ext.dll = $(os.ext.dll.$(os.type))
   os.user.name.unix = $(USER)
   os.user.home.unix = $(HOME)
   os.temp.root.unix = $(or $(TMPDIR),$(TEMP),$(TMP),/var/tmp)
-  os.sep.path.unix := $(SOL)
-  os.sep.list.unix := $(COL)
+  os.sep.path.unix := $(char.sol)
+  os.sep.list.unix := $(char.colon)
   os.ext.exe.unix :=
   os.ext.lib.unix := .a
   os.ext.dll.unix := .so
@@ -348,12 +348,12 @@ $(foreach prop,$(filter-out name print,$(shell.properties)),$(eval shell.$(prop)
 #-----------------------------------------------------------
 shell.names := $(empty)
 define shell.names.define
-$(eval shell.names += $(1))
-$(eval shell.names.$(1).type := $(or $(2),$(error Empty shell_type in definition of '$(1)')))
-$(eval shell.names.$(1).isactive = $$(if $$(filter $(1),$$(shell.name)),$(TRUE.m),$(FALSE.m)))
-$(eval shell.names.$(1).print = $$(call print.vars,$(foreach prop,$(shell.names.properties),shell.names.$(1).$(prop))))
-$(eval shell.names.$(1).activate = $$(if $$(shell.names.$(1).isactive),,$$(eval shell.name := $(1))$$(eval SHELL := $$(shell.path))$$(eval .SHELLFLAGS := $$(shell.flags))))
-$(foreach prop,$(filter-out type isactive print activate,$(shell.names.properties)),$(call variable.set_with_alternatives,shell.names.$(1).$(prop),?=,,  shell.names.$(1).$(prop).$$(os.name)  shell.names.$(1).$(prop).$$(os.type)  shell.names.$(1).$(prop).default  shell.types.$(2).$(prop)  ))
+$(eval shell.names += $1)
+$(eval shell.names.$1.type := $(or $2,$(error Empty shell_type in definition of '$1')))
+$(eval shell.names.$1.isactive = $$(if $$(filter $1,$$(shell.name)),$(TRUE.m),$(FALSE.m)))
+$(eval shell.names.$1.print = $$(call print.vars,$(foreach prop,$(shell.names.properties),shell.names.$1.$(prop))))
+$(eval shell.names.$1.activate = $$(if $$(shell.names.$1.isactive),,$$(eval shell.name := $1)$$(eval SHELL := $$(shell.path))$$(eval .SHELLFLAGS := $$(shell.flags))))
+$(foreach prop,$(filter-out type isactive print activate,$(shell.names.properties)),$(call variable.set_with_alternatives,shell.names.$1.$(prop),?=,,  shell.names.$1.$(prop).$$(os.name)  shell.names.$1.$(prop).$$(os.type)  shell.names.$1.$(prop).default  shell.types.$2.$(prop)  ))
 endef
 
 
@@ -510,10 +510,10 @@ $(call shell.names.define,python,python)
 #-----------------------------------------------------------
 shell.types := $(empty)
 define shell.types.define
-$(eval shell.types += $(1))
-$(eval shell.types.$(1).isactive = $$(if $$(filter $(1),$$(shell.type)),$(TRUE.m),$(FALSE.m)))
-$(eval shell.types.$(1).print = $$(call print.vars,$(foreach prop,$(shell.types.properties),shell.types.$(1).$(prop))))
-$(foreach prop,$(filter-out isactive print,$(shell.types.properties)),$(call variable.set_with_alternatives,shell.types.$(1).$(prop),?=,,  shell.types.$(1).$(prop).$$(os.name)  shell.types.$(1).$(prop).$$(os.type)  shell.types.$(1).$(prop).default  shell.types.$(2).$(prop)  ))
+$(eval shell.types += $1)
+$(eval shell.types.$1.isactive = $$(if $$(filter $1,$$(shell.type)),$(TRUE.m),$(FALSE.m)))
+$(eval shell.types.$1.print = $$(call print.vars,$(foreach prop,$(shell.types.properties),shell.types.$1.$(prop))))
+$(foreach prop,$(filter-out isactive print,$(shell.types.properties)),$(call variable.set_with_alternatives,shell.types.$1.$(prop),?=,,  shell.types.$1.$(prop).$$(os.name)  shell.types.$1.$(prop).$$(os.type)  shell.types.$1.$(prop).default  shell.types.$2.$(prop)  ))
 endef
 
 
@@ -550,10 +550,10 @@ shell.types.posix.flags.default := -ec
 shell.types.posix.aliases.default := sh sh.exe
   shell.types.posix.aliases.windows :=
   shell.types.posix.aliases.unix :=
-shell.types.posix.sep.path.default := $(SOL)
+shell.types.posix.sep.path.default := $(char.sol)
   shell.types.posix.sep.path.windows :=
   shell.types.posix.sep.path.unix :=
-shell.types.posix.sep.list.default := $(COL)
+shell.types.posix.sep.list.default := $(char.colon)
   shell.types.posix.sep.list.windows :=
   shell.types.posix.sep.list.unix :=
 shell.types.posix.ext.script.default := .sh
@@ -582,10 +582,10 @@ shell.types.cmd.flags.default := /Q /D /E:ON /V:OFF /S /C
 shell.types.cmd.aliases.default := cmd cmd.exe
   shell.types.cmd.aliases.windows :=
   shell.types.cmd.aliases.unix :=
-shell.types.cmd.sep.path.default := $(BSOL)
+shell.types.cmd.sep.path.default := $(char.bsol)
   shell.types.cmd.sep.path.windows :=
   shell.types.cmd.sep.path.unix :=
-shell.types.cmd.sep.list.default := $(SEMI)
+shell.types.cmd.sep.list.default := $(char.semi)
   shell.types.cmd.sep.list.windows :=
   shell.types.cmd.sep.list.unix :=
 shell.types.cmd.ext.script.default := .bat
@@ -658,37 +658,37 @@ shell.types.python.ext.script.default := .py
 # $(call shell.names.cmd.activate)
 # $(call shell.print)
 # $(info )
-# $(info $(shell echo Is this cmd.exe? cmdcmdline=$(PCT)cmdcmdline$(PCT)))
+# $(info $(shell echo Is this cmd.exe? cmdcmdline=$pcmdcmdline$p))
 # $(info )
 # $(call shell.names.powershell.activate)
 # $(call shell.print)
 # $(info )
-# $(info $(shell Write-Output 'Is this powershell? $(DLR)MyInvocation='; $(DLR)MyInvocation))
+# $(info $(shell Write-Output 'Is this powershell? $vMyInvocation='; $vMyInvocation))
 # $(info )
 # $(call shell.names.bash.activate)
 # $(call shell.print)
 # $(info )
-# $(info $(shell echo $(QUOT)Is this bash? $(DLR)0 -$(DLR)- $(DLR)SHELLOPTS $(DLR)* $(QUOT)))
+# $(info $(shell echo $(char.quot)Is this bash? $v0 -$v- $vSHELLOPTS $v* $(char.quot)))
 # $(info )
 # $(call shell.names.python.activate)
 # $(call shell.print)
 # $(info )
-# $(info $(shell import sys; print$(LPAR)$(QUOT)Is this python? sys.argv[0]=[$(QUOT)+sys.argv[0]+$(QUOT)]$(QUOT)$(RPAR)))
+# $(info $(shell import sys; print$(char.lparen)$(char.quot)Is this python? sys.argv[0]=[$(char.quot)+sys.argv[0]+$(char.quot)]$(char.quot)$(char.rparen)))
 # $(info )
 # $(error Exiting here.)
 
 
 
 
-#-----------------------------------------------------------
-# mkpath = $(call mkpath,list)
-#-----------------------------------------------------------
-# Concatenates a list of path segments into a single path.
-# Corrects / and \ to $(sep.path) in the final result.
-#-----------------------------------------------------------
+# #-----------------------------------------------------------
+# # mkpath = $(call mkpath,list)
+# #-----------------------------------------------------------
+# # Concatenates a list of path segments into a single path.
+# # Corrects / and \ to $(sep.path) in the final result.
+# #-----------------------------------------------------------
 
-sep.path ?= /
-mkpath = $(subst /,$(sep.path),$(subst $(BSOL),$(sep.path),$(call list.concat,$(sep.path),$(1),$(2),$(3),$(4),$(5),$(6),$(7),$(8))))
+# sep.path ?= /
+# mkpath = $(subst /,$(sep.path),$(subst $(char.bsol),$(sep.path),$(call list.concat,$(sep.path),$1,$2,$3,$4,$5,$6,$7,$8)))
 
 
 
@@ -722,60 +722,60 @@ mkpath = $(subst /,$(sep.path),$(subst $(BSOL),$(sep.path),$(call list.concat,$(
 
 ifeq "$(SHELL_TYPE)" "CMD"
     shell.nop = echo 1>nul
-    shell.errlvl = $(call shell.subshell,exit $(1))
-    shell.echo = $(call shell.subshell,echo$(LPAR)$(1))
+    shell.errlvl = $(call shell.subshell,exit $1)
+    shell.echo = $(call shell.subshell,echo$(char.lparen)$1)
     shell.line = $(call shell.echo,)
-    shell.touch = ( if exist "$(call mkpath,$(1))" ( copy /Y /B "$(call mkpath,$(1))"+,, "$(call mkpath,$(1))" 1>nul ) else ( echo 1>nul 2>"$(call mkpath,$(1))" ) ) && echo $(STR.INFO.INDENT)Touched: $(call mkpath,$(1))
-    shell.ls = dir /b "$(call mkpath,$(1))"
-    shell.chmod = $(info $(STR.INFO.INDENT)(Skipping) chmod --changes --preserve-root $(strip $(1)) $(strip $(2)) "$(call mkpath,$(3))")
-    shell.chown = $(info $(STR.INFO.INDENT)(Skipping) chown --changes --preserve-root $(strip $(1)) $(strip $(2)) "$(call mkpath,$(3))")
-    shell.mkdir = if not exist "$(call mkpath,$(1))\" ( mkdir "$(call mkpath,$(1))" 1>nul && echo $(STR.INFO.INDENT)Created: $(call mkpath,$(1))$(sep.path) )
-    shell.rm = if exist "$(call mkpath,$(1))" ( del /f /q "$(call mkpath,$(1))" 1>nul && echo $(STR.INFO.INDENT)Removed: $(call mkpath,$(1)) )
-    shell.rmdir = if exist "$(call mkpath,$(1))\" ( rmdir /s /q "$(call mkpath,$(1))" && echo $(STR.INFO.INDENT)Removed: $(call mkpath,$(1))$(sep.path) )
-    shell.copy = xcopy /Y /I /-I "$(call mkpath,$(1))" "$(call mkpath,$(2))"
-    shell.copydir = xcopy /Y /I /E "$(call mkpath,$(1))" "$(call mkpath,$(2))"
-    shell.silent = ( $(1) ) 1>nul
-    shell.subshell = $(SHELL) $(.SHELLFLAGS) "$(1)"
-    shell.and = ( $(call str.concat,$(RPAR) & $(LPAR),$(1),$(2),$(3),$(4),$(5),$(6),$(7),$(8)) )
-    shell.test = ( $(1) $(if $(2),$(RPAR) && $(LPAR) $(2)) $(if $(3),$(RPAR) || $(LPAR) $(3)) )
+    shell.touch = ( if exist "$(call mkpath,$1)" ( copy /Y /B "$(call mkpath,$1)"+,, "$(call mkpath,$1)" 1>nul ) else ( echo 1>nul 2>"$(call mkpath,$1)" ) ) && echo $(line.indent)Touched: $(call mkpath,$1)
+    shell.ls = dir /b "$(call mkpath,$1)"
+    shell.chmod = $(info $(line.indent)(Skipping) chmod --changes --preserve-root $(strip $1) $(strip $2) "$(call mkpath,$3)")
+    shell.chown = $(info $(line.indent)(Skipping) chown --changes --preserve-root $(strip $1) $(strip $2) "$(call mkpath,$3)")
+    shell.mkdir = if not exist "$(call mkpath,$1)\" ( mkdir "$(call mkpath,$1)" 1>nul && echo $(line.indent)Created: $(call mkpath,$1)$(sep.path) )
+    shell.rm = if exist "$(call mkpath,$1)" ( del /f /q "$(call mkpath,$1)" 1>nul && echo $(line.indent)Removed: $(call mkpath,$1) )
+    shell.rmdir = if exist "$(call mkpath,$1)\" ( rmdir /s /q "$(call mkpath,$1)" && echo $(line.indent)Removed: $(call mkpath,$1)$(sep.path) )
+    shell.copy = xcopy /Y /I /-I "$(call mkpath,$1)" "$(call mkpath,$2)"
+    shell.copydir = xcopy /Y /I /E "$(call mkpath,$1)" "$(call mkpath,$2)"
+    shell.silent = ( $1 ) 1>nul
+    shell.subshell = $(SHELL) $(.SHELLFLAGS) "$1"
+    shell.and = ( $(call args.concat,$(char.rparen) & $(char.lparen),$1,$2,$3,$4,$5,$6,$7,$8) )
+    shell.test = ( $1 $(if $2,$(char.rparen) && $(char.lparen) $2) $(if $3,$(char.rparen) || $(char.lparen) $3) )
 endif
 ifeq "$(SHELL_TYPE)" "POWERSHELL"
     shell.nop = ? .
     shell.errlvl = $(error Function "errlvl" is not implemented for SHELL_TYPE=$(SHELL_TYPE). See platform.mak for details.)
-    shell.echo = Write-Output '$(1)'
+    shell.echo = Write-Output '$1'
     shell.line = $(call shell.echo,)
     shell.touch = $(error Function "touch" is not implemented for SHELL_TYPE=$(SHELL_TYPE). See platform.mak for details.)
-    shell.ls = Get-ChildItem -Name '$(call mkpath,$(1))'
-    shell.chmod = $(info $(STR.INFO.INDENT)(Skipping) chmod --changes --preserve-root $(strip $(1)) $(strip $(2)) "$(call mkpath,$(3))")
-    shell.chown = $(info $(STR.INFO.INDENT)(Skipping) chown --changes --preserve-root $(strip $(1)) $(strip $(2)) "$(call mkpath,$(3))")
-    shell.mkdir = New-Item -ItemType Directory -Force -Path '$(call mkpath,$(1))'
-    shell.rm = Remove-Item -Force -Path '$(call mkpath,$(1))'
-    shell.rmdir = Remove-Item -Force -Recurse -Path '$(call mkpath,$(1))'
+    shell.ls = Get-ChildItem -Name '$(call mkpath,$1)'
+    shell.chmod = $(info $(line.indent)(Skipping) chmod --changes --preserve-root $(strip $1) $(strip $2) "$(call mkpath,$3)")
+    shell.chown = $(info $(line.indent)(Skipping) chown --changes --preserve-root $(strip $1) $(strip $2) "$(call mkpath,$3)")
+    shell.mkdir = New-Item -ItemType Directory -Force -Path '$(call mkpath,$1)'
+    shell.rm = Remove-Item -Force -Path '$(call mkpath,$1)'
+    shell.rmdir = Remove-Item -Force -Recurse -Path '$(call mkpath,$1)'
     shell.copy = $(error Function "copy" is not implemented for SHELL_TYPE=$(SHELL_TYPE). See platform.mak for details.)
     shell.copydir = $(error Function "copydir" is not implemented for SHELL_TYPE=$(SHELL_TYPE). See platform.mak for details.)
     shell.silent = $(error Function "silent" is not implemented for SHELL_TYPE=$(SHELL_TYPE). See platform.mak for details.)
-    shell.subshell = $(SHELL) $(.SHELLFLAGS) "$(1)"
+    shell.subshell = $(SHELL) $(.SHELLFLAGS) "$1"
     shell.and = $(error Function "and" is not implemented for SHELL_TYPE=$(SHELL_TYPE). See platform.mak for details.)
     shell.test = $(error Function "test" is not implemented for SHELL_TYPE=$(SHELL_TYPE). See platform.mak for details.)
 endif
 ifeq "$(SHELL_TYPE)" "POSIX"
     shell.nop = :
-    shell.errlvl = $(call shell.subshell,exit $(1))
-    shell.echo = echo "$(1)"
+    shell.errlvl = $(call shell.subshell,exit $1)
+    shell.echo = echo "$1"
     shell.line = $(call shell.echo,)
-    shell.touch = touch "$(call mkpath,$(1))" && echo "$(STR.INFO.INDENT)Touched: $(call mkpath,$(1))"
-    shell.ls = ls -A -1 --color=no "$(call mkpath,$(1))"
-    shell.chmod = $(if $(strip $(2)),chmod --changes --preserve-root $(strip $(1)) $(strip $(2)) "$(call mkpath,$(3))")
-    shell.chown = $(if $(strip $(2)),chown --changes --preserve-root $(strip $(1)) $(strip $(2)) "$(call mkpath,$(3))")
-    shell.mkdir = if [ ! -d "$(call mkpath,$(1))" ]; then mkdir -p "$(call mkpath,$(1))" > /dev/null && echo "$(STR.INFO.INDENT)Created: $(call mkpath,$(1))$(sep.path)"; fi
-    shell.rm = if [ -e "$(call mkpath,$(1))" ]; then rm --preserve-root --verbose -f "$(call mkpath,$(1))" > /dev/null && echo "$(STR.INFO.INDENT)Removed: $(call mkpath,$(1))"; fi
-    shell.rmdir = if [ -e "$(call mkpath,$(1))" ]; then rm --preserve-root --verbose -rf "$(call mkpath,$(1))" && echo "$(STR.INFO.INDENT)Removed: $(call mkpath,$(1))$(sep.path)"; fi
-    shell.copy = cp -f "$(call mkpath,$(1))" "$(call mkpath,$(2))"
-    shell.copydir = cp -rf "$(call mkpath,$(1))/." "$(call mkpath,$(2))"
-    shell.silent = ( $(1) ) > /dev/null
-    shell.subshell = $(SHELL) $(.SHELLFLAGS) "$(1)"
-    shell.and = ( $(call str.concat,$(RPAR) & $(LPAR),$(1),$(2),$(3),$(4),$(5),$(6),$(7),$(8)) )
-    shell.test = ( $(1) $(if $(2),$(RPAR) && $(LPAR) $(2)) $(if $(3),$(RPAR) || $(LPAR) $(3)) )
+    shell.touch = touch "$(call mkpath,$1)" && echo "$(line.indent)Touched: $(call mkpath,$1)"
+    shell.ls = ls -A -1 --color=no "$(call mkpath,$1)"
+    shell.chmod = $(if $(strip $2),chmod --changes --preserve-root $(strip $1) $(strip $2) "$(call mkpath,$3)")
+    shell.chown = $(if $(strip $2),chown --changes --preserve-root $(strip $1) $(strip $2) "$(call mkpath,$3)")
+    shell.mkdir = if [ ! -d "$(call mkpath,$1)" ]; then mkdir -p "$(call mkpath,$1)" > /dev/null && echo "$(line.indent)Created: $(call mkpath,$1)$(sep.path)"; fi
+    shell.rm = if [ -e "$(call mkpath,$1)" ]; then rm --preserve-root --verbose -f "$(call mkpath,$1)" > /dev/null && echo "$(line.indent)Removed: $(call mkpath,$1)"; fi
+    shell.rmdir = if [ -e "$(call mkpath,$1)" ]; then rm --preserve-root --verbose -rf "$(call mkpath,$1)" && echo "$(line.indent)Removed: $(call mkpath,$1)$(sep.path)"; fi
+    shell.copy = cp -f "$(call mkpath,$1)" "$(call mkpath,$2)"
+    shell.copydir = cp -rf "$(call mkpath,$1)/." "$(call mkpath,$2)"
+    shell.silent = ( $1 ) > /dev/null
+    shell.subshell = $(SHELL) $(.SHELLFLAGS) "$1"
+    shell.and = ( $(call args.concat,$(char.rparen) & $(char.lparen),$1,$2,$3,$4,$5,$6,$7,$8) )
+    shell.test = ( $1 $(if $2,$(char.rparen) && $(char.lparen) $2) $(if $3,$(char.rparen) || $(char.lparen) $3) )
 endif
 
 

@@ -47,8 +47,8 @@
 # $(call help.targets.define,TARGET,\
 # 	Short Description\
 # 	,\
-# 	Long Multiline$(LF)\
-# 	description$(LF)\
+# 	Long Multiline$n\
+# 	description$n\
 # 	,\
 # 	$$@.prereqs.normal\
 # 	$$@.prereqs.orderonly\
@@ -59,8 +59,8 @@
 #   Runs exactly once before any number of prereqs
 #
 # $(call target.pre.define,TARGET,$(TARGET.prereqs),\
-# 	$$(call print.trace,make $$(basename $$@))$(LF)\
-# 	[OTHER COMMANDS]$(LF)\
+# 	$$(call print.trace,make $$(basename $$@))$n\
+# 	[OTHER COMMANDS]$n\
 # )
 #
 # Target Definition
@@ -92,20 +92,20 @@ clean.prereqs = $(clean.prereqs.normal) $(clean.prereqs.orderonly)
 $(call help.targets.define,clean,\
 	Resets this project's development environment\
 	,\
-	Projects can extend the behavior of this (or related) targets$(LF)\
-	through two methods:$(LF)\
-	$(LF)\
-	Projects can extend the behavior of this (or related) targets$(LF)\
-	through two methods:$(LF)\
-	$(LF)\
-	1: Define new targets and append them as prereqs;$(LF)\
-	$$(STR.INFO.INDENT) In config.mak$$(CMA) add the lines:$(LF)\
-	$(LF)\
-	$$(STR.INFO.INDENT)$$(STR.INFO.INDENT) $$@.prereqs.normal = TARGETS$(LF)\
-	$$(STR.INFO.INDENT)$$(STR.INFO.INDENT) $$@.prereqs.orderonly = TARGETS$(LF)\
-	$(LF)\
-	2: Leverage existing targets by overriding their variables.$(LF)\
-	$$(STR.INFO.INDENT) See Related Targets below.$(LF)\
+	Projects can extend the behavior of this (or related) targets$n\
+	through two methods:$n\
+	$n\
+	Projects can extend the behavior of this (or related) targets$n\
+	through two methods:$n\
+	$n\
+	1: Define new targets and append them as prereqs;$n\
+	$$(line.indent) In config.mak$$c add the lines:$n\
+	$n\
+	$$(line.indent)$$(line.indent) $$@.prereqs.normal = TARGETS$n\
+	$$(line.indent)$$(line.indent) $$@.prereqs.orderonly = TARGETS$n\
+	$n\
+	2: Leverage existing targets by overriding their variables.$n\
+	$$(line.indent) See Related Targets below.$n\
 	,\
 	$$@.prereqs.normal\
 	$$@.prereqs.orderonly\
@@ -113,7 +113,7 @@ $(call help.targets.define,clean,\
 
 # Pretarget; runs exactly once before any number of prereqs
 $(call target.pre.define,clean,$(clean.prereqs),\
-	$$(call print.trace,make $$(basename $$@))$(LF)\
+	$$(call print.trace,make $$(basename $$@))$n\
 )
 
 # Definition
@@ -138,8 +138,8 @@ clean.remove.dirs ?=
 $(call help.targets.define,clean.remove.dirs,\
 	$(empty)\
 	,\
-	Removes each file in $$$$($$@.files).$(LF)\
-	Removes each directory in $$$$($$@.dirs).$(LF)\
+	Removes each file in $$$$($$@.files).$n\
+	Removes each directory in $$$$($$@.dirs).$n\
 	,\
 	$$@.prereqs.normal\
 	$$@.prereqs.orderonly\
@@ -151,8 +151,8 @@ $(call help.targets.define,clean.remove.dirs,\
 .PHONY: clean.remove
 clean.remove: $(clean.remove.prereqs.normal) | $(clean.remove.prereqs.orderonly)
 	$(if $($@.files)$($@.dirs),$(call print.trace))
-	@$(foreach path,$($@.files),$(call shell.rm,$(path))$(LF))
-	@$(foreach path,$($@.dirs),$(call shell.rmdir,$(path))$(LF))
+	@$(foreach path,$($@.files),$(call shell.rm,$(path))$n)
+	@$(foreach path,$($@.dirs),$(call shell.rmdir,$(path))$n)
 
 
 

@@ -47,8 +47,8 @@
 # $(call help.targets.define,TARGET,\
 # 	Short Description\
 # 	,\
-# 	Long Multiline$(LF)\
-# 	description$(LF)\
+# 	Long Multiline$n\
+# 	description$n\
 # 	,\
 # 	$$@.prereqs.normal\
 # 	$$@.prereqs.orderonly\
@@ -59,8 +59,8 @@
 #   Runs exactly once before any number of prereqs
 #
 # $(call target.pre.define,TARGET,$(TARGET.prereqs),\
-# 	$$(call print.trace,make $$(basename $$@))$(LF)\
-# 	[OTHER COMMANDS]$(LF)\
+# 	$$(call print.trace,make $$(basename $$@))$n\
+# 	[OTHER COMMANDS]$n\
 # )
 #
 # Target Definition
@@ -91,19 +91,19 @@ git.prereqs = $(git.prereqs.normal) $(git.prereqs.orderonly)
 $(call help.targets.define,git,\
 	Common Git operations\
 	,\
-	Available sub-tasks are listed in "Related Targets" below.$(LF)\
-	$(LF)\
-	Projects can extend the behavior of this (or related) targets$(LF)\
-	through two methods:$(LF)\
-	$(LF)\
-	1: Define new targets and append them as prereqs;$(LF)\
-	$$(STR.INFO.INDENT) In config.mak$$(CMA) add the lines:$(LF)\
-	$(LF)\
-	$$(STR.INFO.INDENT)$$(STR.INFO.INDENT) $$@.prereqs.normal = TARGETS$(LF)\
-	$$(STR.INFO.INDENT)$$(STR.INFO.INDENT) $$@.prereqs.orderonly = TARGETS$(LF)\
-	$(LF)\
-	2: Leverage existing targets by overriding their variables.$(LF)\
-	$$(STR.INFO.INDENT) See Related Targets below.$(LF)\
+	Available sub-tasks are listed in "Related Targets" below.$n\
+	$n\
+	Projects can extend the behavior of this (or related) targets$n\
+	through two methods:$n\
+	$n\
+	1: Define new targets and append them as prereqs;$n\
+	$$(line.indent) In config.mak$$c add the lines:$n\
+	$n\
+	$$(line.indent)$$(line.indent) $$@.prereqs.normal = TARGETS$n\
+	$$(line.indent)$$(line.indent) $$@.prereqs.orderonly = TARGETS$n\
+	$n\
+	2: Leverage existing targets by overriding their variables.$n\
+	$$(line.indent) See Related Targets below.$n\
 	,\
 	$$@.prereqs.normal\
 	$$@.prereqs.orderonly\
@@ -111,7 +111,7 @@ $(call help.targets.define,git,\
 
 # Pretarget; runs exactly once before any number of prereqs
 $(call target.pre.define,git,$(git.prereqs),\
-	$$(call print.trace,make $$(basename $$@))$(LF)\
+	$$(call print.trace,make $$(basename $$@))$n\
 )
 
 # Target Definition
@@ -137,8 +137,8 @@ git.gitconfig.hooksdir ?= .project/git/hooks
 $(call help.targets.define,git.gitconfig,\
 	$(empty)\
 	,\
-	Sets Git property "include.path" to ../$$$$($$@.file).$(LF)\
-	Also sets executable bit on files in $$$$($$@.hooksdir).$(LF)\
+	Sets Git property "include.path" to ../$$$$($$@.file).$n\
+	Also sets executable bit on files in $$$$($$@.hooksdir).$n\
 	,\
 	$$@.prereqs.normal\
 	$$@.prereqs.orderonly\
@@ -171,19 +171,19 @@ git.gitignore.commitmsg ?= $(if $(commitmsg),$(commitmsg),Updated file tracking 
 $(call help.targets.define,git.gitignore,\
 	$(empty)\
 	,\
-	Untrack files identified in the repo's .gitignore.$(LF)\
-	$(LF)\
-	Modifies Git repo only. Local working tree is unaffected.$(LF)\
-	$(LF)\
-	If a file has already been committed to the repo$$(CMA) and$(LF)\
-	is later added to .gitignore$$(CMA) the file remains in the$(LF)\
-	repo until it is explicitly removed from tracking.$(LF)\
-	$(LF)\
-	This process is equivalent to running:$(LF)\
-	$(LF)\
-	$$(COMMAND.INDENT) git rm -rf --cached --quiet .$(LF)\
-	$$(COMMAND.INDENT) git add --all$(LF)\
-	$$(COMMAND.INDENT) git commit -m "$$$$($$@.commitmsg)"$(LF)\
+	Untrack files identified in the repo's .gitignore.$n\
+	$n\
+	Modifies Git repo only. Local working tree is unaffected.$n\
+	$n\
+	If a file has already been committed to the repo$$c and$n\
+	is later added to .gitignore$$c the file remains in the$n\
+	repo until it is explicitly removed from tracking.$n\
+	$n\
+	This process is equivalent to running:$n\
+	$n\
+	$$(COMMAND.INDENT) git rm -rf --cached --quiet .$n\
+	$$(COMMAND.INDENT) git add --all$n\
+	$$(COMMAND.INDENT) git commit -m "$$$$($$@.commitmsg)"$n\
 	,\
 	$$@.prereqs.normal\
 	$$@.prereqs.orderonly\
@@ -217,26 +217,26 @@ git.gitattributes.commitmsg ?= $(if $(commitmsg),$(commitmsg),Reencoded files ac
 $(call help.targets.define,git.gitattributes,\
 	$(empty)\
 	,\
-	Reencode files according to the repo's .gitattributes.$(LF)\
-	$(LF)\
-	Modifies local files AND Git repo.$(LF)\
-	$(LF)\
-	When .gitattributes is changed$$(CMA) some files may not have$(LF)\
-	the correct encoding or line ending format anymore.$(LF)\
-	This renormalizes and commits changes to all files in the repo$$(CMA)$(LF)\
-	then hard-resets to that commit so these changes are reflected$(LF)\
-	in the working-tree as well.$(LF)\
-	$(LF)\
-	This process is equivalent to running:$(LF)\
-	$(LF)\
-	$$(COMMAND.INDENT) git add --renormalize .$(LF)\
-	$$(COMMAND.INDENT) git commit -m "$$$$($$@.commitmsg)"$(LF)\
-	$$(COMMAND.INDENT) git rm -rf --cached --quiet .$(LF)\
-	$$(COMMAND.INDENT) git reset --hard$(LF)\
-	$(LF)\
-	Be sure these changes are also reflected in .vscode/settings.all.json$(LF)\
-	$(LF)\
-	WARNING: This process is not perfect! Some files may not be reencoded.$(LF)\
+	Reencode files according to the repo's .gitattributes.$n\
+	$n\
+	Modifies local files AND Git repo.$n\
+	$n\
+	When .gitattributes is changed$$c some files may not have$n\
+	the correct encoding or line ending format anymore.$n\
+	This renormalizes and commits changes to all files in the repo$$c$n\
+	then hard-resets to that commit so these changes are reflected$n\
+	in the working-tree as well.$n\
+	$n\
+	This process is equivalent to running:$n\
+	$n\
+	$$(COMMAND.INDENT) git add --renormalize .$n\
+	$$(COMMAND.INDENT) git commit -m "$$$$($$@.commitmsg)"$n\
+	$$(COMMAND.INDENT) git rm -rf --cached --quiet .$n\
+	$$(COMMAND.INDENT) git reset --hard$n\
+	$n\
+	Be sure these changes are also reflected in .vscode/settings.all.json$n\
+	$n\
+	WARNING: This process is not perfect! Some files may not be reencoded.$n\
 	,\
 	$$@.prereqs.normal\
 	$$@.prereqs.orderonly\
@@ -268,12 +268,12 @@ git.require.no-uncommitted-changes.prereqs = $(git.require.no-uncommitted-change
 $(call help.targets.define,git.require.no-uncommitted-changes,\
 	$(empty)\
 	,\
-	Terminates make with an error message if repository contains$(LF)\
-	unstaged changes$$(CMA) or staged but uncommitted changes.$(LF)\
-	$(LF)\
-	This process is equivalent to running:$(LF)\
-	$(LF)\
-	$$(COMMAND.INDENT) git diff --quiet && git diff --cached --quiet$(LF)\
+	Terminates make with an error message if repository contains$n\
+	unstaged changes$$c or staged but uncommitted changes.$n\
+	$n\
+	This process is equivalent to running:$n\
+	$n\
+	$$(COMMAND.INDENT) git diff --quiet && git diff --cached --quiet$n\
 	,\
 	$$@.prereqs.normal\
 	$$@.prereqs.orderonly\

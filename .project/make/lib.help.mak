@@ -16,8 +16,8 @@
 #		$(call help.targets.define,target,\
 #			Short Description
 #			,\
-#			Optional extended$(LF)\
-#			multiline description text$(LF)\
+#			Optional extended$n\
+#			multiline description text$n\
 #			,\
 #			list of related variables
 #		)
@@ -35,8 +35,8 @@ $(if $(filter-out $(notdir $(MAKEFILE_LIST)), lib.mak ),$(error Makefile $(lastw
 #-----------------------------------------------------------
 # $(call help.targets.define,target,\
 # 	Short description text,\
-# 	Optional extended$(LF)\
-# 	multiline description text$(LF)\
+# 	Optional extended$n\
+# 	multiline description text$n\
 # 	,\
 # 	list of related variables
 # )
@@ -48,19 +48,19 @@ $(if $(filter-out $(notdir $(MAKEFILE_LIST)), lib.mak ),$(error Makefile $(lastw
 #   will be printed below the long description.
 #
 # In any argument except 1, the literal string $@ is substituted
-#   with the name of the target $(1).
+#   with the name of the target $1.
 # Since literal '$' must be escaped, must type "$$@".
 #
 # Other variables can be referenced as well, but also they must be $$(escaped).
 #-----------------------------------------------------------
 
-help.targets.define = $(eval $(subst $(LF)$(SP),$(LF),$(LF)\
-	help.targets += help.$(strip $(1))$(LF)\
-	$(subst $$@,$(strip $(1)),$(LF)\
-		help.$(strip $(1)).shortdesc := $(strip $(2))$(LF)\
-		help.$(strip $(1)).longdesc := $(strip $(subst $$(LF)$(SP),$$(LF),$(subst $(LF),$$(LF),$(3))))$(LF)\
-		help.$(strip $(1)).variables := $(strip $(4))$(LF)\
-	)$(LF)\
+help.targets.define = $(eval $(subst $n$s,$n,$n\
+	help.targets += help.$(strip $1)$n\
+	$(subst $$@,$(strip $1),$n\
+		help.$(strip $1).shortdesc := $(strip $2)$n\
+		help.$(strip $1).longdesc := $(strip $(subst $$n$s,$$n,$(subst $n,$$n,$3)))$n\
+		help.$(strip $1).variables := $(strip $4)$n\
+	)$n\
 ))
 
 
@@ -77,8 +77,8 @@ help.targets ?=
 # Help Text (make help.help)
 $(call help.targets.define,help,\
 	Prints the top-level Make targets available in this project,\
-	Targets can define help text using the "help.targets.define" macro.$(LF)\
-	See "lib.help.mak" for more information.$(LF)\
+	Targets can define help text using the "help.targets.define" macro.$n\
+	See "lib.help.mak" for more information.$n\
 	,\
 	help.targets\
 )
@@ -89,11 +89,11 @@ help:
 	@$(call nop)
 	$(info )
 	$(info Usage:)
-	$(info $(STR.INFO.INDENT)make [target] [variable=value])
+	$(info $(line.indent)make [target] [variable=value])
 	$(info )
 	$(info Targets:)
 	$(foreach tgt,$(sort $(help.targets)),$(if $($(tgt).shortdesc),\
-	  $(info $(STR.INFO.INDENT)$(call str.justify.right,$(patsubst help.%,%,$(tgt)),$(help.colwidth)) $($(tgt).shortdesc))\
+	  $(info $(line.indent)$(call str.justify.right,$(patsubst help.%,%,$(tgt)),$(help.colwidth)) $($(tgt).shortdesc))\
 	))
 	$(info )
 
@@ -109,8 +109,8 @@ expand ?= false
 # Help Text (make help.[target])
 $(call help.targets.define,help.[target],\
 	Prints detailed info about [target],\
-	Targets can define help text using the "help.targets.define" macro.$(LF)\
-	See "lib.help.mak" for more information.$(LF)\
+	Targets can define help text using the "help.targets.define" macro.$n\
+	See "lib.help.mak" for more information.$n\
 	,\
 	help.targets\
 	expand\
@@ -124,14 +124,14 @@ help.%:
 	  $(info )\
 	  $(info Usage:)\
 	  $(info )\
-	  $(info $(STR.INFO.INDENT)make $(patsubst help.%,%,$@) [variable=value])\
+	  $(info $(line.indent)make $(patsubst help.%,%,$@) [variable=value])\
 	  $(if $($@.shortdesc),\
 	    $(info )\
-	    $(info $(STR.INFO.INDENT)$($@.shortdesc))\
+	    $(info $(line.indent)$($@.shortdesc))\
 	  )\
 	  $(if $($@.longdesc),\
 	    $(info )\
-	    $(info $(STR.INFO.INDENT)$(subst $(LF),$(LF)$(STR.INFO.INDENT),$($@.longdesc)))\
+	    $(info $(line.indent)$(subst $n,$n$(line.indent),$($@.longdesc)))\
 	  )\
 	  $(if $($@.variables),\
 	    $(info )\
@@ -139,22 +139,22 @@ help.%:
 	      $(info $(call str.justify.right,Variables:,....................) Values expanded recursively.)\
 	      $(info )\
 	      $(foreach varn,$(sort $($@.variables)),\
-	        $(info $(STR.INFO.INDENT)$(varn)=[$($(varn))])\
+	        $(info $(line.indent)$(varn)=[$($(varn))])\
 	      ),\
 	      $(info $(call str.justify.right,Variables:,....................) Expand values by rerunning with "expand=true".)\
 	      $(info )\
 	      $(foreach varn,$(sort $($@.variables)),\
-	        $(info $(STR.INFO.INDENT)$(varn)=[$(value $(varn))])\
+	        $(info $(line.indent)$(varn)=[$(value $(varn))])\
 	      )\
 		)\
 	  )\
 	  $(if $(strip $(foreach tgt,$(filter-out $@,$(help.targets)),$(if $(findstring $(patsubst help.%,%,$@),$(tgt)),$(tgt)))),\
 	    $(info )\
-	    $(info $(call str.justify.right,Related Targets:,....................) For more info$(CMA) run "make help.[target]".)\
+	    $(info $(call str.justify.right,Related Targets:,....................) For more info$c run "make help.[target]".)\
 	    $(info )\
 	    $(foreach tgt,$(sort $(filter-out $@,$(help.targets))),\
 	      $(if $(findstring $(patsubst help.%,%,$@),$(tgt)),\
-	        $(info $(STR.INFO.INDENT)$(call str.justify.right,$(patsubst help.%,%,$(tgt)),$(help.colwidth)) $($(tgt).shortdesc))\
+	        $(info $(line.indent)$(call str.justify.right,$(patsubst help.%,%,$(tgt)),$(help.colwidth)) $($(tgt).shortdesc))\
 	      )\
 	    )\
 	  )\

@@ -47,8 +47,8 @@
 # $(call help.targets.define,TARGET,\
 # 	Short Description\
 # 	,\
-# 	Long Multiline$(LF)\
-# 	description$(LF)\
+# 	Long Multiline$n\
+# 	description$n\
 # 	,\
 # 	$$@.prereqs.normal\
 # 	$$@.prereqs.orderonly\
@@ -59,8 +59,8 @@
 #   Runs exactly once before any number of prereqs
 #
 # $(call target.pre.define,TARGET,$(TARGET.prereqs),\
-# 	$$(call print.trace,make $$(basename $$@))$(LF)\
-# 	[OTHER COMMANDS]$(LF)\
+# 	$$(call print.trace,make $$(basename $$@))$n\
+# 	[OTHER COMMANDS]$n\
 # )
 #
 # Target Definition
@@ -92,19 +92,19 @@ init.prereqs = $(init.prereqs.normal) $(init.prereqs.orderonly)
 $(call help.targets.define,init,\
 	Initializes the project's development environment\
 	,\
-	Available sub-tasks are listed in "Related Targets" below.$(LF)\
-	$(LF)\
-	Projects can extend the behavior of this (or related) targets$(LF)\
-	through two methods:$(LF)\
-	$(LF)\
-	1: Define new targets and append them as prereqs;$(LF)\
-	$$(STR.INFO.INDENT) In config.mak$$(CMA) add the lines:$(LF)\
-	$(LF)\
-	$$(STR.INFO.INDENT)$$(STR.INFO.INDENT) $$@.prereqs.normal = TARGETS$(LF)\
-	$$(STR.INFO.INDENT)$$(STR.INFO.INDENT) $$@.prereqs.orderonly = TARGETS$(LF)\
-	$(LF)\
-	2: Leverage existing targets by overriding their variables.$(LF)\
-	$$(STR.INFO.INDENT) See Related Targets below.$(LF)\
+	Available sub-tasks are listed in "Related Targets" below.$n\
+	$n\
+	Projects can extend the behavior of this (or related) targets$n\
+	through two methods:$n\
+	$n\
+	1: Define new targets and append them as prereqs;$n\
+	$$(line.indent) In config.mak$$c add the lines:$n\
+	$n\
+	$$(line.indent)$$(line.indent) $$@.prereqs.normal = TARGETS$n\
+	$$(line.indent)$$(line.indent) $$@.prereqs.orderonly = TARGETS$n\
+	$n\
+	2: Leverage existing targets by overriding their variables.$n\
+	$$(line.indent) See Related Targets below.$n\
 	,\
 	$$@.prereqs.normal\
 	$$@.prereqs.orderonly\
@@ -112,7 +112,7 @@ $(call help.targets.define,init,\
 
 # Pretarget; runs exactly once before any number of prereqs
 $(call target.pre.define,init,$(init.prereqs),\
-	$$(call print.trace,make $$(basename $$@))$(LF)\
+	$$(call print.trace,make $$(basename $$@))$n\
 )
 
 # Target Definition
@@ -125,53 +125,53 @@ init: $(init.prereqs.normal) | $(init.prereqs.orderonly)
 # init.create
 #-----------------------------------------------------------
 
-# Global Variables
-init.create.prereqs.normal ?=
-init.create.prereqs.orderonly ?=
-init.create.prereqs = $(init.create.prereqs.normal) $(init.create.prereqs.orderonly)
+## Global Variables
+#init.create.prereqs.normal ?=
+#init.create.prereqs.orderonly ?=
+#init.create.prereqs = $(init.create.prereqs.normal) $(init.create.prereqs.orderonly)
 
-init.create.dirs ?=
-init.create.dirs.perms ?= $(foreach path,$(init.create.dirs),u+rwX)
-init.create.files ?=
-init.create.files.perms ?= $(foreach path,$(init.create.files),u+rwx)
+#init.create.dirs ?=
+#init.create.dirs.perms ?= $(foreach path,$(init.create.dirs),u+rwX)
+#init.create.files ?=
+#init.create.files.perms ?= $(foreach path,$(init.create.files),u+rwx)
 
-# Help Text
-$(call help.targets.define,init.create,\
-	$(empty)\
-	,\
-	For each directory listed in $$$$($$@.dirs):$(LF)\
-	$$(STR.INFO.INDENT)1. Creates directory$$(CMA) if it doesn't already exist.$(LF)\
-	$$(STR.INFO.INDENT)2. Sets permissions according to $$$$($$@.dirs.perms).$(LF)\
-	$$(STR.INFO.INDENT)   Permissions are applied non-recursively.$(LF)\
-	For each file listed in $$$$($$@.files):$(LF)\
-	$$(STR.INFO.INDENT)1. Creates empty file$$(CMA) if it doesn't already exist.$(LF)\
-	$$(STR.INFO.INDENT)2. Sets permissions according to $$$$($$@.files.perms).$(LF)\
-	,\
-	$$@.prereqs.normal\
-	$$@.prereqs.orderonly\
-	$$@.dirs\
-	$$@.dirs.perms\
-	$$@.files\
-	$$@.files.perms\
-)
+## Help Text
+#$(call help.targets.define,init.create,\
+#	$(empty)\
+#	,\
+#	For each directory listed in $$$$($$@.dirs):$n\
+#	$$(line.indent)1. Creates directory$$c if it doesn't already exist.$n\
+#	$$(line.indent)2. Sets permissions according to $$$$($$@.dirs.perms).$n\
+#	$$(line.indent)   Permissions are applied non-recursively.$n\
+#	For each file listed in $$$$($$@.files):$n\
+#	$$(line.indent)1. Creates empty file$$c if it doesn't already exist.$n\
+#	$$(line.indent)2. Sets permissions according to $$$$($$@.files.perms).$n\
+#	,\
+#	$$@.prereqs.normal\
+#	$$@.prereqs.orderonly\
+#	$$@.dirs\
+#	$$@.dirs.perms\
+#	$$@.files\
+#	$$@.files.perms\
+#)
 
-# Target Definition
-.PHONY: init.create
-init.create: $(init.create.prereqs.normal) | $(init.create.prereqs.orderonly)
-	$(if $($@.dirs)$($@.files),$(call print.trace))
-	@$(call shell.nop)
-	@$(if $($@.dirs),\
-	  $(call str.eval,$(foreach path,$($@.dirs),$$(call shell.mkdir,$(path))$$(LF)))\
-	)
-	@$(if $($@.dirs),$(if $($@.dirs.perms),\
-	  $(call str.eval,$(call list.foreach.pair,path,$($@.dirs),perm,$($@.dirs.perms),$$(call shell.chmod,,$$(perm),$$(path)),$$(LF)))\
-	))
-	@$(if $($@.files),\
-	  $(call str.eval,$(foreach path,$($@.files),$$(call shell.touch,$(path))$$(LF)))\
-	)
-	@$(if $($@.files),$(if $($@.files.perms),\
-	  $(call str.eval,$(call list.foreach.pair,path,$($@.files),perm,$($@.files.perms),$$(call shell.chmod,,$$(perm),$$(path)),$$(LF)))\
-	))
+## Target Definition
+#.PHONY: init.create
+#init.create: $(init.create.prereqs.normal) | $(init.create.prereqs.orderonly)
+#	$(if $($@.dirs)$($@.files),$(call print.trace))
+#	@$(call shell.nop)
+#	@$(if $($@.dirs),\
+#	$(call str.eval,$(foreach path,$($@.dirs),$$(call shell.mkdir,$(path))$$n))\
+#	)
+#	@$(if $($@.dirs),$(if $($@.dirs.perms),\
+#	$(call str.eval,$(call list.map,$($@.dirs),perm,$($@.dirs.perms),$$(call shell.chmod,,$$(perm),$$(path)),$$n))\
+#	))
+#	@$(if $($@.files),\
+#	$(call str.eval,$(foreach path,$($@.files),$$(call shell.touch,$(path))$$n))\
+#	)
+#	@$(if $($@.files),$(if $($@.files.perms),\
+#	$(call str.eval,$(call list.map,path,$($@.files),perm,$($@.files.perms),$$(call shell.chmod,,$$(perm),$$(path)),$$n))\
+#	))
 
 
 
