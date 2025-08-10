@@ -85,6 +85,12 @@ Type Name                     Inheritance                               Allowed 
 -----------------------------------------------------------------------------------------------------------------------------------
 String                        [str]                                     {*}
 Empty String                  |  [empty]                                {}
+Boolean                       |  [bool]                                 {*}
+Logical True                  |  |  {true}                              {*}                         Must be nonempty.
+                              |  |  |  {str}
+                              |  |  |  |  ...
+Logical False                 |  |  [false]                             {}                          Equivalent to `[empty]`.
+                              |  |  |  [empty]
 Single Line                   |  [line]                                 {*}-{\n}
 Single Word                   |  |  [word]                              {*}-{ws}
 Variable Name                 |  |  |  [var]                            {*}-{ws,#,=,:}

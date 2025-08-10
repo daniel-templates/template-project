@@ -94,14 +94,26 @@ override char.gt     := >
 override char.sol    := /
 override char.quest  := ?
 
+# Digits ============================== type: {digit}
+override digit.0     := 0
+override digit.1     := 1
+override digit.2     := 2
+override digit.3     := 3
+override digit.4     := 4
+override digit.5     := 5
+override digit.6     := 6
+override digit.7     := 7
+override digit.8     := 8
+override digit.9     := 9
+
 # Aliases for Common Characters ======= type: {char}
-override s := $(char.space)
-override t := $(char.tab)
-override n := $(char.linefeed)
-override v := $(char.dollar)
-override p := $(char.percnt)
-override c := $(char.comma)
-override o := $(char.period)
+override s := $(char.space)#    Reference with '$s'
+override t := $(char.tab)#      Reference with '$t'
+override n := $(char.linefeed)# Reference with '$n'
+override v := $(char.dollar)#   Reference with '$v'
+override p := $(char.percnt)#   Reference with '$p'
+override c := $(char.comma)#    Reference with '$c'
+override o := $(char.period)#   Reference with '$o'
 
 # Character Sets ====================== type: {list{char}}
 override char.type.lower    := a b c d e f g h i j k l m n o p q r s t u v w x y z
@@ -123,7 +135,7 @@ override char.vars.symbol := char.grave char.tilde char.excl char.commat char.nu
   char.bsol char.verbar char.semi char.colon char.apos char.quot char.comma char.period char.lt char.gt char.sol char.quest
 override char.vars.ws := char.space char.tab char.linefeed
 
-#===============================================================================
+
 
 
 
@@ -131,234 +143,311 @@ override char.vars.ws := char.space char.tab char.linefeed
 #===============================================================================
 # TYPE CONVERSIONS
 #===============================================================================
-# Convert To Lower/Uppercase:
-#  [lower]   <-- $(call str.to.lower,[str])                  Returns [lower]-case of [str].
-#  [upper]   <-- $(call str.to.upper,[str])                  Returns [upper]-case of [str].
-#
-# Convert To/From Packed Word:
-#  {word[T]} <-- $(call word.pack.T,{T},[T:val])             Returns a single word (no whitespace) containing an escaped
-#  {word[T]} <-- $(call {T}.to.word[{T}],[T:val])              value of type T, or literal '$e' if [val] is [empty].
-#
-#  [T]       <-- $(call word.unpack.T,{T},[word[T]:val])     Returns the original value of [T:val], or [empty] if [val]
-#  [T]       <-- $(call word[{T}].to.{T},[word[T]])            was originally [empty], or if [val] was omitted.
-#
-# Convert To/From List:
-#  [list]     <-- $(call str.split,[list],[str:sep],[str:listsep])
-#  [list]     <-- $(call str.to.list,[list],[str:sep],[str:listsep])
-#  [list]     <-- $(call str.to.list[T],{T},[list],[str:sep],[str:keep_empty])
-#  [list]     <-- $(call str.to.list[{T}],[list],[str:sep],[str:keep_empty])
-#
-#  [str]     <-- $(call list.concat,[list],[str:sep],[str:listsep])
-#  [str]     <-- $(call list.to.str,[list],[str:sep],[str:listsep])
-#  [str]     <-- $(call list[T].to.str,{T},[list],[str:sep],[str:keep_empty])
-#  [str]     <-- $(call list[{T}].to.str,[list],[str:sep],[str:keep_empty])
-#
-# Convert To/From Pad:
-#  [pad]     <-- $(call str.to.pad,[str:lines])              Returns a [pad] equal to the length of the longest line in [str].
-#  [pad]     <-- $(call T.to.pad,{T},[T:val])                For all other singular types:
-#  [pad]     <-- $(call {T}.to.pad,[T:val])                    Returns a [pad] equal to the length of [val].
-#  [pad]     <-- $(call list.to.pad,[list:vals])             For normal lists: Returns a [pad] equal to the length of the longest [word] in [list].
-#  [pad]     <-- $(call list[T].to.pad,{T},[list[T]:vals])   For all packed-word lists:
-#  [pad]     <-- $(call list[{T}].to.pad,[list[T]:vals])       Returns a [pad] equal to the length of the longest {T} value in [list[T]].
-#
-#  [str]     <-- $(call pad.to.str,[pad],[char])             Returns a sequence of [char] equal in length to [pad].
-#
+#	{word[T]} <-- $(call {type:T}.to.word[{type:T}],[T:val])
+#	[T]       <-- $(call word[{type:T}].to.{type:T},[word[T]:packed_val])
+
+override str.to.word{str}   = $(if $1,$(subst $n,$$n,$(subst $t,$$t,$(subst $s,$$s,$(subst $v,$$v,$1)))),$$e)
+override word{str}.to.str   = $(subst $$v,$v,$(subst $$s,$s,$(subst $$t,$t,$(subst $$n,$n,$(subst $$e,$e,$(strip $1))))))
+
+override list.to.word{list} = $(if $(strip $1),$(subst $s,$$s,$(subst $v,$$v,$(strip $1))),$$e)
+override word{list}.to.list = $(subst $$v,$v,$(subst $$s,$s,$(subst $$e,$e,$(strip $1))))
+
+override line.to.word{line} = $(if $1,$(subst $s,$$s,$(subst $v,$$v,$1)),$$e)
+override word{line}.to.line = $(subst $$v,$v,$(subst $$s,$s,$(subst $$e,$e,$(strip $1))))
+
+override word.to.word{word} = $(if $1,$(subst $v,$$v,$(strip $1)),$$e)
+override word{word}.to.word = $(subst $$v,$v,$(subst $$e,$e,$(strip $1)))
+
+override word{int}.to.int   = $(subst $$e,$e,$(strip $1))
+override int.to.word{int}   = $(if $1,$(strip $1),$$e)
+
+override uint.to.word{uint} = $(if $1,$(strip $1),$$e)
+override word{uint}.to.uint = $(subst $$e,$e,$(strip $1))
+
+override idx.to.word{idx}   = $(if $1,$(strip $1),$$e)
+override word{idx}.to.idx   = $(subst $$e,$e,$(strip $1))
+
+override pad.to.word{pad}   = $(if $1,$(strip $1),$$e)
+override word{pad}.to.pad   = $(subst $$e,$e,$(strip $1))
+
+
 #-------------------------------------------------------------------------------
+# word.pack
+#
+#	{word[T]} <-- $(call word.pack,[type:T],[T:val])
+#
+#	Encodes [val] to a single nonempty {word}, or to literal '$e' if [val] is [empty].
+#	Returns [val] unmodified if [type:T] is [empty]
+#-------------------------------------------------------------------------------
+override word.pack = $(if $1,$(call $1.to.word{$1},$2),$2)
 
-# Convert To Lower/Uppercase ========== type: [lower], [upper]
-override str.to.lower       = $(call str.subst.list_to_list,$(char.type.upper),$(char.type.lower),$1)
-override str.to.upper       = $(call str.subst.list_to_list,$(char.type.lower),$(char.type.upper),$1)
 
-# Convert To/From Packed Word ========= type: {word[T]}, [T]
-override word.pack.T        = $(call $1.to.word[$1],$2)
-override str.to.word[str]   = $(if $1,$(subst $n,$$n,$(subst $t,$$t,$(subst $s,$$s,$(subst $v,$$v,$1)))),$$e)
-override list.to.word[list] = $(if $(strip $1),$(subst $s,$$s,$(subst $v,$$v,$(strip $1))),$$e)
-override line.to.word[line] = $(if $1,$(subst $s,$$s,$(subst $v,$$v,$1)),$$e)
-override word.to.word[word] = $(if $1,$(subst $v,$$v,$(strip $1)),$$e)
-override int.to.word[int]   = $(if $1,$(strip $1),$$e)
-override uint.to.word[uint] = $(if $1,$(strip $1),$$e)
-override idx.to.word[idx]   = $(if $1,$(strip $1),$$e)
-override pad.to.word[pad]   = $(if $1,$(strip $1),$$e)
+#-------------------------------------------------------------------------------
+# word.unpack
+#
+#	[T] <-- $(call word.unpack,[type:T],[word[T]:packed_val])
+#
+#	Decodes a [word[T]:packed_val], returning the original value of [val].
+#	Returns [val] unmodified if [type:T] is [empty], or if [packed_val] is omitted.
+#-------------------------------------------------------------------------------
+override word.unpack = $(if $1,$(call word{$1}.to.$1,$2),$2)
 
-override word.unpack.T      = $(call word[$1].to.$1,$2)
-override word[str].to.str   = $(subst $$v,$v,$(subst $$s,$s,$(subst $$t,$t,$(subst $$n,$n,$(subst $$e,$e,$(strip $1))))))
-override word[list].to.list = $(subst $$v,$v,$(subst $$s,$s,$(subst $$e,$e,$(strip $1))))
-override word[line].to.line = $(subst $$v,$v,$(subst $$s,$s,$(subst $$e,$e,$(strip $1))))
-override word[word].to.word = $(subst $$v,$v,$(subst $$e,$e,$(strip $1)))
-override word[idx].to.idx   = $(subst $$e,$e,$(strip $1))
-override word[uint].to.uint = $(subst $$e,$e,$(strip $1))
-override word[idx].to.idx   = $(subst $$e,$e,$(strip $1))
-override word[pad].to.pad   = $(subst $$e,$e,$(strip $1))
 
-# Convert To/From List ================ type: [list[T]], [T]
-override str.split          = $(str.to.list)# Alias
-override str.to.list        = $(strip $(subst $2,$(or $3,$s),$1))
-
-override str.to.list[T]     = $(call str.to.list,$(call $1.to.word[$1],$2),$(call $1.to.word[$1],$3),$(if $4,$$e$s$$e))
-override str.to.list[str]   = $(call str.to.list[T],str,$1,$2,$3)
-override str.to.list[list]  = $(call str.to.list[T],list,$1,$2,$3)
-override str.to.list[line]  = $(call str.to.list[T],line,$1,$2,$3)
-override str.to.list[word]  = $(call str.to.list[T],word,$1,$2,$3)
-override str.to.list[int]   = $(call str.to.list[T],int,$1,$2,$3)
-override str.to.list[uint]  = $(call str.to.list[T],uint,$1,$2,$3)
-override str.to.list[idx]   = $(call str.to.list[T],idx,$1,$2,$3)
-override str.to.list[pad]   = $(call str.to.list[T],pad,$1,$2,$3)
-
-override list.concat        = $(list.to.str)# Alias
-override list.to.str        = $(subst $s,$2,$(strip $(subst $(or $3,$s),$s,$1)))
-
-override list[T].to.str     = $(call word[$1].to.$1,$(call list.to.str,$2,$(call $1.to.word[$1],$3),$(if $4,$$e$s$$e)))
-#override list[T].to.str     = $(call word[$1].to.$1,$(call list.to.str,$(if $4,$(subst $$e,$e,$2),$2),$(call $1.to.word[$1],$3)))
-override list[str].to.str   = $(call list[T].to.str,str,$1,$2,$3)
-override list[list].to.str  = $(call list[T].to.str,list,$1,$2,$3)
-override list[line].to.str  = $(call list[T].to.str,line,$1,$2,$3)
-override list[word].to.str  = $(call list[T].to.str,word,$1,$2,$3)
-override list[int].to.str   = $(call list[T].to.str,int,$1,$2,$3)
-override list[uint].to.str  = $(call list[T].to.str,uint,$1,$2,$3)
-override list[idx].to.str   = $(call list[T].to.str,idx,$1,$2,$3)
-override list[pad].to.str   = $(call list[T].to.str,pad,$1,$2,$3)
-
-# Convert To/From Pad ================= type: [pad], [str]
-override T.to.pad           = $(call $1.to.pad,$2)
-override str.to.pad         = $(lastword $(sort $(call line.to.pad,$(subst $t,$(pad.tab),$1))))
-override list.to.pad        = $(lastword $(sort $(foreach word,$1,$(call word.to.pad,$(word)))))
+#-------------------------------------------------------------------------------
+# str.to.pad
+#
+#	[pad] <-- $(call str.to.list[pad],[str:lines])              For singular multiline types: Returns a [pad] equal to the length of the longest line in [str].
+#	[pad] <-- $(call {T}.to.pad,[T:val])                  For all other singular types: Returns a [pad] equal to the length of [val].
+#	[pad] <-- $(call list.to.list[pad],[list:vals])             For normal lists:             Returns a [pad] equal to the length of the longest [word] in [list].
+#	[pad] <-- $(call list[{T}].to.pad,[list[T]:vals])     For packed-word lists:        Returns a [pad] equal to the length of the longest {T} value in [list[T]].
+#-------------------------------------------------------------------------------
+override str.to.pad         = $(lastword $(sort $(call str.to.list[pad],$1)))
+override list.to.pad        = $(lastword $(sort $(call list.to.list[pad],$1)))
 override line.to.pad        = $(call str.subst.list_to_str,$(char.type.word),.,$(subst $s,.,$1))
 override word.to.pad        = $(call str.subst.list_to_str,$(char.type.word),.,$(strip $1))
 override int.to.pad         = $(call str.subst.list_to_str,$(char.type.int),.,$(strip $1))
 override uint.to.pad        = $(call str.subst.list_to_str,$(char.type.uint),.,$(strip $1))
 override idx.to.pad         = $(call str.subst.list_to_str,$(char.type.idx),.,$(strip $1))
 override pad.to.pad         = $(strip $1)
+override str.to.list[pad]        = $(call line.to.pad,$(subst $t,$(pad.tab),$1))
+override list.to.list[pad]       = $(foreach word,$1,$(call word.to.pad,$(word)))
+override list[T].to.list[pad]    = $(foreach word,$2,$(call $1.to.pad,$(call word[$1].to.$1,$(word))))
+override list[str].to.list[pad]  = $(call list[T].to.list[pad],str,$1)
+override list[list].to.list[pad] = $(call list[T].to.list[pad],list,$1)
+override list[line].to.list[pad] = $(call list[T].to.list[pad],line,$1)
+override list[word].to.list[pad] = $(call list[T].to.list[pad],word,$1)
+override list[int].to.list[pad]  = $(call list[T].to.list[pad],int,$1)
+override list[uint].to.list[pad] = $(call list[T].to.list[pad],uint,$1)
+override list[idx].to.list[pad]  = $(call list[T].to.list[pad],idx,$1)
+override list[pad].to.list[pad]  = $1
 
-override list[T].to.pad     = $(lastword $(sort $(foreach word[$1],$2,$(call $1.to.pad,$(call word[$1].to.$1,$(word[$1]))))))
-override list[str].to.pad   = $(call list[T].to.pad,str,$1)
-override list[list].to.pad  = $(call list[T].to.pad,list,$1)
-override list[line].to.pad  = $(call list[T].to.pad,line,$1)
-override list[word].to.pad  = $(call list[T].to.pad,word,$1)
-override list[int].to.pad   = $(call list[T].to.pad,int,$1)
-override list[uint].to.pad  = $(call list[T].to.pad,uint,$1)
-override list[idx].to.pad   = $(call list[T].to.pad,idx,$1)
-override list[pad].to.pad   = $(call list[T].to.pad,pad,$1)
 
-override pad.to.str         = $(subst .,$(or $2,$s),$(strip $1))
+#-------------------------------------------------------------------------------
+# pad.to.str
+#
+#	[str] <-- $(call pad.to.str,[pad],[char])
+#
+#	Returns a sequence of [char] equal in length to [pad].
+#	Uses space ' ' if [char] is omitted.
+#-------------------------------------------------------------------------------
+override pad.to.str = $(subst .,$(or $2,$s),$(strip $1))
 
+
+
+
+
+
+#===============================================================================
+# STRING MANIPULATION
 #===============================================================================
 
 
+#-------------------------------------------------------------------------------
+# str.equ, str.neq
+#
+#	[str] <-- $(call str.equ,[str:1],[str:2])
+#	[str] <-- $(call str.neq,[str:1],[str:2])
+#
+#	Returns {true} if the strings are equal (or notequal).
+#-------------------------------------------------------------------------------
+override str.equ = $(if $(subst x$1,,x$2)$(subst x$2,,x$1),$(false),$(true))
+override str.neq = $(if $(subst x$1,,x$2)$(subst x$2,,x$1),$(true),$(false))
 
 
+#-------------------------------------------------------------------------------
+# str.concat
+# str.concat.pair
+#
+#	[str] <-- $(call str.concat.pair,[str:sep],[str:1],[str:2])
+#	[str] <-- $(call str.concat,[str:sep],[str:1],[str:2],...,[str:8])
+#
+#	Concatentates each nonempty [str] argument with the given separator [sep].
+#	Each [empty] argument is skipped; no separator is included for them.
+#
+#-------------------------------------------------------------------------------
+override str.concat.pair = $(if $(and $2,$3),$2$1$3,$(or $2,$3))
+override str.concat = $(if $(or $3,$4,$5,$6,$7,$8,$9),$(call str.concat.pair,$1,$2,$(call str.concat,$1,$3,$4,$5,$6,$7,$8,$9)),$2)
+
+
+#-------------------------------------------------------------------------------
+# str.map
+#
+#	[str] <-- $(call str.map,[func],[type:T],
+#	                         [str:split_sep],[str:split_keep_empty],
+#	                         [str:merge_sep],[str:merge_keep_empty],
+#	                         [str:1],[str:2],[str:3],[str:4])
+#
+#	Wrapper for list.map, but operates directly on [str] instead of [list], handling the list conversions internally.
+#	1. Splits each string ([1]-[4]) on [split_sep]
+#	   Empty tokens are removed unless [split_keep_empty] is {true}.
+#	2. If [T] is nonempty, encodes the substrings between each [split_sep] as a packed [word[T]].
+#	3. Iterates over each [list[T]] in parallel.
+#	   For each iteration, calls [func], unpacking each [word[{T}]] into the first 4 arguments of [func]
+#	4. If [T] is nonempty, encodes the value returned by [func] as a packed [word[{T}]]
+#	5. Merges the resulting list with [merge_sep], and decodes it to [str].
+#	   Empty tokens are removed unless [merge_keep_empty] is {true}.
+#
+#-------------------------------------------------------------------------------
+override str.map = $(if $1,$(call list[str].to.str,$(call list[str].map,$1,$(if $7,$(call str.to.list$(if $2,[$2]),$7,$3,$4)),$(if $8,$(call str.to.list$(if $2,[$2]),$8,$3,$4)),$(if $9,$(call str.to.list$(if $2,[$2]),$9,$3,$4)),$(if $(10),$(call str.to.list$(if $2,[$2]),$(10),$3,$4))),$5,$6))
+
+
+#-------------------------------------------------------------------------------
+# str.map.lines
+#
+#	[str] <-- $(call str.map.lines,[func],[str:1],...,[str:4])
+#
+#	Iterates over each line of N strings, in parallel.
+#	For each iteration, calls [func], passing one line from each string.
+#
+#-------------------------------------------------------------------------------
+override str.map.lines = $(call str.map,$1,line,$n,$(true),$n,$(true),$2,$3,$4)
+
+
+#-------------------------------------------------------------------------------
+# str.to.lower, str.to.upper
+#
+#	[lower]   <-- $(call str.to.lower,[str])
+#	[upper]   <-- $(call str.to.upper,[str])
+#
+#	Returns [lower]-case or [upper]-case of [str].
+#
+#-------------------------------------------------------------------------------
+override str.to.lower = $(call str.subst.list_to_list,$(char.type.upper),$(char.type.lower),$1)
+override str.to.upper = $(call str.subst.list_to_list,$(char.type.lower),$(char.type.upper),$1)
+
+
+#-------------------------------------------------------------------------------
+# str.indent
+#
+#	[str] <-- $(call str.indent,[str:prefix],[str:multiline])
+#
+#	For each line, strips leading whitespace, then applies the [prefix]
+#Calls $(strip) on each line to remove leading/trailing whitespace,
+# then prefixes each (nonempty) line with.
+# WARNING:
+#   The $(strip) operation removes consecutive whitespace from
+#   the middle of the string! Escape important whitespace with:
+#     '$$s' '$$t' '$$n'
+override str.indent.lf := $n
+override str.indent = $1$(subst $$(str.indent.lf),,$(subst $$(str.indent.lf)$s,$n$1,$(strip $(subst $n$s,$$(str.indent.lf)$s,$2))))
 
 
 #===============================================================================
-# STRING SUBSTITUTIONS
+# STRING SUBSTITUTION
 #===============================================================================
-# Type:                Description:
-#  [var]                Variable name, or [empty].
-#  [list{var}]          Whitespace-separated list of variables, or [empty].
-#                       Variables are expanded before use.
-#                       Unlike [str] substitutions, variable 'empty' can be used to match/replace
-#                       the empty string.
+# Arguments:        If Argument Omitted:           If Argument Provided:
+#  [var:from]        Nothing is matched             Matches $({var}) in [in], or matches [in] == [empty] if $({var}) == [empty]
+#  [list{var}:from]  Nothing is matched             Matches $({var}) in [in], or matches [in] == [empty] if $({var}) == [empty]
+#  [str:from]        Nothing is matched             Matches   {str}  in [in]
+#  [list:from]       Nothing is matched             Matches  {word}  in [in]
 #
-#  [str]                String containing any characters, or [empty]. Used literally.
-#  [list{word}]         Whitespace-separated list of {word}s, or [empty].
-#                       Individual words cannot contain whitespace or be [empty].
-#-------------------------------------------------------------------------------
-# Arguments:           If Argument Omitted:             If Argument Provided:
-#  [var:from]           Nothing is matched               Matches $({var}) in [in], or matches [in] == [empty] if $({var}) == [empty]
-#  [list{var}:from]     Nothing is matched               Matches $({var}) in [in], or matches [in] == [empty] if $({var}) == [empty]
-#  [str:from]           Nothing is matched               Matches   {str}  in [in]
-#  [list{word}:from]    Nothing is matched               Matches  {word}  in [in]
+#  [var:to]          Nothing is replaced            Replaces matches with $({var})
+#  [list{var}:to]    Nothing is replaced            Replaces matches with $({var})
+#  [str:to]          Replaces matches with [empty]  Replaces matches with   {str}
+#  [list:to]         Replaces matches with [empty]  Replaces matches with  {word}
 #
-#  [var:to]             Nothing is replaced              Replaces matches with $({var})
-#  [list{var}:to]       Nothing is replaced              Replaces matches with $({var})
-#  [str:to]             Replaces matches with [empty]    Replaces matches with   {str}
-#  [list{word}:to]      Replaces matches with [empty]    Replaces matches with  {word}
-#
-#-------------------------------------------------------------------------------
-# Single Match, Single Replace:
-#  [str] <-- $(call str.subst.str_to_str,[str:from],[str:to],[str:in])
-#  [str] <-- $(call str.subst.str_to_var,[str:from],[var:to],[str:in])
-#  [str] <-- $(call str.subst.var_to_str,[var:from],[str:to],[str:in])
-#  [str] <-- $(call str.subst.var_to_var,[var:from],[var:to],[str:in])
-#
-# Multiple Match, Single Replace:
-#  [str] <-- $(call str.subst.list_to_str,[list{word}:from],[str:to],[str:in])
-#  [str] <-- $(call str.subst.list_to_var,[list{word}:from],[var:to],[str:in])
-#  [str] <-- $(call str.subst.vars_to_str,[list{var}:from],[str:to],[str:in])
-#  [str] <-- $(call str.subst.vars_to_var,[list{var}:from],[var:to],[str:in])
-#
-# Multiple Match, Multiple Replace:
-#  [str] <-- $(call str.subst.list_to_list,[list:from],[list{word}:to],[str:in])
-#  [str] <-- $(call str.subst.list_to_vars,[list:from],[list{var}:to],[str:in])
-#  [str] <-- $(call str.subst.vars_to_list,[list{var}:from],[list{word}:to],[str:in])
-#  [str] <-- $(call str.subst.vars_to_vars,[list{var}:from],[list{var}:to],[str:in])
-#
-# Single Match, Single Prefix:
-#  [str] <-- $(call str.subst.str_prefix,[str:find],[str:prefix],[str:in])
-#  [str] <-- $(call str.subst.var_prefix,[var:find],[str:prefix],[str:in])
-#
-# Multiple Match, Single Prefix:
-#  [str] <-- $(call str.subst.list_prefix,[list{word}:find],[str:prefix],[str:in])
-#  [str] <-- $(call str.subst.vars_prefix,[list{var}:find],[str:prefix],[str:in])
-#
-# Single Match, Single Suffix:
-#  [str] <-- $(call str.subst.str_suffix,[str:find],[str:suffix],[str:in])
-#  [str] <-- $(call str.subst.var_suffix,[var:find],[str:suffix],[str:in])
-#
-# Multiple Match, Single Suffix:
-#  [str] <-- $(call str.subst.list_suffix,[list{word}:find],[str:suffix],[str:in])
-#  [str] <-- $(call str.subst.vars_suffix,[list{var}:find],[str:suffix],[str:in])
-#
-# Escape Sequences:
-#  [str]       <-- $(call str.escape.vars,[list{var}],[str:in])  Substitutes each expanded value $(var) with literal string '$(var)'.
-#  [str]       <-- $(call str.expand.vars,[list{var}],[str:in])  Substitutes each literal string '$(var)' with the expanded value of $(var).
-#
-#-------------------------------------------------------------------------------
+#===============================================================================
 
-# Recursion Helpers: Basically list.reduce but with args in a different order
-# [str] <-- $(call str.subst.reduce.multi_to_single,[func([word:1],[str:2], [acc])],[list:1],[str:2], [str:acc])
-# [str] <-- $(call str.subst.reduce.multi_to_multi, [func([word:1],[word:2],[acc])],[list:1],[list:2],[str:acc])
-override str.subst.reduce.multi_to_single = $(if $(firstword $2),$(call str.subst.reduce.multi_to_single,$1,$(wordlist 2,$(words $2),$2),$3,$(call $1,$(firstword $2),$3,$4)),$4)
-override str.subst.reduce.multi_to_multi  = $(if $(or $(firstword $2),$(firstword $3)),$(call str.subst.reduce.multi_to_multi,$1,$(wordlist 2,$(words $2),$2),$(wordlist 2,$(words $3),$3),$(call $1,$(firstword $2),$(firstword $3),$4)),$4)
 
-# Single Match, Single Replace ======== type: [str]
+#-------------------------------------------------------------------------------
+# (Internal use only)
+#
+#	[str] <-- $(call __str.subst.multi_to_single,[func([word:1],[str:2], [acc])],[list:1],[str:2], [str:acc])
+#	[str] <-- $(call __str.subst.multi_to_multi, [func([word:1],[word:2],[acc])],[list:1],[list:2],[str:acc])
+#
+#-------------------------------------------------------------------------------
+override __str.subst.multi_to_single = $(if $(firstword $2),$(call __str.subst.multi_to_single,$1,$(wordlist 2,$(words $2),$2),$3,$(call $1,$(firstword $2),$3,$4)),$4)
+override __str.subst.multi_to_multi  = $(if $(or $(firstword $2),$(firstword $3)),$(call __str.subst.multi_to_multi,$1,$(wordlist 2,$(words $2),$2),$(wordlist 2,$(words $3),$3),$(call $1,$(firstword $2),$(firstword $3),$4)),$4)
+
+
+#-------------------------------------------------------------------------------
+# str.subst.(Single Match, Single Replace)
+#
+#	[str] <-- $(call str.subst.str_to_str,[str:from],[str:to],[str:in])
+#	[str] <-- $(call str.subst.str_to_var,[str:from],[var:to],[str:in])
+#	[str] <-- $(call str.subst.var_to_str,[var:from],[str:to],[str:in])
+#	[str] <-- $(call str.subst.var_to_var,[var:from],[var:to],[str:in])
+#
+#-------------------------------------------------------------------------------
 override str.subst.str_to_str   = $(if $1,$(subst $1,$2,$3),$3)
 override str.subst.str_to_var   = $(if $1,$(if $2,$(subst $1,$($2),$3),$3),$3)
 override str.subst.var_to_str   = $(if $1,$(if $($1),$(subst $($1),$2,$3),$(if $3,$3,$2)),$3)
 override str.subst.var_to_var   = $(if $1,$(if $2,$(if $($1),$(subst $($1),$($2),$3),$(if $3,$3,$($2))),$3),$3)
 
-# Multiple Match, Single Replace ====== type: [str]
-override str.subst.list_to_str  = $(call str.subst.reduce.multi_to_single,str.subst.str_to_str,$1,$2,$3)
-override str.subst.list_to_var  = $(call str.subst.reduce.multi_to_single,str.subst.str_to_var,$1,$2,$3)
-override str.subst.vars_to_str  = $(call str.subst.reduce.multi_to_single,str.subst.var_to_str,$1,$2,$3)
-override str.subst.vars_to_var  = $(call str.subst.reduce.multi_to_single,str.subst.var_to_var,$1,$2,$3)
 
-# Multiple Match, Multiple Replace ==== type: [str]
-override str.subst.list_to_list = $(call str.subst.reduce.multi_to_multi,str.subst.str_to_str,$1,$2,$3)
-override str.subst.list_to_vars = $(call str.subst.reduce.multi_to_multi,str.subst.str_to_var,$1,$2,$3)
-override str.subst.vars_to_list = $(call str.subst.reduce.multi_to_multi,str.subst.var_to_str,$1,$2,$3)
-override str.subst.vars_to_vars = $(call str.subst.reduce.multi_to_multi,str.subst.var_to_var,$1,$2,$3)
+#-------------------------------------------------------------------------------
+# str.subst.(Multiple Match, Single Replace)
+#
+#	[str] <-- $(call str.subst.list_to_str,[list:from],[str:to],[str:in])
+#	[str] <-- $(call str.subst.list_to_var,[list:from],[var:to],[str:in])
+#	[str] <-- $(call str.subst.vars_to_str,[list{var}:from],[str:to],[str:in])
+#	[str] <-- $(call str.subst.vars_to_var,[list{var}:from],[var:to],[str:in])
+#
+#-------------------------------------------------------------------------------
+override str.subst.list_to_str  = $(call __str.subst.multi_to_single,str.subst.str_to_str,$1,$2,$3)
+override str.subst.list_to_var  = $(call __str.subst.multi_to_single,str.subst.str_to_var,$1,$2,$3)
+override str.subst.vars_to_str  = $(call __str.subst.multi_to_single,str.subst.var_to_str,$1,$2,$3)
+override str.subst.vars_to_var  = $(call __str.subst.multi_to_single,str.subst.var_to_var,$1,$2,$3)
 
-# Single Match, Single Prefix  ======== type: [str]
+
+#-------------------------------------------------------------------------------
+# str.subst.(Multiple Match, Multiple Replace)
+#
+#	[str] <-- $(call str.subst.list_to_list,[list:from],[list:to],[str:in])
+#	[str] <-- $(call str.subst.list_to_vars,[list:from],[list{var}:to],[str:in])
+#	[str] <-- $(call str.subst.vars_to_list,[list{var}:from],[list:to],[str:in])
+#	[str] <-- $(call str.subst.vars_to_vars,[list{var}:from],[list{var}:to],[str:in])
+#
+#-------------------------------------------------------------------------------
+override str.subst.list_to_list = $(call __str.subst.multi_to_multi,str.subst.str_to_str,$1,$2,$3)
+override str.subst.list_to_vars = $(call __str.subst.multi_to_multi,str.subst.str_to_var,$1,$2,$3)
+override str.subst.vars_to_list = $(call __str.subst.multi_to_multi,str.subst.var_to_str,$1,$2,$3)
+override str.subst.vars_to_vars = $(call __str.subst.multi_to_multi,str.subst.var_to_var,$1,$2,$3)
+
+
+#-------------------------------------------------------------------------------
+# str.subst.(Single Match, Single Prefix)
+#
+#	[str] <-- $(call str.subst.str_prefix,[str:find],[str:prefix],[str:in])
+#	[str] <-- $(call str.subst.var_prefix,[var:find],[str:prefix],[str:in])
+#
+#-------------------------------------------------------------------------------
 override str.subst.str_prefix   = $(if $1,$(subst $1,$2$1,$3),$3)
 override str.subst.var_prefix   = $(if $1,$(if $($1),$(subst $($1),$2$($1),$3),$(if $3,$3,$2)),$3)
 
-# Multiple Match, Single Prefix ======= type: [str]
-override str.subst.list_prefix  = $(call str.subst.reduce.multi_to_single,str.subst.str_prefix,$1,$2,$3)
-override str.subst.vars_prefix  = $(call str.subst.reduce.multi_to_single,str.subst.var_prefix,$1,$2,$3)
 
-# Single Match, Single Suffix  ======== type: [str]
+#-------------------------------------------------------------------------------
+# str.subst.(Multiple Match, Single Prefix)
+#
+#	[str] <-- $(call str.subst.list_prefix,[list:find],[str:prefix],[str:in])
+#	[str] <-- $(call str.subst.vars_prefix,[list{var}:find],[str:prefix],[str:in])
+#
+#-------------------------------------------------------------------------------
+override str.subst.list_prefix  = $(call __str.subst.multi_to_single,str.subst.str_prefix,$1,$2,$3)
+override str.subst.vars_prefix  = $(call __str.subst.multi_to_single,str.subst.var_prefix,$1,$2,$3)
+
+
+#-------------------------------------------------------------------------------
+# str.subst.(Single Match, Single Suffix)
+#
+#	[str] <-- $(call str.subst.str_suffix,[str:find],[str:suffix],[str:in])
+#	[str] <-- $(call str.subst.var_suffix,[var:find],[str:suffix],[str:in])
+#
+#-------------------------------------------------------------------------------
 override str.subst.str_suffix   = $(if $1,$(subst $1,$1$2,$3),$3)
 override str.subst.var_suffix   = $(if $1,$(if $($1),$(subst $($1),$($1)$2,$3),$(if $3,$3,$2)),$3)
 
-# Multiple Match, Single Suffix ======= type: [str]
-override str.subst.list_suffix  = $(call str.subst.reduce.multi_to_single,str.subst.str_suffix,$1,$2,$3)
-override str.subst.vars_suffix  = $(call str.subst.reduce.multi_to_single,str.subst.var_suffix,$1,$2,$3)
 
-# Escape Sequences ==================== type: [str]
-override str.escape.vars        = $(call str.subst.vars_to_list,$1,$(foreach var,$1,$$($(var))),$2)
-override str.expand.vars        = $(call str.subst.list_to_vars,$(foreach var,$1,$$($(var))),$1,$2)
+#-------------------------------------------------------------------------------
+# str.subst.(Multiple Match, Single Suffix)
+#
+#	[str] <-- $(call str.subst.list_suffix,[list:find],[str:suffix],[str:in])
+#	[str] <-- $(call str.subst.vars_suffix,[list{var}:find],[str:suffix],[str:in])
+#
+#-------------------------------------------------------------------------------
+override str.subst.list_suffix  = $(call __str.subst.multi_to_single,str.subst.str_suffix,$1,$2,$3)
+override str.subst.vars_suffix  = $(call __str.subst.multi_to_single,str.subst.var_suffix,$1,$2,$3)
 
-#===============================================================================
 
 
 
@@ -378,283 +467,252 @@ override str.expand.vars        = $(call str.subst.list_to_vars,$(foreach var,$1
 #-------------------------------------------------------------------------------
 #
 # Types:
-#  str           A string containing any characters.
-#  line          A [str} containing a single line; may contain whitespace, but no linefeeds.
-#  word          A [str} containing a single word; no whitespace.
-#  word[type]    A packed [word} containing an escaped string of [type] (which may be {type} or [empty]).
-#                    The original value may have contained any characters allowed for that [type].
-#  list          A whitespace-separated list of plain {word} values.
-#                    Operations on a plain `list` take the value of each word literally.
-#  list[type]    A list of packed words, where each word is a {word[type]}.
-#                    Operations on a packed `list` transparently pack/unpack each word as-needed;
-#                    For example, `list[str].append` first escapes a nonempty {str} or [empty] value,
-#                      then appends the escaped [str] to the list as a {word[str]}.
-#  idx           An integer >= 1 representing a {word}'s position in a `list`.
-#                    idx > $(words [list]) typically results in a no-op.
-#                    idx < 1 is invalid and typically throws an error.
+#	str           A string containing any characters.
+#	line          A {str} containing a single line; may contain whitespace, but no linefeeds.
+#	word          A {str} containing a single word; no whitespace.
+#	word[type]    A packed [word} containing an escaped string of [type] (which may be {type} or [empty]).
+#	                  The original value may have contained any characters allowed for that [type].
+#	list          A whitespace-separated list of plain {word} values.
+#	                  Operations on a plain `list` take the value of each word literally.
+#	list[type]    A list of packed words, where each word is a {word[type]}.
+#	                  Operations on a packed `list` transparently pack/unpack each word as-needed;
+#	                  For example, `list[str].append` first escapes a nonempty {str} or [empty] value,
+#	                    then appends the escaped [str] to the list as a {word[str]}.
+#	idx           An integer >= 1 representing a {word}'s position in a `list`.
+#	                  idx > $(words [list]) typically results in a no-op.
+#	                  idx < 1 is invalid and typically throws an error.
+#===============================================================================
+
+
+#-------------------------------------------------------------------------------
+# str.split
 #
-#-----------------------------------------------------------
-# Length:
-#  Returns the number of nonempty words in [list].
-#  - For normal lists, this is equivalent to $(words [list]).
-#  - For packed lists, excludes each {word} containing a packed [empty] value.
+#	[list[T]] <-- $(call str.split,[type:T],[str],[str:sep],[bool:keep_empty])
 #
-# {uint:len} <-- $(call list.length,[list])
-#
-#-----------------------------------------------------------
-# Trim:
-#  Removes 'empty' words.
-#  - For normal lists, this is equivalent to $(strip [list]).
-#  - For packed lists, removes each {word} containing a packed [empty] value.
-#
-# [list] <-- $(call list.trim,[list])
-#
-#-----------------------------------------------------------
-# Logical Tests:
-#  Performs a logical test on a [list].
-#  Returns [list] if the condition is true, [empty] if false.
-#
-# [list] <-- $(call list.is.empty,[list])           $(words [list]) == 0
-# [list] <-- $(call list.is.nonempty,[list])        $(words [list]) != 0
-# [list] <-- $(call list.has,[list],[word])         [list].contains([word]) == true
-# [list] <-- $(call list.has.not,[list],[word])     [list].contains([word]) == false
-#
-#-----------------------------------------------------------
-# Contains:
-#  Returns [word] if [list] contains [word]; [empty] otherwise.
-#  - For packed lists, packs [type] before search, and returns unpacked [type] if search was successful.
-#
-# [word] <-- $(call list.contains,[list],[word])
-#
-#
-#-----------------------------------------------------------
-# Join:
-#  Maps N [list]s to 1 [list{list}].
-#  Iterates over N [list]s in parallel. For each set of N [words], joins
-#  them into a {list} and packs that {list} into a single-word {word{list}}.
-#  - For packed lists, the original packed type is maintained.
-#  Returns the resulting [list] of {word{list}}.
-#
-# [list{list}] <-- $(call list.join,[list:1],...,[list:4])
-#
-#-----------------------------------------------------------
-# Map:
-#  Maps N [list]s to 1 [list].
-#  Iterates over N [list]s in parallel, calling a [func] with each set of N [word]s.
-#  - For packed lists, words are unpacked before calling [func].
-#    The result of [func] is re-packed before the next iteration.
-#  Returns the list of words produced by [func].
-#
-# [list] <-- $(call list.map,[func[word]([word:1],...,[word:4])],[list:1],...,[list:4])
-#
-#-----------------------------------------------------------
-# Reduce:
-#  Maps N [list]s to 1 [str]ing.
-#  Iterates over N [list]s in parallel, calling a [func] with the result of the previous
-#  iteration [acc] and a set of N [word]s.
-#  - For packed lists, words are unpacked before calling [func].
-#    The result of [func] is not re-packed; [acc] is never modified by anything but [func].
-#  Returns the final value of [acc] produced by [func].
-#
-#  [str] <-- $(call list.reduce,[func[str]([str:acc],[word:1],...,[word:4])],[str:acc],[list:1],...,[list:4])
-#
-#-----------------------------------------------------------
-# List Index:
-#  [idx]  <-- $(call list.idx,[list],[int:idx])             Returns [idx] if 1 <= [idx] <= $(words [list]); [empty] otherwise.
-#  [idx]  <-- $(call list.idx.prev,[list],[int:idx])                [idx]+1
-#  [idx]  <-- $(call list.idx.next,[list],[int:idx])                [idx]-1
-#  [idx]  <-- $(call list.idx.first,[list])                 Returns 1 if [list] has at least 1 {word}; [empty] otherwise.
-#  [idx]  <-- $(call list.idx.last,[list])                  Returns $(words [list]) if [list] has at least 1 {word}; [empty] otherwise.
-#
-#-----------------------------------------------------------
-# Accessing Individual Elements:
-#  [list] <-- $(call list.insert,[list],[word],[idx])       Inserts word at 1 <= [idx] <= 1+$(words [list]).
-#  [list] <-- $(call list.insert.prev,[list],[word],[idx])    [idx]-1
-#  [list] <-- $(call list.insert.next,[list],[word],[idx])    [idx]+1
-#  [list] <-- $(call list.prepend,[list],[word])              1
-#  [list] <-- $(call list.append,[list],[word])               $(words [list])
-#
-#  [list] <-- $(call list.remove,[list],[idx])              Removes word at 1 <= [idx] <= $(words [list])
-#  [list] <-- $(call list.remove.prev,[list],[idx])           [idx]-1
-#  [list] <-- $(call list.remove.next,[list],[idx])           [idx]+1
-#  [list] <-- $(call list.remove.first,[list])                1
-#  [list] <-- $(call list.remove.last,[list])                 $(words [list])
-#
-#  [word] <-- $(call list.get,[list],[idx])                 Returns word at 1 <= [idx] <= $(words [list])
-#  [word] <-- $(call list.get.prev,[list],[idx])              [idx]-1
-#  [word] <-- $(call list.get.next,[list],[idx])              [idx]+1
-#  [word] <-- $(call list.get.first,[list])                   1
-#  [word] <-- $(call list.get.last,[list])                    $(words [list])
-#
-#  [list] <-- $(call list.set,[list],[word],[idx])          Replaces word at 1 <= [idx] <= $(words [list]).
-#  [list] <-- $(call list.set.prev,[list],[word],[idx])       [idx]-1.
-#  [list] <-- $(call list.set.next,[list],[word],[idx])       [idx]+1.
-#  [list] <-- $(call list.set.first,[list],[word])            1
-#  [list] <-- $(call list.set.last,[list],[word])             $(words [list])
+#	Converts a string to a list.
+#	1. If [T] is provided, packs [str] and [sep] to type {word[T]}.
+#	2. Replaces each [sep] in [str] with space ' ', resulting in a [list].
+#	3. [empty] words are removed, unless [keep_empty] is {true}
 #
 #-------------------------------------------------------------------------------
-
-# list.is ============================= type: [list[type]]
-override list.is.empty          = $(if $(firstword $1),,$1)
-override list.is.nonempty       = $(if $(firstword $1),$1)
-
-override list[str].is.empty     = $(if $(firstword $(call list[str].trim,$1)),,$1)
-override list[str].is.nonempty  = $(if $(firstword $(call list[str].trim,$1)),$1)
-
-# list.has ============================ type: [list[type]]
-override list.has               = $(if $(call list.contains,$1,$2),$1)
-override list.has.not           = $(if $(call list.contains,$1,$2),,$1)
-
-override list[str].has          = $(if $(call list[str].contains,$1,$2),$1)
-override list[str].has.not      = $(if $(call list[str].contains,$1,$2),,$1)
-
-# list.contains ======================= type: [type]
-override list.contains          = $(if $(findstring $(strip $2),$(strip $1)),$2)
-override list[str].contains     = $(if $(findstring $(call str.to.word[str],$2),$1),$2)
-
-# list.length ========================= type: {uint}
-override list.length            = $(words $1)
-override list[str].length       = $(call list.length,$(call list[str].trim,$1))
-
-# list.trim =========================== type: [list[type]]
-override list.trim              = $(strip $1)
-override list[str].trim         = $(call list.trim,$(subst $$e,,$1))
-
-# list.join =========================== type: [list[list[type]]]
-override list.join              = $(join $(subst $v,$$v,$1),$(if $(or $2,$3,$4),$(addprefix $$s,$(call list.join,$2,$3,$4))))
-override list[str].join         = $(list.join)
-
-# list.map ============================ type: [list[type]]
-override list.map               = $(foreach word,$(call list.join,$2,$3,$4,$5),$(call list.map.adapter,$1,$(call word[list].to.list,$(word))))
-override list.map.adapter       = $(call $1,$(word 1,$2),$(word 2,$2),$(word 3,$2),$(word 4,$2))
-
-override list[str].map          = $(foreach word,$(call list[str].join,$2,$3,$4,$5),$(call list[str].map.adapter,$1,$(call word[list].to.list,$(word))))
-override list[str].map.adapter  = $(call str.to.word[str],$(call $1,$(call word[str].to.str,$(word 1,$2)),$(call word[str].to.str,$(word 2,$2)),$(call word[str].to.str,$(word 3,$2)),$(call word[str].to.str,$(word 4,$2))))
-
-# list.reduce ========================= type: [str]
-override list.reduce            = $(call list.reduce.recurse,$1,$2,$(call list.join,$3,$4,$5,$6))
-override list.reduce.recurse    = $(if $3,$(call list.reduce.recurse,$1,$(call list.reduce.adapter,$1,$2,$(call word[list].to.list,$(firstword $3))),$(wordlist 2,$(words $3),$3)),$2)
-override list.reduce.adapter    = $(call $1,$2,$(word 1,$3),$(word 2,$3),$(word 3,$3),$(word 4,$3))
-
-override list[str].reduce         = $(call list[str].reduce.recurse,$1,$2,$(call list[str].join,$3,$4,$5,$6))
-override list[str].reduce.recurse = $(if $3,$(call list[str].reduce.recurse,$1,$(call list[str].reduce.adapter,$1,$2,$(call word[list].to.list,$(firstword $3))),$(wordlist 2,$(words $3),$3)),$2)
-override list[str].reduce.adapter = $(call $1,$2,$(call word[str].to.str,$(word 1,$3)),$(call word[str].to.str,$(word 2,$3)),$(call word[str].to.str,$(word 3,$3)),$(call word[str].to.str,$(word 4,$3)))
-
-# list.idx ============================ type: [idx]
-override list.idx.dec           = $(if $2,$(words $(wordlist 2,$2,$1 +1)))# [uint] <-- clamp([uint:2]-1,0,len(list:1))
-override list.idx.inc           = $(if $2,$(words $(wordlist 1,$2,$1) +1))# [uint] <-- clamp([uint:2]+1,1,len(list:1)+1)
-
-override list.idx               = $(and $(filter-out 0,$2),$(word $2,$1),$2)
-override list.idx.prev          = $(filter-out 0 $(words $1 +1),$(call list.idx.dec,$1 +1,$2))
-override list.idx.next          = $(filter-out   $(words $1 +1),$(call list.idx.inc,$1   ,$2))
-override list.idx.first         = $(if $(firstword $1),1)
-override list.idx.last          = $(filter-out 0,$(words $1))
-
-override list[str].idx          = $(call list.idx,$1,$2)
-override list[str].idx.prev     = $(call list.idx.prev,$1,$2)
-override list[str].idx.next     = $(call list.idx.next,$1,$2)
-override list[str].idx.first    = $(call list.idx.first,$1)
-override list[str].idx.last     = $(call list.idx.last,$1)
-
-# list.insert ========================= type: [list[type]]
-override list.insert.N          = $(strip $(if $3,$(wordlist 1,$(call list.idx.dec,$1,$3),$1) $2 $(wordlist $3,$(words $1),$1),$1))
-
-override list.insert            = $(call list.insert.N,$1,$2,$(call list.idx,$1 $$,$3))
-override list.insert.prev       = $(call list.insert.N,$1,$2,$(call list.idx.prev,$1 $$,$3))
-override list.insert.next       = $(call list.insert.N,$1,$2,$(call list.idx.next,$1 $$,$3))
-override list.prepend           = $(strip $2 $1)
-override list.append            = $(strip $1 $2)
-
-override list[str].insert       = $(call list.insert,$1,$(call str.to.word[str],$2),$3)
-override list[str].insert.prev  = $(call list.insert.prev,$1,$(call str.to.word[str],$2),$3)
-override list[str].insert.next  = $(call list.insert.next,$1,$(call str.to.word[str],$2),$3)
-override list[str].prepend      = $(call list.prepend,$1,$(call str.to.word[str],$2))
-override list[str].append       = $(call list.append,$1,$(call str.to.word[str],$2))
-
-# list.remove ========================= type: [list[type]]
-override list.remove.N          = $(strip $(if $2,$(wordlist 1,$(call list.idx.dec,$1,$2),$1) $(wordlist $(call list.idx.inc,$1,$2),$(words $1),$1),$1))
-
-override list.remove            = $(call list.remove.N,$1,$(call list.idx,$1,$2))
-override list.remove.prev       = $(call list.remove.N,$1,$(call list.idx.prev,$1,$2))
-override list.remove.next       = $(call list.remove.N,$1,$(call list.idx.next,$1,$2))
-override list.remove.first      = $(call list.remove.N,$1,$(call list.idx.first,$1))
-override list.remove.last       = $(call list.remove.N,$1,$(call list.idx.last,$1))
-
-override list[str].remove       = $(call list.remove,$1,$2)
-override list[str].remove.prev  = $(call list.remove.prev,$1,$2)
-override list[str].remove.next  = $(call list.remove.next,$1,$2)
-override list[str].remove.first = $(call list.remove.first,$1)
-override list[str].remove.last  = $(call list.remove.last,$1)
-
-# list.get ============================ type: [word[type]]
-override list.get.N             = $(if $2,$(word $2,$1))
-
-override list.get               = $(call list.get.N,$1,$(call list.idx,$1,$2))
-override list.get.prev          = $(call list.get.N,$1,$(call list.idx.prev,$1,$2))
-override list.get.next          = $(call list.get.N,$1,$(call list.idx.next,$1,$2))
-override list.get.first         = $(firstword $1)
-override list.get.last          = $(lastword $1)
-
-override list[str].get          = $(call word[str].to.str,$(call list.get,$1,$2))
-override list[str].get.prev     = $(call word[str].to.str,$(call list.get.prev,$1,$2))
-override list[str].get.next     = $(call word[str].to.str,$(call list.get.next,$1,$2))
-override list[str].get.first    = $(call word[str].to.str,$(call list.get.first,$1))
-override list[str].get.last     = $(call word[str].to.str,$(call list.get.last,$1))
-
-# list.set ============================ type: [list[type]]
-override list.set.N             = $(strip $(if $3,$(wordlist 1,$(call list.idx.dec,$1,$3),$1) $2 $(wordlist $(call list.idx.inc,$1,$3),$(words $1),$1),$1))
-
-override list.set               = $(call list.set.N,$1,$2,$(call list.idx,$1,$3))
-override list.set.prev          = $(call list.set.N,$1,$2,$(call list.idx.prev,$1,$3))
-override list.set.next          = $(call list.set.N,$1,$2,$(call list.idx.next,$1,$3))
-override list.set.first         = $(call list.set.N,$1,$2,$(call list.idx.first,$1))
-override list.set.last          = $(call list.set.N,$1,$2,$(call list.idx.last,$1))
-
-override list[str].set          = $(call list.set,$1,$(call str.to.word[str],$2),$3)
-override list[str].set.prev     = $(call list.set.prev,$1,$(call str.to.word[str],$2),$3)
-override list[str].set.next     = $(call list.set.next,$1,$(call str.to.word[str],$2),$3)
-override list[str].set.first    = $(call list.set.first,$1,$(call str.to.word[str],$2))
-override list[str].set.last     = $(call list.set.last,$1,$(call str.to.word[str],$2))
+override str.split = $(strip $(subst $(call word.pack,$1,$3),$(if $(and $1,$4),$$e$s$$e,$s),$(call word.pack,$1,$2)))
 
 
-#===============================================================================
-
-
-
-
-
-
-
-#===============================================================================
-# MULTILINE STRINGS
-#===============================================================================
-# Multiline strings can be created using the 'define' directive or by inserting
-# a linefeed character $n into the string definition.
-# Otherwise, string definitions may span multiple lines (each line must end with
-# a '\'), but in this case linefeeds are removed and leading whitespace is
-# replaced with a single $s.
-#
-# Types:
-#   str       A string containing any characters.
-#   line      A single line; may contain whitespace, but no linefeeds.
-#   word      A single word; no whitespace.
-#   [...]     Square brackets [] specify a value which is either empty or nonempty.
-#   {...}     Curly brackets {} specify a value which is always nonempty.
 #-------------------------------------------------------------------------------
+# list.merge
+#
+#	[str] <-- $(call list.merge,[type:T],[list[T]],[str:sep],[bool:keep_empty])
+#
+#	Converts a list to a string.
+#	1. Removes [empty] words from [list], unless [keep_empty] is {true}.
+#	2. Replaces each space ' ' in [str] with [sep].
+#	   If [T] is provided, [sep] is packed to type {word[T]} before substitution.
+#	3. Unpacks result to [str]
+#
+#-------------------------------------------------------------------------------
+override list.merge = $(call word.unpack,$1,$(subst $s,$(call word.pack,$1,$3),$(strip $(if $1,$(subst $$e,$e,$2),$2))))
 
-# [str]  <--  $(call str.foreach.line,[str:multiline],[func],[str:arg2],[str:arg3],...)
-override str.foreach.line = $(if $2,$(call word[line].to.line,$(subst $s,$n,$(foreach line,$(call line.to.word[line],$1),$(call line.to.word[line],$(call $2,$(call word[line].to.line,$(line)),$3,$4,$5,$6,$7,$8,$9))))),$1)
 
-# str = $(call str.indent.byline,{indentation},{multiline_value})
-# Calls $(strip) on each line to remove leading/trailing whitespace,
-# then prefixes each (nonempty) line with {indentation}.
-# WARNING:
-#   The $(strip) operation removes consecutive whitespace from
-#   the middle of the string! Escape important whitespace with:
-#     $$s $$t $$n
-override str.indent.byline.lf := $n
-override str.indent.byline = $1$(subst $$(str.indent.byline.lf),,$(subst $$(str.indent.byline.lf)$s,$n$1,$(strip $(subst $n$s,$$(str.indent.byline.lf)$s,$2))))
-#===============================================================================
+#-------------------------------------------------------------------------------
+# list.length
+#
+#	{uint:len} <-- $(call list.length,[list[T]])
+#
+#	Returns the number of [T] values in a list.
+#	Counts both empty and nonempty [T] values.
+#	To exclude packed [empty] values, use list.count.nonempty.
+#-------------------------------------------------------------------------------
+override list.length = $(words $1)
+
+
+#-------------------------------------------------------------------------------
+# list.trim
+#
+#	[list[T]] <-- $(call list.trim,[type:T],[list[T]])
+#
+#	Normalizes whitespace and removes [empty] values from a list.
+#	 - For normal lists ([T]==[empty]), this is equivalent to $(strip [list]).
+#	 - For packed lists ([T]!=[empty]), removes each {word} containing a packed [empty] value.
+#-------------------------------------------------------------------------------
+override list.trim = $(strip $(if $1,$(subst $$e,$e,$2),$2))
+
+
+#-------------------------------------------------------------------------------
+# list.is
+#
+#	[bool] <-- $(call list.is.empty,[list[T]])           $(words [list[T]]) == 0
+#	[bool] <-- $(call list.is.nonempty,[list[T]])        $(words [list[T]]) != 0
+#
+#	Returns {true} (nonempty) if the condition is true;
+#	Returns [false] (empty) if false.
+#-------------------------------------------------------------------------------
+override list.is.empty    = $(if $(firstword $1),,$1)
+override list.is.nonempty = $(if $(firstword $1),$1)
+
+
+#-------------------------------------------------------------------------------
+# list.count
+#
+#	{uint} <-- $(call list.count,[type:T],[list[T]],[T:val])
+#	{uint} <-- $(call list.count.empty,[type:T],[list[T]])
+#	{uint} <-- $(call list.count.nonempty,[type:T],[list[T]])
+#
+#	Returns the number of values in the list equal to [val].
+#-------------------------------------------------------------------------------
+override list.count          = $(if $(firstword $2),,$2)
+override list.count.empty    = $(if $1,$(words $(filter $$e,$2)),0)
+override list.count.nonempty = $(if $1,$(words $(filter-out $$e,$2)),$(words $2))
+
+
+#-------------------------------------------------------------------------------
+# list.join
+#
+#	[list[list[T]]] <-- $(call list.join,[list[T]:1],[list[T]:2],[list[T]:3],[list[T]:4])
+#
+#	Combines N lists into 1 list[list].
+#	1. Iterates over N [list[T]] in parallel.
+#	2. For each set of N [word[T]], merges them into a [list[T]],
+#	     and packs that list into a single-word {word[list[T]]}.
+#        Shorter lists are padded with '$e'.
+#	Returns the resulting list of word-packed lists: [list[list[T]]],
+#	or [empty] if all lists omitted.
+#
+#-------------------------------------------------------------------------------
+override list.join = $(strip $(if $(firstword $1$2$3$4),$(call word.pack,list,$(or $(firstword $1),$$e)$s$(or $(firstword $2),$$e)$s$(or $(firstword $3),$$e)$s$(or $(firstword $4),$$e)$s)$s$(call list.join,$(wordlist 2,$(words $1),$1),$(wordlist 2,$(words $2),$2),$(wordlist 2,$(words $3),$3),$(wordlist 2,$(words $4),$4))))
+
+
+#-----------------------------------------------------------
+# list.map
+#
+#	[list[T]] <-- $(call list.map,[func[T]([T:1],[T:2],[T:3],[T:4])],
+#	                              [type:T],[list[T]:1],[list[T]:2],[list[T]:3],[list[T]:4])
+#
+#	Maps N lists to 1 list.
+#	1. Iterates over N [list[T]]s in parallel.
+#	2  For each set of N [word[T]], calls [func] with each unpacked [T] value,
+#	     then re-packs the result into a single-word {word[T]}.
+#	Returns the list of words produced by [func]: [list[T]]
+#
+#-------------------------------------------------------------------------------
+override list.map         = $(call list.map.recurse,$1,$e,$2,$3,$4,$5)
+override list.map.recurse = $(if $(firstword $4$5$6$7),$(call list.map.recurse,$1,$(if $2,$2$s)$(call word.pack,$3,$(call $1,$(call word.unpack,$3,$(firstword $4)),$(call word.unpack,$3,$(firstword $5)),$(call word.unpack,$3,$(firstword $6)),$(call word.unpack,$3,$(firstword $7)))),$3,$(wordlist 2,$(words $4),$4),$(wordlist 2,$(words $5),$5),$(wordlist 2,$(words $6),$6),$(wordlist 2,$(words $7),$7)),$2)
+
+
+#-------------------------------------------------------------------------------
+# list.reduce
+#
+#	[str] <-- $(call list.reduce,[func[str]([str:acc],[T:1],[T:2],[T:3],[T:4])],
+#	                             [str:acc],
+#	                             [type:T],[list[T]:1],[list[T]:2],[list[T]:3],[list[T]:4])
+#
+#	Maps N lists to 1 string.
+#	1. Iterates over N [list[T]]s in parallel.
+#	2  For each set of N [word[T]], calls a [func] with each unpacked [T] value,
+#	     and the result of the previous iteration, [acc].
+#	   The result of [func] is not re-packed; it is passed to the next iteration unmodified.
+#	Returns the final value of [acc] produced by [func].
+#
+#-------------------------------------------------------------------------------
+override list.reduce = $(if $(firstword $4$5$6$7),$(call list.reduce,$1,$(call $1,$2,$(call word.unpack,$3,$(firstword $4)),$(call word.unpack,$3,$(firstword $5)),$(call word.unpack,$3,$(firstword $6)),$(call word.unpack,$3,$(firstword $7))),$3,$(wordlist 2,$(words $4),$4),$(wordlist 2,$(words $5),$5),$(wordlist 2,$(words $6),$6),$(wordlist 2,$(words $7),$7)),$2)
+
+
+#-------------------------------------------------------------------------------
+# list.reverse
+#
+#	[list[T]] <-- $(call list.reverse,[list[T]])
+#
+#	Reverses the order of words in a list.
+#
+#-------------------------------------------------------------------------------
+override list.reverse = $(if $(word 2,$1),$(call list.reverse,$(wordlist 2,$(words $1),$1))$s$(firstword $1),$1)
+
+
+#-------------------------------------------------------------------------------
+# list.idx
+#
+#	[idx] <-- $(call list.idx,[list[T]],[int:idx])
+#	[idx] <-- $(call list.idx.prev,[list[T]],[int:idx])
+#	[idx] <-- $(call list.idx.next,[list[T]],[int:idx])
+#	[idx] <-- $(call list.idx.first,[list[T]])
+#	[idx] <-- $(call list.idx.last,[list[T]])
+#
+#	Returns [idx] if in the range [1,$(words [list])],
+#	or [empty] if out-of-range, or if [list] is [empty].
+#
+#-------------------------------------------------------------------------------
+override list.idx.dec   = $(if $2,$(words $(wordlist 2,$2,$1 +1)))# [uint] <-- clamp([uint:2]-1,0,len(list:1))
+override list.idx.inc   = $(if $2,$(words $(wordlist 1,$2,$1) +1))# [uint] <-- clamp([uint:2]+1,1,len(list:1)+1)
+override list.idx       = $(and $(filter-out 0,$2),$(word $2,$1),$2)
+override list.idx.prev  = $(filter-out 0 $(words $1 +1),$(call list.idx.dec,$1 +1,$2))
+override list.idx.next  = $(filter-out   $(words $1 +1),$(call list.idx.inc,$1   ,$2))
+override list.idx.first = $(if $(firstword $1),1)
+override list.idx.last  = $(filter-out 0,$(words $1))
+
+
+#-------------------------------------------------------------------------------
+# list.insert, list.prepend, list.append
+#
+#	[list[T]] <-- $(call list.insert,[type:T],[list[T]],[T:val],[idx])
+#	[list[T]] <-- $(call list.prepend,[type:T],[list[T]],[T:val])
+#	[list[T]] <-- $(call list.append,[type:T],[list[T]],[T:val])
+#
+#	Inserts the value of type [T] at [idx] in the list.
+#	Word-packs [val] before storage, if necessary.
+#
+#-------------------------------------------------------------------------------
+override list.insert.N = $(strip $(if $4,$(wordlist 1,$(call list.idx.dec,$2,$4),$2)$s$(call word.pack,$1,$3)$s$(wordlist $4,$(words $2),$2),$2))
+override list.insert   = $(call list.insert.N,$1,$2,$3,$(call list.idx,$2$s$$,$4))
+override list.prepend  = $(strip $(call word.pack,$1,$3) $2)
+override list.append   = $(strip $2 $(call word.pack,$1,$3))
+
+
+#-------------------------------------------------------------------------------
+# list.remove
+#
+#	[list[T]] <-- $(call list.remove,[list[T]],[idx])
+#	[list[T]] <-- $(call list.remove.first,[list[T]])
+#	[list[T]] <-- $(call list.remove.last,[list[T]])
+#
+#	Removes the value at [idx] from the list.
+#
+#-------------------------------------------------------------------------------
+override list.remove.N     = $(strip $(if $2,$(wordlist 1,$(call list.idx.dec,$1,$2),$1)$s$(wordlist $(call list.idx.inc,$1,$2),$(words $1),$1),$1))
+override list.remove       = $(call list.remove.N,$1,$(call list.idx,$1,$2))
+override list.remove.first = $(call list.remove.N,$1,$(call list.idx.first,$1))
+override list.remove.last  = $(call list.remove.N,$1,$(call list.idx.last,$1))
+
+
+#-------------------------------------------------------------------------------
+# list.get
+#
+#	[T] <-- $(call list.get,[type:T],[list[T]],[idx])
+#	[T] <-- $(call list.get.first,[type:T],list[T]])
+#	[T] <-- $(call list.get.last,[type:T],list[T]])
+#
+#	Returns the original (unpacked) value of type [T] from [idx].
+#
+#-------------------------------------------------------------------------------
+override list.get.N     = $(call word.unpack,$1,$(if $3,$(word $3,$2)))
+override list.get       = $(call list.get.N,$1,$2,$(call list.idx,$2,$3))
+override list.get.first = $(firstword $2)
+override list.get.last  = $(lastword $2)
+
+
+#-------------------------------------------------------------------------------
+# list.set
+#
+#	[list[T]] <-- $(call list.set,[type:T],[list[T]],[T:val],[idx])
+#	[list[T]] <-- $(call list.set.first,[type:T],[list[T]],[T:val])
+#	[list[T]] <-- $(call list.set.last,[type:T],[list[T]],[T:val])
+#
+#	Replaces value of type [T] at [idx] with [val]
+#	Word-packs [val] before storage, if necessary.
+#
+#-------------------------------------------------------------------------------
+override list.set.N     = $(strip $(if $4,$(wordlist 1,$(call list.idx.dec,$2,$4),$2)$s$(call word.pack,$1,$3)$s$(wordlist $(call list.idx.inc,$2,$4),$(words $2),$2),$2))
+override list.set       = $(call list.set.N,$1,$2,$3,$(call list.idx,$2,$4))
+override list.set.first = $(call list.set.N,$1,$2,$3,$(call list.idx.first,$2))
+override list.set.last  = $(call list.set.N,$1,$2,$3,$(call list.idx.last,$2))
 
 
 
@@ -676,69 +734,99 @@ override str.indent.byline = $1$(subst $$(str.indent.byline.lf),,$(subst $$(str.
 #   line := Some Text
 #   $(info [$(pad)])                                    -->  [..............................]
 #   $(info [$(str)])                                    -->  [Some Text]
-#   $(info [$(call line.justify.right,$(line),$(pad))]) -->  [Some Text                     ]
-#   $(info [$(call line.justify.left,$(line),$(pad))])  -->  [                     Some Text]
+#   $(info [$(call line.justify.r,$(line),$(pad))]) -->  [Some Text                     ]
+#   $(info [$(call line.justify.l,$(line),$(pad))])  -->  [                     Some Text]
 #
 #-------------------------------------------------------------------------------
 #
 # Pad Differences:
-#  [pad]  <-- $(call pad.subtract.pad,[pad],[pad])          Returns a [pad] equal to the difference in lengths of the two arguments.
-#  [pad]  <-- $(call pad.subtract.str,[pad],[str])            Uses length of longest line in [str]; not length of [str].
-#  [pad]  <-- $(call pad.subtract.line,[pad],[line])
-#  [pad]  <-- $(call pad.subtract.word,[pad],[word])
-#  [pad]  <-- $(call pad.subtract.int,[pad],[int])
+#  [pad]  <-- $(call pad.diff,[pad],[pad])          Returns a [pad] equal to the difference in lengths of the two arguments.
 #
 # Right/Left Justification:
-#  [str]  <-- $(call str.justify.right,[str],[pad],[char])      Right-pads each line of [str] with [char]s up to the length of [pad].
-#  [str]  <-- $(call str.justify.left,[str],[pad],[char])       Left-pads each line of [str]. Similar to a right-justify.
+#  [str]  <-- $(call str.justify.r,[str],[pad],[char])      Right-pads each line of [str] with [char]s up to the length of [pad].
+#  [str]  <-- $(call str.justify.l,[str],[pad],[char])       Left-pads each line of [str]. Similar to a right-justify.
 #                                                             [pad] defaults to a pad the length of the longest line in [str].
 #                                                             [char] defaults to $s.
 #
-#  [line] <-- $(call line.justify.right,[line],[pad],[char])    Same as str.pad, but optimized for various other types.
-#  [line] <-- $(call line.justify.left,[line],[pad],[char])
-#  [line] <-- $(call word.justify.right,[word],[pad],[char])
-#  [line] <-- $(call word.justify.left,[word],[pad],[char])
-#  [line] <-- $(call int.justify.right,[int],[pad],[char])
-#  [line] <-- $(call int.justify.left,[int],[pad],[char])
+#  [line] <-- $(call line.justify.r,[line],[pad],[char])    Same as str.pad, but optimized for various other types.
+#  [line] <-- $(call line.justify.l,[line],[pad],[char])
+#  [line] <-- $(call word.justify.r,[word],[pad],[char])
+#  [line] <-- $(call word.justify.l,[word],[pad],[char])
+#  [line] <-- $(call int.justify.r,[int],[pad],[char])
+#  [line] <-- $(call int.justify.l,[int],[pad],[char])
 #-------------------------------------------------------------------------------
 
 # String Padding ====================== type: [pad]
-pad.line.indent    = $(call line.to.pad,$(line.indent))
-pad.tab            = $(pad.line.indent)
-pad.info.prefix    = $(call line.to.pad,$(info.prefix))
-pad.warning.prefix = $(call line.to.pad,$(warning.prefix))
-pad.error.prefix   = $(call line.to.pad,$(error.prefix))
+override pad.line.indent    = $(call line.to.pad,$(line.indent))
+override pad.tab            = $(pad.line.indent)
+override pad.info.prefix    = $(call line.to.pad,$(info.prefix))
+override pad.warning.prefix = $(call line.to.pad,$(warning.prefix))
+override pad.error.prefix   = $(call line.to.pad,$(error.prefix))
 
 
 # Pad Differences ===================== type: [pad]
-override pad.subtract.pad   = $(filter-out $1,$(1:$2%=%))
-override pad.subtract.str   = $(call pad.subtract.pad,$1,$(call str.to.pad,$2))
-override pad.subtract.line  = $(call pad.subtract.pad,$1,$(call line.to.pad,$2))
-override pad.subtract.word  = $(call pad.subtract.pad,$1,$(call word.to.pad,$2))
-override pad.subtract.int   = $(call pad.subtract.pad,$1,$(call int.to.pad,$2))
-override pad.subtract.uint  = $(call pad.subtract.pad,$1,$(call uint.to.pad,$2))
-override pad.subtract.idx   = $(call pad.subtract.pad,$1,$(call idx.to.pad,$2))
+override pad.diff           = $(filter-out $1,$(1:$2%=%))
 
 # Left/Right Justification ============ type: [str]
-override str.justify.right  = $(call str.foreach.line,$1,line.justify.right,$(or $2,$(call str.to.pad,$1)),$3)
-override str.justify.left   = $(call str.foreach.line,$1,line.justify.left,$(or $2,$(call str.to.pad,$1)),$3)
+override T.justify.r    = $(call pad.to.str,$(call pad.diff,$3,$(call $1.to.pad,$2)),$4)$2
+override T.justify.l    = $2$(call pad.to.str,$(call pad.diff,$3,$(call $1.to.pad,$2)),$4)
 
-override line.justify.right = $(subst $t,$(pad.tab),$1)$(subst .,$(or $3,$s),$(call pad.subtract.str,$2,$1))
-override line.justify.left  = $(subst .,$(or $3,$s),$(call pad.subtract.str,$2,$1))$(subst $t,$(pad.tab),$1)
-
-override word.justify.right = $1$(subst .,$(or $3,$s),$(call pad.subtract.word,$2,$1))
-override word.justify.left  = $(subst .,$(or $3,$s),$(call pad.subtract.word,$2,$1))$1
-
-override int.justify.right  = $1$(subst .,$(or $3,$s),$(call pad.subtract.int,$2,$1))
-override int.justify.left   = $(subst .,$(or $3,$s),$(call pad.subtract.int,$2,$1))$1
-
-override uint.justify.right = $1$(subst .,$(or $3,$s),$(call pad.subtract.uint,$2,$1))
-override uint.justify.left  = $(subst .,$(or $3,$s),$(call pad.subtract.uint,$2,$1))$1
-
-override idx.justify.right  = $1$(subst .,$(or $3,$s),$(call pad.subtract.idx,$2,$1))
-override idx.justify.left   = $(subst .,$(or $3,$s),$(call pad.subtract.idx,$2,$1))$1
+override str.justify.r  = $(call pad.to.str,$(call pad.diff,$(or $2,$(call str.to.list[pad],$1)),$(call line.to.pad,$(subst $t,$(pad.tab),$1))),$3)
+#override str.justify.r  = $(call str.map.byline,$1,line.justify.r,$(or $2,$(call str.to.list[pad],$1)),$3)
+#override str.justify.l  = $(call str.map.byline,$1,line.justify.l,$(or $2,$(call str.to.list[pad],$1)),$3)
+override line.justify.r = $(call T.justify.r,line,$1,$2,$3)
+override line.justify.l = $(call T.justify.l,line,$1,$2,$3)
+override word.justify.r = $(call T.justify.r,word,$(strip $1),$2,$3)
+override word.justify.l = $(call T.justify.l,word,$(strip $1),$2,$3)
+override int.justify.r  = $(call T.justify.r,int,$(strip $1),$2,$3)
+override int.justify.l  = $(call T.justify.l,int,$(strip $1),$2,$3)
+override uint.justify.r = $(call T.justify.r,uint,$(strip $1),$2,$3)
+override uint.justify.l = $(call T.justify.l,uint,$(strip $1),$2,$3)
+override idx.justify.r  = $(call T.justify.r,idx,$(strip $1),$2,$3)
+override idx.justify.l  = $(call T.justify.l,idx,$(strip $1),$2,$3)
 #===============================================================================
 
+type := str
+list := $$e item$$s2 item$$s3
+val  := {NEW VAL}
+idx  := 1
+res  := $(call list.set,$(type),$(list),$(val),$(idx))
+$(info )
+$(info type = [$(type)])
+$(info list = [$(list)])
+$(info $s  1 = [$(call word.unpack,$(type),$(word 1,$(list)))])
+$(info $s  2 = [$(call word.unpack,$(type),$(word 2,$(list)))])
+$(info $s  3 = [$(call word.unpack,$(type),$(word 3,$(list)))])
+$(info $s  4 = [$(call word.unpack,$(type),$(word 4,$(list)))])
+$(info val  = [$(val)])
+$(info idx  = [$(idx)])
+$(info res  = [$(res)])
+$(info $s  1 = [$(call word.unpack,$(type),$(word 1,$(res)))])
+$(info $s  2 = [$(call word.unpack,$(type),$(word 2,$(res)))])
+$(info $s  3 = [$(call word.unpack,$(type),$(word 3,$(res)))])
+$(info $s  4 = [$(call word.unpack,$(type),$(word 4,$(res)))])
+$(info )
+$(error Exiting...)
+
+
+
+
+
+
+
+
+
+
+
+str1 := [1]$n[2]$n[3]$n[4]$n[5]$n[6]$n[7]$n[8]$n[9]
+str2 := $nthis is$n a multi-line$n$nstring$n
+func  = $(info $s$s$s$s$0: 1=[$1], 2=[$2], 3=[$3], 4=[$4])$1="$2"
+str3 := $(call str.map.lines,func,$(str1),$(str2))
+
+$(info str1  = [$(str1)])
+$(info str2  = [$(str2)])
+$(info str3  = [$(str3)])
+$(error Exiting...)
 
 
 #===============================================================================
@@ -756,7 +844,7 @@ override idx.justify.left   = $(subst .,$(or $3,$s),$(call pad.subtract.idx,$2,$
 override print.vars = $(if $2,$(if $3,$(foreach var,$1,$(call print.var,$(var),$2,$3,[,])),$(call print.vars,$1,$2,$(call print.vars.col,$1))),$(call print.vars,$1,$(line.indent),$3))
 
 # $(call print.var,{var},{indent},{col},{prefix},{suffix})
-override print.var = $(info $2$(call str.justify.left,$1,$3)=$4$(subst $n,$5$n$2$(subst .,$s,$3.)$4,$($1))$5)
+override print.var = $(info $2$(call str.justify.l,$1,$3)=$4$(subst $n,$5$n$2$(subst .,$s,$3.)$4,$($1))$5)
 
 # $(call print.vars.col,{vars})
 override print.vars.col = $(lastword $(sort $(call str.subst.list_to_str,$(char.type.var),.,$1)))
@@ -773,7 +861,7 @@ override print.trace = $(if $(findstring $(print.trace.enable),true),$(info $n==
 override str.lines.wrap = $2$(subst $n,$3$n$2,$1)$3
 
 # [str]   <-- $(call str.info.var,[var],[col])
-override str.info.var = $(if $(strip $1),$(call str.justify.left,$1,$2)=$4$(subst $n,$5$n$(subst .,$s,$2.)$4,$($1))$5)
+override str.info.var = $(if $(strip $1),$(call str.justify.l,$1,$2)=$4$(subst $n,$5$n$(subst .,$s,$2.)$4,$($1))$5)
 
 
 
@@ -841,21 +929,6 @@ override assert.4.is.word          = $(if $(filter-out 1,$(words $4)),$(error $(
 
 
 
-#===============================================================================
-# FUNCTION ARGUMENTS
-#===============================================================================
-# Concatenate Args:
-#  Concatentates each nonempty [str] argument with the given separator [sep].
-#  Each [empty] argument is skipped; no separator is included for them.
-#
-#  [str] <-- $(call args.concat,[str:sep],[str:1],[str:2],...,[str:8])
-#-------------------------------------------------------------------------------
-
-# args.concat ========================= type: [str]
-override args.concat = $(if $(or $3,$4,$5,$6,$7,$8,$9),$(call args.concat.pair,$1,$2,$(call args.concat,$1,$3,$4,$5,$6,$7,$8,$9)),$2)
-override args.concat.pair = $(if $(and $2,$3),$2$1$3,$(or $2,$3))
-
-#===============================================================================
 
 
 

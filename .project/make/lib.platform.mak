@@ -688,7 +688,7 @@ shell.types.python.ext.script.default := .py
 # #-----------------------------------------------------------
 
 # sep.path ?= /
-# mkpath = $(subst /,$(sep.path),$(subst $(char.bsol),$(sep.path),$(call list.concat,$(sep.path),$1,$2,$3,$4,$5,$6,$7,$8)))
+# mkpath = $(subst /,$(sep.path),$(subst $(char.bsol),$(sep.path),$(call list.merge,$(sep.path),$1,$2,$3,$4,$5,$6,$7,$8)))
 
 
 
@@ -736,7 +736,7 @@ ifeq "$(SHELL_TYPE)" "CMD"
     shell.copydir = xcopy /Y /I /E "$(call mkpath,$1)" "$(call mkpath,$2)"
     shell.silent = ( $1 ) 1>nul
     shell.subshell = $(SHELL) $(.SHELLFLAGS) "$1"
-    shell.and = ( $(call args.concat,$(char.rparen) & $(char.lparen),$1,$2,$3,$4,$5,$6,$7,$8) )
+    shell.and = ( $(call str.concat,$(char.rparen) & $(char.lparen),$1,$2,$3,$4,$5,$6,$7,$8) )
     shell.test = ( $1 $(if $2,$(char.rparen) && $(char.lparen) $2) $(if $3,$(char.rparen) || $(char.lparen) $3) )
 endif
 ifeq "$(SHELL_TYPE)" "POWERSHELL"
@@ -774,7 +774,7 @@ ifeq "$(SHELL_TYPE)" "POSIX"
     shell.copydir = cp -rf "$(call mkpath,$1)/." "$(call mkpath,$2)"
     shell.silent = ( $1 ) > /dev/null
     shell.subshell = $(SHELL) $(.SHELLFLAGS) "$1"
-    shell.and = ( $(call args.concat,$(char.rparen) & $(char.lparen),$1,$2,$3,$4,$5,$6,$7,$8) )
+    shell.and = ( $(call str.concat,$(char.rparen) & $(char.lparen),$1,$2,$3,$4,$5,$6,$7,$8) )
     shell.test = ( $1 $(if $2,$(char.rparen) && $(char.lparen) $2) $(if $3,$(char.rparen) || $(char.lparen) $3) )
 endif
 
