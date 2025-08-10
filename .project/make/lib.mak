@@ -124,6 +124,7 @@ override char.type.word     := $(char.type.lower) $(char.type.upper) $(char.type
 override char.type.var      := $(char.type.lower) $(char.type.upper) $(char.type.digit) ` ~ ! @    $$ % ^ & * ( ) - _   + { } [ ] \ | ;   ' " , < . > / ?
 override char.type.alphanum := $(char.type.lower) $(char.type.upper) $(char.type.digit)
 override char.type.letter   := $(char.type.lower) $(char.type.upper)
+override char.type.hex      := 0 1 2 3 4 5 6 7 8 9 a b c d e f
 override char.type.int      := 0 1 2 3 4 5 6 7 8 9 + -
 override char.type.uint     := 0 1 2 3 4 5 6 7 8 9 +
 override char.type.idx      :=   1 2 3 4 5 6 7 8 9 +
@@ -143,43 +144,59 @@ override char.vars.ws := char.space char.tab char.linefeed
 #===============================================================================
 # TYPE CONVERSIONS
 #===============================================================================
+
+
+#-------------------------------------------------------------------------------
+# T.to.word{T}
+# word{T}.to.T
+#
 #	{word[T]} <-- $(call {type:T}.to.word[{type:T}],[T:val])
 #	[T]       <-- $(call word[{type:T}].to.{type:T},[word[T]:packed_val])
+#
+#-------------------------------------------------------------------------------
+override str.to.word[str]     = $(if $1,$(subst $n,$$n,$(subst $t,$$t,$(subst $s,$$s,$(subst $v,$$v,$1)))),$$e)
+override word[str].to.str     = $(subst $$v,$v,$(subst $$s,$s,$(subst $$t,$t,$(subst $$n,$n,$(subst $$e,$e,$1)))))
 
-override str.to.word{str}   = $(if $1,$(subst $n,$$n,$(subst $t,$$t,$(subst $s,$$s,$(subst $v,$$v,$1)))),$$e)
-override word{str}.to.str   = $(subst $$v,$v,$(subst $$s,$s,$(subst $$t,$t,$(subst $$n,$n,$(subst $$e,$e,$(strip $1))))))
+override line.to.word[line]   = $(if $1,$(subst $t,$$t,$(subst $s,$$s,$(subst $v,$$v,$1))),$$e)
+override word[line].to.line   = $(subst $$v,$v,$(subst $$s,$s,$(subst $$t,$t,$(subst $$e,$e,$1))))
 
-override list.to.word{list} = $(if $(strip $1),$(subst $s,$$s,$(subst $v,$$v,$(strip $1))),$$e)
-override word{list}.to.list = $(subst $$v,$v,$(subst $$s,$s,$(subst $$e,$e,$(strip $1))))
+override list.to.word[list]   = $(if $1,$(subst $s,$$s,$(subst $v,$$v,$(strip $1))),$$e)
+override word[list].to.list   = $(subst $$v,$v,$(subst $$s,$s,$(subst $$e,$e,$1)))
 
-override line.to.word{line} = $(if $1,$(subst $s,$$s,$(subst $v,$$v,$1)),$$e)
-override word{line}.to.line = $(subst $$v,$v,$(subst $$s,$s,$(subst $$e,$e,$(strip $1))))
+override word.to.word[word]   = $(if $1,$(subst $v,$$v,$1),$$e)
+override word[word].to.word   = $(subst $$v,$v,$(subst $$e,$e,$1))
 
-override word.to.word{word} = $(if $1,$(subst $v,$$v,$(strip $1)),$$e)
-override word{word}.to.word = $(subst $$v,$v,$(subst $$e,$e,$(strip $1)))
+override char.to.word[char]   = $(word.to.word[word])
+override word[char].to.char   = $(word[word].to.word)
 
-override word{int}.to.int   = $(subst $$e,$e,$(strip $1))
-override int.to.word{int}   = $(if $1,$(strip $1),$$e)
+override int.to.word[int]     = $(if $1,$1,$$e)
+override word[int].to.int     = $(subst $$e,$e,$1)
 
-override uint.to.word{uint} = $(if $1,$(strip $1),$$e)
-override word{uint}.to.uint = $(subst $$e,$e,$(strip $1))
+override uint.to.word[uint]   = $(int.to.word[int])
+override word[uint].to.uint   = $(word[int].to.int)
 
-override idx.to.word{idx}   = $(if $1,$(strip $1),$$e)
-override word{idx}.to.idx   = $(subst $$e,$e,$(strip $1))
+override idx.to.word[idx]     = $(int.to.word[int])
+override word[idx].to.idx     = $(word[int].to.int)
 
-override pad.to.word{pad}   = $(if $1,$(strip $1),$$e)
-override word{pad}.to.pad   = $(subst $$e,$e,$(strip $1))
+override hex.to.word[hex]     = $(int.to.word[int])
+override word[hex].to.hex     = $(word[int].to.int)
+
+override digit.to.word[digit] = $(int.to.word[int])
+override word[digit].to.digit = $(word[int].to.int)
+
+override pad.to.word[pad]     = $(if $1,$1,$$e)
+override word[pad].to.pad     = $(subst $$e,$e,$1)
 
 
 #-------------------------------------------------------------------------------
 # word.pack
 #
-#	{word[T]} <-- $(call word.pack,[type:T],[T:val])
+#	{word[T]] <-- $(call word.pack,[type:T],[T:val])
 #
-#	Encodes [val] to a single nonempty {word}, or to literal '$e' if [val] is [empty].
+#	Encodes [val] to a single nonempty {word], or to literal '$e' if [val] is [empty].
 #	Returns [val] unmodified if [type:T] is [empty]
 #-------------------------------------------------------------------------------
-override word.pack = $(if $1,$(call $1.to.word{$1},$2),$2)
+override word.pack = $(if $1,$(call $1.to.word[$1],$2),$2)
 
 
 #-------------------------------------------------------------------------------
@@ -190,7 +207,7 @@ override word.pack = $(if $1,$(call $1.to.word{$1},$2),$2)
 #	Decodes a [word[T]:packed_val], returning the original value of [val].
 #	Returns [val] unmodified if [type:T] is [empty], or if [packed_val] is omitted.
 #-------------------------------------------------------------------------------
-override word.unpack = $(if $1,$(call word{$1}.to.$1,$2),$2)
+override word.unpack = $(if $1,$(call word[$1].to.$1,$2),$2)
 
 
 #-------------------------------------------------------------------------------
@@ -200,6 +217,7 @@ override word.unpack = $(if $1,$(call word{$1}.to.$1,$2),$2)
 #	[pad] <-- $(call {T}.to.pad,[T:val])                  For all other singular types: Returns a [pad] equal to the length of [val].
 #	[pad] <-- $(call list.to.list[pad],[list:vals])             For normal lists:             Returns a [pad] equal to the length of the longest [word] in [list].
 #	[pad] <-- $(call list[{T}].to.pad,[list[T]:vals])     For packed-word lists:        Returns a [pad] equal to the length of the longest {T} value in [list[T]].
+#
 #-------------------------------------------------------------------------------
 override str.to.pad         = $(lastword $(sort $(call str.to.list[pad],$1)))
 override list.to.pad        = $(lastword $(sort $(call list.to.list[pad],$1)))
@@ -243,7 +261,8 @@ override pad.to.str = $(subst .,$(or $2,$s),$(strip $1))
 
 
 #-------------------------------------------------------------------------------
-# str.equ, str.neq
+# str.equ
+# str.neq
 #
 #	[str] <-- $(call str.equ,[str:1],[str:2])
 #	[str] <-- $(call str.neq,[str:1],[str:2])
@@ -269,6 +288,21 @@ override str.concat.pair = $(if $(and $2,$3),$2$1$3,$(or $2,$3))
 override str.concat = $(if $(or $3,$4,$5,$6,$7,$8,$9),$(call str.concat.pair,$1,$2,$(call str.concat,$1,$3,$4,$5,$6,$7,$8,$9)),$2)
 
 
+
+#-------------------------------------------------------------------------------
+# str.to.lower
+# str.to.upper
+#
+#	[lower]   <-- $(call str.to.lower,[str])
+#	[upper]   <-- $(call str.to.upper,[str])
+#
+#	Returns [lower]-case or [upper]-case of [str].
+#
+#-------------------------------------------------------------------------------
+override str.to.lower = $(call str.subst.list_to_list,$(char.type.upper),$(char.type.lower),$1)
+override str.to.upper = $(call str.subst.list_to_list,$(char.type.lower),$(char.type.upper),$1)
+
+
 #-------------------------------------------------------------------------------
 # str.map
 #
@@ -288,48 +322,57 @@ override str.concat = $(if $(or $3,$4,$5,$6,$7,$8,$9),$(call str.concat.pair,$1,
 #	   Empty tokens are removed unless [merge_keep_empty] is {true}.
 #
 #-------------------------------------------------------------------------------
-override str.map = $(if $1,$(call list[str].to.str,$(call list[str].map,$1,$(if $7,$(call str.to.list$(if $2,[$2]),$7,$3,$4)),$(if $8,$(call str.to.list$(if $2,[$2]),$8,$3,$4)),$(if $9,$(call str.to.list$(if $2,[$2]),$9,$3,$4)),$(if $(10),$(call str.to.list$(if $2,[$2]),$(10),$3,$4))),$5,$6))
+override str.map = $(call list.merge,$2,$(call list.map,$1,$2,$(if $7,$(call str.split,$2,$7,$3,$4)),$(if $8,$(call str.split,$2,$8,$3,$4)),$(if $9,$(call str.split,$2,$9,$3,$4)),$(if $(10),$(call str.split,$2,$(10),$3,$4))),$5,$6)
 
 
 #-------------------------------------------------------------------------------
 # str.map.lines
 #
-#	[str] <-- $(call str.map.lines,[func],[str:1],...,[str:4])
+#	[str] <-- $(call str.map.lines,[func],[str:1],[str:2],[str:3],[str:4])
 #
 #	Iterates over each line of N strings, in parallel.
 #	For each iteration, calls [func], passing one line from each string.
 #
 #-------------------------------------------------------------------------------
-override str.map.lines = $(call str.map,$1,line,$n,$(true),$n,$(true),$2,$3,$4)
+override str.map.lines = $(call str.map,$1,line,$n,$(true),$n,$(true),$2,$3,$4,$5)
 
 
 #-------------------------------------------------------------------------------
-# str.to.lower, str.to.upper
+# str.strip.start
+# str.strip.end
 #
-#	[lower]   <-- $(call str.to.lower,[str])
-#	[upper]   <-- $(call str.to.upper,[str])
+#	[str] <-- $(call str.strip.start,[str])
+#	[str] <-- $(call str.strip.end,[str])
 #
-#	Returns [lower]-case or [upper]-case of [str].
+#	Removes leading or trailing whitespace from [str], leaving
+#	internal whitespace intact.
 #
 #-------------------------------------------------------------------------------
-override str.to.lower = $(call str.subst.list_to_list,$(char.type.upper),$(char.type.lower),$1)
-override str.to.upper = $(call str.subst.list_to_list,$(char.type.lower),$(char.type.upper),$1)
+override str.strip.start = $(if $1,$(call str.strip.start,,,,,,,,,$(subst $n,$s$$n$s,$(subst $t,$s$$t$s,$(subst $s,$s$$s$s,$(subst $v,$$v,$1))))),$(if $(filter $$s $$t $$n,$(firstword $9)),$(call str.strip.start,,,,,,,,,$(wordlist 2,$(words $9),$9)),$(subst $$v,$v,$(subst $$s,$s,$(subst $$t,$t,$(subst $$n,$n,$(subst $s,,$9)))))))
+override str.strip.end   = $(if $1,$(call str.strip.end,,,,,,,,,$(subst $n,$s$$n$s,$(subst $t,$s$$t$s,$(subst $s,$s$$s$s,$(subst $v,$$v,$1))))),$(if $(filter $$s $$t $$n,$(lastword $9)),$(call str.strip.end,,,,,,,,,$(wordlist 2,$(words $9),x $9)),$(subst $$v,$v,$(subst $$s,$s,$(subst $$t,$t,$(subst $$n,$n,$(subst $s,,$9)))))))
 
 
 #-------------------------------------------------------------------------------
-# str.indent
+# str.indent.add
 #
-#	[str] <-- $(call str.indent,[str:prefix],[str:multiline])
+#	[str] <-- $(call str.indent.add,[str:multiline],[str:indent])
 #
-#	For each line, strips leading whitespace, then applies the [prefix]
-#Calls $(strip) on each line to remove leading/trailing whitespace,
-# then prefixes each (nonempty) line with.
-# WARNING:
-#   The $(strip) operation removes consecutive whitespace from
-#   the middle of the string! Escape important whitespace with:
-#     '$$s' '$$t' '$$n'
-override str.indent.lf := $n
-override str.indent = $1$(subst $$(str.indent.lf),,$(subst $$(str.indent.lf)$s,$n$1,$(strip $(subst $n$s,$$(str.indent.lf)$s,$2))))
+#	For each line in [multiline], prefixes with [indent].
+#
+#-------------------------------------------------------------------------------
+override str.indent.add = $2$(subst $n,$n$2,$1)
+
+
+#-------------------------------------------------------------------------------
+# str.indent.set
+#
+#	[str] <-- $(call str.indent.set,[str:multiline],[str:indent])
+#
+#	For each line in [multiline], removes leading whitespace, then prefixes with [indent].
+#
+#-------------------------------------------------------------------------------
+override str.indent.set = $(call str.indent.add,$(call str.map.lines,str.strip.start,$1),$2)
+
 
 
 #===============================================================================
@@ -447,7 +490,6 @@ override str.subst.var_suffix   = $(if $1,$(if $($1),$(subst $($1),$($1)$2,$3),$
 #-------------------------------------------------------------------------------
 override str.subst.list_suffix  = $(call __str.subst.multi_to_single,str.subst.str_suffix,$1,$2,$3)
 override str.subst.vars_suffix  = $(call __str.subst.multi_to_single,str.subst.var_suffix,$1,$2,$3)
-
 
 
 
@@ -594,8 +636,7 @@ override list.join = $(strip $(if $(firstword $1$2$3$4),$(call word.pack,list,$(
 #	Returns the list of words produced by [func]: [list[T]]
 #
 #-------------------------------------------------------------------------------
-override list.map         = $(call list.map.recurse,$1,$e,$2,$3,$4,$5)
-override list.map.recurse = $(if $(firstword $4$5$6$7),$(call list.map.recurse,$1,$(if $2,$2$s)$(call word.pack,$3,$(call $1,$(call word.unpack,$3,$(firstword $4)),$(call word.unpack,$3,$(firstword $5)),$(call word.unpack,$3,$(firstword $6)),$(call word.unpack,$3,$(firstword $7)))),$3,$(wordlist 2,$(words $4),$4),$(wordlist 2,$(words $5),$5),$(wordlist 2,$(words $6),$6),$(wordlist 2,$(words $7),$7)),$2)
+override list.map = $(if $(firstword $3$4$5$6),$(call list.map,$1,$2,$(wordlist 2,$(words $3),$3),$(wordlist 2,$(words $4),$4),$(wordlist 2,$(words $5),$5),$(wordlist 2,$(words $6),$6),,,$(if $9,$9$s)$(call word.pack,$2,$(call $1,$(call word.unpack,$2,$(firstword $3)),$(call word.unpack,$2,$(firstword $4)),$(call word.unpack,$2,$(firstword $5)),$(call word.unpack,$2,$(firstword $6))))),$9)
 
 
 #-------------------------------------------------------------------------------
@@ -650,7 +691,9 @@ override list.idx.last  = $(filter-out 0,$(words $1))
 
 
 #-------------------------------------------------------------------------------
-# list.insert, list.prepend, list.append
+# list.insert
+# list.prepend
+# list.append
 #
 #	[list[T]] <-- $(call list.insert,[type:T],[list[T]],[T:val],[idx])
 #	[list[T]] <-- $(call list.prepend,[type:T],[list[T]],[T:val])
@@ -678,8 +721,8 @@ override list.append   = $(strip $2 $(call word.pack,$1,$3))
 #-------------------------------------------------------------------------------
 override list.remove.N     = $(strip $(if $2,$(wordlist 1,$(call list.idx.dec,$1,$2),$1)$s$(wordlist $(call list.idx.inc,$1,$2),$(words $1),$1),$1))
 override list.remove       = $(call list.remove.N,$1,$(call list.idx,$1,$2))
-override list.remove.first = $(call list.remove.N,$1,$(call list.idx.first,$1))
-override list.remove.last  = $(call list.remove.N,$1,$(call list.idx.last,$1))
+override list.remove.first = $(wordlist 2,$(words $1),$1)
+override list.remove.last  = $(wordlist 2,$(words $1),x $1)
 
 
 #-------------------------------------------------------------------------------
@@ -785,48 +828,6 @@ override uint.justify.l = $(call T.justify.l,uint,$(strip $1),$2,$3)
 override idx.justify.r  = $(call T.justify.r,idx,$(strip $1),$2,$3)
 override idx.justify.l  = $(call T.justify.l,idx,$(strip $1),$2,$3)
 #===============================================================================
-
-type := str
-list := $$e item$$s2 item$$s3
-val  := {NEW VAL}
-idx  := 1
-res  := $(call list.set,$(type),$(list),$(val),$(idx))
-$(info )
-$(info type = [$(type)])
-$(info list = [$(list)])
-$(info $s  1 = [$(call word.unpack,$(type),$(word 1,$(list)))])
-$(info $s  2 = [$(call word.unpack,$(type),$(word 2,$(list)))])
-$(info $s  3 = [$(call word.unpack,$(type),$(word 3,$(list)))])
-$(info $s  4 = [$(call word.unpack,$(type),$(word 4,$(list)))])
-$(info val  = [$(val)])
-$(info idx  = [$(idx)])
-$(info res  = [$(res)])
-$(info $s  1 = [$(call word.unpack,$(type),$(word 1,$(res)))])
-$(info $s  2 = [$(call word.unpack,$(type),$(word 2,$(res)))])
-$(info $s  3 = [$(call word.unpack,$(type),$(word 3,$(res)))])
-$(info $s  4 = [$(call word.unpack,$(type),$(word 4,$(res)))])
-$(info )
-$(error Exiting...)
-
-
-
-
-
-
-
-
-
-
-
-str1 := [1]$n[2]$n[3]$n[4]$n[5]$n[6]$n[7]$n[8]$n[9]
-str2 := $nthis is$n a multi-line$n$nstring$n
-func  = $(info $s$s$s$s$0: 1=[$1], 2=[$2], 3=[$3], 4=[$4])$1="$2"
-str3 := $(call str.map.lines,func,$(str1),$(str2))
-
-$(info str1  = [$(str1)])
-$(info str2  = [$(str2)])
-$(info str3  = [$(str3)])
-$(error Exiting...)
 
 
 #===============================================================================
@@ -1162,10 +1163,20 @@ override define target.define.template
 $(subst $n$s,$n,$(foreach target,$4,$(target): $(strip $1)$n))
 $(subst $n$s,$n,$(foreach target,$5,$(target): | $(strip $1)$n))
 $(strip $1: $2 $(if $(strip $3),| $(strip $3)))
-$(if $(strip $6),$t$(subst $$n,$n$t,$(subst $$n$s,$$n,$(strip $(subst $n,$$n$n,$(subst $$n,$n,$6))))))
+$(if $(strip $6),$(call str.indent.set,$6,$t))
 endef
 
 override target.define = $(eval $(call target.define.template,$1,$2,$3,$4,$5,$6))
+
+
+$(info )
+$(info $(call target.define.template,target,\
+   prereq1 prereq2  ,orderonly1 orderonly2,\
+   prereq_of_tgt, orderonly_of_tgt,\
+   command1$ncommand2$n\
+command3))
+$(info )
+$(error Exiting...)
 
 
 #-----------------------------------------------------------
@@ -1225,6 +1236,4 @@ override variable.set_with_alternatives = $(eval $(strip $1) $(strip $2) $(if $(
 
 
 #===============================================================================
-
-
 
