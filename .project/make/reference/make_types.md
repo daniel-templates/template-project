@@ -108,8 +108,6 @@ Single-Word File Extension    |  |  |  |  |  |  |  |  [word.ext]        {*}-{ws,
 Single-Word Directory Path    |  |  |  |  |  [word.dir]                 {*}-{ws,<,>,",|,*,?}        Path to a directory. May end with '/'.
 Single-Word Directory Path    |  |  |  |  |  |  [word.Dir]              {*}-{ws,<,>,",|,*,?}        Path to a directory. Does not end with '/'.
 Single-Word Directory Name    |  |  |  |  |  |  |  [word.dirname]       {*}-{ws,<,>,",|,*,?,/,\}    Name of a directory. Does not end with '/'.
-Single-Word Basename          |  |  |  |  |  |  |  |  [word.basename]   {*}-{ws,<,>,",|,*,?,/,\}    Path segment after last '/', before last '.'
-Single-Word File Extension    |  |  |  |  |  |  |  |  |  [word.ext]     {*}-{ws,<,>,",|,*,?,/,\,:}  Path segment after last '/', after and including last '.'. Starts with '.'.
 Integer                       |  |  |  [int]                            {0,1,2,3,4,5,6,7,8,9,-,+}   Starts with a single '-' or '+', no leading '0's.
 Unsigned Integer              |  |  |  |  [uint]                        {0,1,2,3,4,5,6,7,8,9}       No leading '0's.
 List Index                    |  |  |  |  |  [idx]                      {0,1,2,3,4,5,6,7,8,9}       Must be >= 1.
@@ -125,13 +123,9 @@ Path Pattern                  |  [path.pattern]                         {*}-{<,>
 Path                          |  |  [path]                              {*}-{<,>,",|,*,?}           System path.
 File Path                     |  |  |  [file]                           {*}-{<,>,",|,*,?}           Path to a file.
 File Name                     |  |  |  |  [filename]                    {*}-{<,>,",|,*,?,/,\,:}     Name of a file.
-Basename                      |  |  |  |  |  [basename]                 {*}-{<,>,",|,*,?,/,\,:}     Path segment after last '/', before last '.'
-File Extension                |  |  |  |  |  |  [ext]                   {*}-{<,>,",|,*,?,/,\,:}     Path segment after last '/', after and including last '.'. Starts with '.'.
 Directory Path                |  |  |  [dir]                            {*}-{<,>,",|,*,?}           Path to a directory. May end with '/'.
 Directory Path                |  |  |  |  [Dir]                         {*}-{<,>,",|,*,?}           Path to a directory. Does not end with '/'.
 Directory Name                |  |  |  |  |  [dirname]                  {*}-{<,>,",|,*,?,/,\}       Name of a directory. Does not end with '/'.
-                              |  |  |  |  |  |  [basename]              {*}-{<,>,",|,*,?,/,\}
-                              |  |  |  |  |  |  |  [ext]                {*}-{<,>,",|,*,?,/,\,:}
 Variable Assignment Origin    |  [origin]                               See $(origin)               See $(origin)
 Shell Command                 |  [command]                              {*}                         Shell-specific syntax.
 Makefile Syntax               |  [dynamic]                              {*}                         Must be valid Make syntax. See $(eval) for details.
