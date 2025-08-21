@@ -87,9 +87,9 @@
 *.so    binary
 *.msi   binary
 *.msix  binary
-*.msixbundle binary
+*.msixbxundle binary
 *.appx  binary
-*.appxbundle binary
+*.appxbxundle binary
 *.deb   binary
 *.snap  binary
 *.flatpak binary
