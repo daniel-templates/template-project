@@ -48,7 +48,7 @@ command.prefix     ?= $(line.indent)$x$s
 override empty :=# Empty String
 
 # Logical Values ====================== type: {str}, [empty]
-override true  := t
+override true  := true
 override false := $(empty)
 
 # Whitespace Characters =============== type: {char}
@@ -94,13 +94,18 @@ override char.sol    := /
 override char.quest  := ?
 
 # Character Sets ====================== type: {list{char}}
-override char.lowers    := a b c d e f g h i j k l m n o p q r s t u v w x y z
-override char.uppers    := A B C D E F G H I J K L M N O P Q R S T U V W X Y Z
-override char.digits    := 0 1 2 3 4 5 6 7 8 9
-override char.symbols   := ` ~ ! @ \# $$ % ^ & * ( ) - _ = + [ ] { } \ | ; : ' " , . < > / ?
-override char.nonws     := $(char.lowers) $(char.uppers) $(char.digits) $(char.symbols)
-override char.alphanums := $(char.lowers) $(char.uppers) $(char.digits)
-override char.letters   := $(char.lowers) $(char.uppers)
+override char.lowers      := a b c d e f g h i j k l m n o p q r s t u v w x y z
+override char.uppers      := A B C D E F G H I J K L M N O P Q R S T U V W X Y Z
+override char.digits      := 0 1 2 3 4 5 6 7 8 9
+override char.symbols     := ` ~ ! @ \# $$ % ^ & * ( ) - _ = + [ ] { } \ | ; : ' " , . < > / ?
+override char.nonws       := $(char.lowers) $(char.uppers) $(char.digits) $(char.symbols)
+override char.vars        := $(char.lowers) $(char.uppers) $(char.digits) $(filter-out = :,$(char.symbols))
+override char.alphanums   := $(char.lowers) $(char.uppers) $(char.digits)
+override char.letters     := $(char.lowers) $(char.uppers)
+
+override filt.symbols     := $(subst %,\%,$(char.symbols))
+override filt.nonws       := $(subst %,\%,$(char.nonws))
+override filt.vars        := $(subst %,\%,$(char.vars))
 
 # Aliases for Common Sequences ======== type: [str]
 override e    := $(empty)#         $e --> [empty]             Empty string
@@ -173,81 +178,7 @@ override char.vars.ws := char.space char.tab char.linefeed
 
 #===============================================================================
 
-# [expr[str]([str:in],[str:from],[str:to])]   <-- $(call expr.subst.expr2expr,[expr[str]:in],[expr[str]:from],[expr[str]:to])
-# [expr[str]([str:in],[list:from],[str:to])]  <-- $(call expr.subst.list2expr,[expr[str]:in],[list{expr[word]:from}],[expr[str]:to])
-# [expr[str]([str:in],[list:from],[list:to])] <-- $(call expr.subst.list2list,[expr[str]:in],[list{expr[word]:from}],[list{expr[word]:to}])
-# [expr[str]([str:in])]                       <-- $(call expr.subst.vars2vars,[expr[str]:in],[list{var}:from],[list{var}:to])
-override expr.subst.expr2expr = $(if $(and $1,$2),$(if $(filter-out $(xe) $$(e) $$(empty),$2),$$(subst $2$c$3$c$1),$$(or $1$c$3)),$1)
-override expr.subst.list2expr = $(if $(and $1,$(firstword $2)),$(call expr.subst.expr2expr,$(call $0,$1,$(wordlist 2,$(words $2),x $2),$3),$(lastword $2),$3),$1)
-override expr.subst.list2list = $(if $(and $1,$(firstword $2),$(firstword $3)),$(call expr.subst.expr2expr,$(call $0,$1,$(wordlist 2,$(words $2),x $2),$(wordlist 2,$(words $3),x $3)),$(lastword $2),$(lastword $3)),$1)
-override expr.subst.vars2vars = $(call expr.subst.list2list,$1,$(2:%=$$(%)),$(3:%=$$(%)))
 
-# [expr[word]] <-- $(call expr.escape.ws,[expr[str]])
-# [expr[str]]  <-- $(call expr.expand.ws,[expr[word]])
-override expr.escape.ws  = $$(subst $(xn),$$(xn),$$(subst $(xt),$$(xt),$$(subst $(xs),$$(xs),$$(subst $(xx),$$(xx),$1))))
-override expr.expand.ws  = $$(subst $$(xx),$(xx),$$(subst $$(xs),$(xs),$$(subst $$(xt),$(xt),$$(subst $$(xn),$(xn),$1))))
-
-# [expr[word]] <-- $(call __expr.escape.ws.in.var,[var])
-# {expr[word]} <-- $(call __expr.strip.expr,{expr[word]:in},{expr[word]:strip})
-# {expr[word]} <-- $(call __expr.strip.vars,{expr[word]:in},[list{var}:strip])
-override __expr.escape.ws.in.var = $(if $(filter x s t n,$1),$$(x$1),$(call expr.subst.list2list,$$($1),$(foreach __var,x s t n,$(if $(findstring $($(__var)),$($1)),$$($(__var)))),$(foreach __var,x s t n,$(if $(findstring $($(__var)),$($1)),$$(x$(__var))))))
-override __expr.strip.expr       = $$(subst $(xs),$2,$$(strip $$(subst $2,$(xs),$1)))
-override __expr.strip.vars       = $(if $(firstword $2),$(if $($(lastword $2)),$(call __expr.strip.expr,$(call $0,$1,$(wordlist 2,$(words $2),x $2)),$(call __expr.escape.ws.in.var,$(lastword $2))),$(call $0,$1,$(wordlist 2,$(words $2),x $2))),$1)
-
-# [expr] <-- $(call expr.strip.ws,[expr:in])
-# [expr] <-- $(call expr.strip.vars,[expr:in],[str:strip])
-# [expr] <-- $(call expr.cull.ws,[expr:in])
-# [expr] <-- $(call expr.cull.vars,[expr:in],[list:strip])
-override expr.strip.ws   = $(if $1,$$(strip $1),$1)
-override expr.strip.vars = $(if $(and $1,$2),$(call expr.expand.ws,$(call __expr.strip.vars,$(call expr.escape.ws,$1),$2)),$1)
-override expr.cull.vars  = $(if $(and $1,$2),$(call expr.expand.ws,$$(subst $$(xe)$c$c$(call __expr.strip.vars,$$(xe)$(call expr.escape.ws,$1)$$(xe),$2))),$1)
-
-# str  := ///this//is  a  $$$$tring///
-# vars.subst.from := f  e  x  s
-# vars.subst.to   := b xe xx xs
-# vars.strip :=  f e x s
-# vars.cull  :=  f e x s
-# #expr := $(call expr.subst.list2list,$(in),$(from:%=$$(%)),$(to:%=$$(%)))
-# expr.subst := $(call expr.subst.vars2vars,$$1,$(vars.subst.from),$(vars.subst.to))
-# $(eval func.subst = $(expr.subst))
-# expr.strip := $(call expr.strip.vars,$$1,$(vars.strip))
-# $(eval func.strip = $(expr.strip))
-# expr.cull  := $(call expr.cull.vars,$$1,$(vars.cull))
-# $(eval func.cull = $(expr.cull))
-
-# $(info $e)
-# $(info $e         expr.subst.vars2vars           )
-# $(info $e========================================)
-# $(info $e from = [$(vars.subst.from)])
-# $(info $e to   = [$(vars.subst.to)])
-# $(info $e expr = [$(expr.subst)])
-# $(info $e)
-# $(info $e str  = [$(str)])
-# $(info $e res  = [$(call func.subst,$(str))])
-# $(info $e)
-# $(info $e)
-# $(info $e         expr.strip.vars                )
-# $(info $e========================================)
-# $(info $e vars = [$(vars.strip)])
-# $(info $e expr = [$(expr.strip)])
-# $(info $e)
-# $(info $e str  = [$(str)])
-# $(info $e res  = [$(call func.strip,$(str))])
-# $(info $e)
-# $(info $e)
-# $(info $e         expr.cull.vars                )
-# $(info $e========================================)
-# $(info $e vars = [$(vars.cull)])
-# $(info $e expr = [$(expr.cull)])
-# $(info $e)
-# $(info $e str  = [$(str)])
-# $(info $e res  = [$(call func.cull,$(str))])
-# $(info $e)
-# $(error Exiting...)
-
-
-
-#===============================================================================
 
 
 
@@ -265,61 +196,82 @@ override type.{str}.chars               += $(type.{str}.chars.nonws) $(type.{str
 override type.{str}.chars.nonws         := $(char.nonws)
 override type.{str}.chars.ws            := $(char.vars.ws)
 
-#                                                $   \%    %   \[    [   \]    ] \{s}  {s}   \\    \  {t}  {n}
-#                                                x   bp    p   bu    u   bv    v   bs    s   bb    b    t    n
-#                                             ____ ____ ____ ____ ____ ____ ____ ____ ____ ____ ____ ____ ____
-override __word.pack.{str.pattern}.from    :=    x   bp              u         v         s         b    t    n
-override __word.pack.{str.pattern}.to      :=   xx xbxp             xu        xv        xs        xb   xt   xn
-override __word.pack.{str}.from            :=    x         p         u         v         s         b    t    n
-override __word.pack.{str}.to              :=   xx        xp        xu        xv        xs        xb   xt   xn
+#                                String:       $   \%    %   \[    [   \]    ] \{s}  {s}   \\    \  {t}  {n}
+#                                   Var:       x   bp    p   bu    u   bv    v   bs    s   bb    b    t    n
+#                                           ____ ____ ____ ____ ____ ____ ____ ____ ____ ____ ____ ____ ____
+override word.pack.{str.pattern}.from    :=    x   bp              u         v         s         b    t    n
+override word.pack.{str.pattern}.to      :=   xx xbxp             xu        xv        xs        xb   xt   xn
+override word.pack.{str}.from            :=    x         p         u         v         s         b    t    n
+override word.pack.{str}.to              :=   xx        xp        xu        xv        xs        xb   xt   xn
 
-override __word.pack.{list.pattern}.from   :=    x   bp              u         v         s         b    t    n
-override __word.pack.{list.pattern}.to     :=   xx xbxp             xu        xv        xs        xb   xs   xs
-override __word.pack.{list}.from           :=    x         p         u         v         s         b    t    n
-override __word.pack.{list}.to             :=   xx        xp        xu        xv        xs        xb   xs   xs
+override word.pack.{list.pattern}.from   :=    x   bp              u         v         s         b    t    n
+override word.pack.{list.pattern}.to     :=   xx xbxp             xu        xv        xs        xb   xs   xs
+override word.pack.{list}.from           :=    x         p         u         v         s         b    t    n
+override word.pack.{list}.to             :=   xx        xp        xu        xv        xs        xb   xs   xs
 
-override __word.pack.{line.pattern}.from   :=   x    bp              u         v         s         b    t
-override __word.pack.{line.pattern}.to     :=  xx  xbxp             xu        xv        xs        xb   xt
-override __word.pack.{line}.from           :=   x          p         u         v         s         b    t
-override __word.pack.{line}.to             :=  xx         xp        xu        xv        xs        xb   xt
+override word.pack.{line.pattern}.from   :=   x    bp              u         v         s         b    t
+override word.pack.{line.pattern}.to     :=  xx  xbxp             xu        xv        xs        xb   xt
+override word.pack.{line}.from           :=   x          p         u         v         s         b    t
+override word.pack.{line}.to             :=  xx         xp        xu        xv        xs        xb   xt
 
-override __word.pack.{word.pattern}.from   :=   x    bp              u         v                   b
-override __word.pack.{word.pattern}.to     :=  xx  xbxp             xu        xv                  xb
-override __word.pack.{word}.from           :=   x          p         u         v                   b
-override __word.pack.{word}.to             :=  xx         xp        xu        xv                  xb
+override word.pack.{word.pattern}.from   :=   x    bp              u         v                   b
+override word.pack.{word.pattern}.to     :=  xx  xbxp             xu        xv                  xb
+override word.pack.{word}.from           :=   x          p         u         v                   b
+override word.pack.{word}.to             :=  xx         xp        xu        xv                  xb
 
-override __word.pack.{path.pattern}.from   :=   x    bp        bu        bv        bs    s   bb    b
-override __word.pack.{path.pattern}.to     :=  xx  xbxp      xbxu      xbxv      xbxs xbxs xbxb    f
-override __word.pack.{path}.from           :=   x          p   bu    u   bv    v   bs    s   bb    b
-override __word.pack.{path}.to             :=  xx         xp xbxu xbxu xbxv xbxv xbxs xbxs xbxb    f
+override word.pack.{path.pattern}.from   :=   x    bp        bu        bv        bs    s   bb    b
+override word.pack.{path.pattern}.to     :=  xx  xbxp      xbxu      xbxv      xbxs xbxs xbxb    f
+override word.pack.{path}.from           :=   x          p   bu    u   bv    v   bs    s   bb    b
+override word.pack.{path}.to             :=  xx         xp xbxu xbxu xbxv xbxv xbxs xbxs xbxb    f
 
-#                                              $x $t $b $s $v $u $p $x
-#                                              xn xt xb xs xv xu xp xx
-#                                              __ __ __ __ __ __ __ __
-override __word.unpack.{str.pattern}.from  :=  xn xt xb xs xv xu xp xx
-override __word.unpack.{str.pattern}.to    :=   n  t  b  s  v  u  p  x
-override __word.unpack.{str}.from          :=  xn xt xb xs xv xu xp xx
-override __word.unpack.{str}.to            :=   n  t  b  s  v  u  p  x
+override word.pack.{expr.pattern}.from   :=    x   bp                                  s         b    t    n
+override word.pack.{expr.pattern}.to     :=   xx xbxp                                 xs        xb   xt   xn
+override word.pack.{expr}.from           :=    x         p                             s         b    t    n
+override word.pack.{expr}.to             :=   xx        xp                            xs        xb   xt   xn
 
-override __word.unpack.{list.pattern}.from :=        xb xs xv xu xp xx
-override __word.unpack.{list.pattern}.to   :=         b  s  v  u  p  x
-override __word.unpack.{list}.from         :=        xb xs xv xu xp xx
-override __word.unpack.{list}.to           :=         b  s  v  u  p  x
+override word.pack.{var.pattern}.from    :=    x   bp                                            b
+override word.pack.{var.pattern}.to      :=   xx xbxp                                           xb
+override word.pack.{var}.from            :=    x         p                                       b
+override word.pack.{var}.to              :=   xx        xp                                      xb
 
-override __word.unpack.{line.pattern}.from :=     xt xb xs xv xu xp xx
-override __word.unpack.{line.pattern}.to   :=      t  b  s  v  u  p  x
-override __word.unpack.{line}.from         :=     xt xb xs xv xu xp xx
-override __word.unpack.{line}.to           :=      t  b  s  v  u  p  x
+#                                String:     $x $t $b $s $v $u $p $x
+#                                   Var:     xn xt xb xs xv xu xp xx
+#                                            __ __ __ __ __ __ __ __
+override word.unpack.{str.pattern}.from  :=  xn xt xb xs xv xu xp xx
+override word.unpack.{str.pattern}.to    :=   n  t  b  s  v  u  p  x
+override word.unpack.{str}.from          :=  xn xt xb xs xv xu xp xx
+override word.unpack.{str}.to            :=   n  t  b  s  v  u  p  x
 
-override __word.unpack.{word.pattern}.from :=        xb    xv xu xp xx
-override __word.unpack.{word.pattern}.to   :=         b     v  u  p  x
-override __word.unpack.{word}.from         :=        xb    xv xu xp xx
-override __word.unpack.{word}.to           :=         b     v  u  p  x
+override word.unpack.{list.pattern}.from :=        xb xs xv xu xp xx
+override word.unpack.{list.pattern}.to   :=         b  s  v  u  p  x
+override word.unpack.{list}.from         :=        xb xs xv xu xp xx
+override word.unpack.{list}.to           :=         b  s  v  u  p  x
 
-override __word.unpack.{path.pattern}.from :=        xb xs xv xu xp xx
-override __word.unpack.{path.pattern}.to   :=         b  s  v  u  p  x
-override __word.unpack.{path}.from         :=        xb xs xv xu xp xx
-override __word.unpack.{path}.to           :=         b  s  v  u  p  x
+override word.unpack.{line.pattern}.from :=     xt xb xs xv xu xp xx
+override word.unpack.{line.pattern}.to   :=      t  b  s  v  u  p  x
+override word.unpack.{line}.from         :=     xt xb xs xv xu xp xx
+override word.unpack.{line}.to           :=      t  b  s  v  u  p  x
+
+override word.unpack.{word.pattern}.from :=        xb    xv xu xp xx
+override word.unpack.{word.pattern}.to   :=         b     v  u  p  x
+override word.unpack.{word}.from         :=        xb    xv xu xp xx
+override word.unpack.{word}.to           :=         b     v  u  p  x
+
+override word.unpack.{path.pattern}.from :=        xb xs xv xu xp xx
+override word.unpack.{path.pattern}.to   :=         b  s  v  u  p  x
+override word.unpack.{path}.from         :=        xb xs xv xu xp xx
+override word.unpack.{path}.to           :=         b  s  v  u  p  x
+
+override word.unpack.{expr.pattern}.from :=  xn xt xb xs       xp xx
+override word.unpack.{expr.pattern}.to   :=   n  t  b  s        p  x
+override word.unpack.{expr}.from         :=  xn xt xb xs       xp xx
+override word.unpack.{expr}.to           :=   n  t  b  s        p  x
+
+
+override word.unpack.{var.pattern}.from  :=        xb          xp xx
+override word.unpack.{var.pattern}.to    :=         b           p  x
+override word.unpack.{var}.from          :=        xb          xp xx
+override word.unpack.{var}.to            :=         b           p  x
 
 
 # [word{T}] <-- $(call __word.pack.{T},[T:val])
@@ -339,11 +291,20 @@ override __word.unpack.{word.pattern}      = $(call str.subst.vars2vars,$1,$($0.
 override __word.pack.{word}                = $(call str.subst.vars2vars,$1,$($0.from),$($0.to))
 override __word.unpack.{word}              = $(call str.subst.vars2vars,$1,$($0.from),$($0.to))
 
-override __word.pack.{path.pattern}        = $(call str.subst.vars2vars,$(strip $(xe)$(call str.subst.vars2vars,$1,$($0.from) s t n f,$($0.to) xs xt xn s)$(xe)),s xe xn xt xs,f e n t s)
+override __word.pack.{path.pattern}        = $(call str.subst.vars2vars,$(strip $(xe)$(call str.subst.vars2vars,$1,$($0.from) s t n f,$($0.to) xs xt xn s)$(xe)),s xn xt xe,f n t e)
 override __word.unpack.{path.pattern}      = $(call str.subst.vars2vars,$1,$($0.from),$($0.to))
-override __word.pack.{path}                = $(call str.subst.vars2vars,$(strip $(xe)$(call str.subst.vars2vars,$1,$($0.from) s t n f,$($0.to) xs xt xn s)$(xe)),s xe xn xt xs,f e n t s)
+override __word.pack.{path}                = $(call str.subst.vars2vars,$(strip $(xe)$(call str.subst.vars2vars,$1,$($0.from) s t n f,$($0.to) xs xt xn s)$(xe)),s xn xt xe,f n t e)
 override __word.unpack.{path}              = $(call str.subst.vars2vars,$1,$($0.from),$($0.to))
 
+override __word.pack.{expr.pattern}        = $(subst $n,$(xn),$(subst $t,$(xt),$(subst $b,$(xb),$(subst $s,$(xs),$(subst $(bp),$(xbxp),$(subst $x,$(xx),$1))))))
+override __word.unpack.{expr.pattern}      = $(subst $(xx),$x,$(subst $(xp),$p,$(subst $(xs),$s,$(subst $(xb),$b,$(subst $(xt),$t,$(subst $(xn),$n,$1))))))
+override __word.pack.{expr}                = $(subst $n,$(xn),$(subst $t,$(xt),$(subst $b,$(xb),$(subst $s,$(xs),$(subst $p,$(xp),$(subst $x,$(xx),$1))))))
+override __word.unpack.{expr}              = $(subst $(xx),$x,$(subst $(xp),$p,$(subst $(xs),$s,$(subst $(xb),$b,$(subst $(xt),$t,$(subst $(xn),$n,$1))))))
+
+override __word.pack.{var.pattern}         = $(subst $b,$(xb),$(subst $(bp),$(xbxp),$(subst $x,$(xx),$1)))
+override __word.unpack.{var.pattern}       = $(subst $(xx),$x,$(subst $(xp),$p,$(subst $(xb),$b,$1)))
+override __word.pack.{var}                 = $(subst $b,$(xb),$(subst $p,$(xp),$(subst $x,$(xx),$1)))
+override __word.unpack.{var}               = $(subst $(xx),$x,$(subst $(xp),$p,$(subst $(xb),$b,$1)))
 
 #-------------------------------------------------------------------------------
 # word.pack             	[word[T]] <-- $(call word.pack,[type:T],[T:val])
@@ -471,6 +432,22 @@ override list.merge = $(call word.unpack,$1,$(subst $s,$(call word.pack,$1,$3),$
 #)))
 #$(info $e)
 #$(error Exiting...)
+
+
+#-------------------------------------------------------------------------------
+# list.format       	[list[T]] <-- $(call list.format,[type:T],$n\
+#                   	                  item 1$n\
+#                   	                  item 2$n\
+#                   	              )
+#
+#	Convenience method for manual list definition.
+#	Splits the second argument on {tab} and {lf}, encoding each section as a word-packed T.
+#	- Each line must end with '$n\'.
+#	- Leading whitespace is removed. Trailing whitespace is kept.
+#	- If T == '[T]', then [empty] is a valid string, so empty words are KEPT.
+#	- If T == '{T}', then [empty] cannot be encoded/decoded, so empty words are REMOVED.
+#-------------------------------------------------------------------------------
+override list.format = $(call str.split,$1,$(subst $(ns),$n,$(subst $t,$(ns),$2),$n))
 
 
 
@@ -702,8 +679,8 @@ override str.neq = $(if $(subst x$1,,x$2)$(subst x$2,,x$1),$(true),$(false))
 
 
 #-------------------------------------------------------------------------------
-# str.concat        	[str] <-- $(call str.concat.pair,[str:sep],[str:1],[str:2])
-# str.concat.pair   	[str] <-- $(call str.concat,[str:sep],[str:1],[str:2],...,[str:8])
+# str.concat.pair   	[str] <-- $(call str.concat.pair,[str:sep],[str:1],[str:2])
+# str.concat        	[str] <-- $(call str.concat,[str:sep],[str:1],[str:2],...,[str:8])
 #
 #	Concatentates each nonempty [str] argument with the given separator [sep].
 #	Each [empty] argument is skipped; no separator is included for them.
@@ -1273,6 +1250,28 @@ override __list.filter.file = $(if $(and $(if $(filter $(1:%/=%)/,$2),,T),$(filt
 
 
 #-------------------------------------------------------------------------------
+# paths.format       	[paths] <-- $(call paths.format,$n\
+#                   	                  /path/to a/file.1	$n\
+#                   	                  path/to a/dir/	$n\
+#                   	            )
+#
+#	Convenience method for manual [paths] definition.
+#	Splits the second argument on {tab} and {lf}, encoding each section as a word-packed [path],
+#	then merges the resulting list into a [paths] string.
+#	- Each line must end with '$n\'.
+#	- Leading whitespace is removed. Trailing {space} is kept. Trailing {tab} and {lf} are removed.
+#-------------------------------------------------------------------------------
+override paths.format = $(call word.unpack,{path.pattern},$(call list.format,{path.pattern},$1))
+
+
+# $(info $e)
+# $(info $e $(call paths.make,$n\
+# 	path/to/a file.1	$n\
+# 	path/to/a file.2	$n\
+# ))
+# $(info $e)
+# $(error Exiting...)
+#-------------------------------------------------------------------------------
 # $(this.filepath)
 # $(this.filename)
 # $(this.dirpath)
@@ -1659,7 +1658,7 @@ override iter.inc.define = $(eval $1 := $(or $2,0))$(eval $1.next = $$(eval $1 :
 #===============================================================================
 #
 #-----------------------------------------------------------
-# $(call dynamic.target.template,[list[file]:targets],\
+# $(call expr.target,[list[file]:targets],\
 #      [list[file]:prereqs],[list[file]:orderonly],\
 #      [list[file]:prereq_of],[list[file]:orderonly_of],\
 # 	COMMANDS$n\
@@ -1694,14 +1693,8 @@ override iter.inc.define = $(eval $1 := $(or $2,0))$(eval $1.next = $$(eval $1 :
 #-------------------------------------------------------------------------------
 
 
-override define dynamic.target
-$(foreach target,$4,$(target): $1$n)
-$(foreach target,$5,$(target): $1$n)
-$(strip $1: $2 $(if $3,| $3))
-$(if $(strip $6),$(call str.indent.set,$6,$t))
-endef
 
-override dynamic.target.define = $(assert.1.has.words)$(eval $(0:.define=))
+override expr.target.define = $(assert.1.has.words)$(eval $(0:.define=))
 
 
 #-----------------------------------------------------------
@@ -1716,14 +1709,14 @@ override dynamic.target.define = $(assert.1.has.words)$(eval $(0:.define=))
 # To force the pretarget to run even without prereqs,
 #   include {target} along with the list of its prereqs.
 #
-# See "dynamic.target.define" for command formatting requirements.
+# See "expr.target.define" for command formatting requirements.
 #
 # Quick reference:
 #	$$(basename $$@)    Name of target this pretarget belongs to
 #	$$^                 List of prerequisites
 #-----------------------------------------------------------
 
-override target.pre.define = $(call dynamic.target.define,$1.pre,,,,$2,$3)
+override target.pre.define = $(call expr.target.define,$1.pre,,,,$2,$3)
 
 
 #-----------------------------------------------------------
@@ -1762,5 +1755,448 @@ override variable.set_with_alternatives = $(eval $(strip $1) $(strip $2) $(if $(
 
 
 
+override var.is.shortname   = $(filter $(char.vars:\%=\%),$1)
+override var.is.defined     = $(if $(filter-out undefined,$(flavor $1)),$1)
+override var.is.undefined   = $(if $(filter undefined,$(flavor $1)),$1)
+override var.is.environment = $(if $(filter environment,$(origin $1)),$1)
+override var.is.commandline = $(if $(filter command,$(origin $1)),$1)
+override var.is.makefile    = $(if $(findstring environment,$(origin $1)),,$(if $(filter file override,$(origin $1)),$1))
+override var.is.internal    = $(if $(filter default automatic,$(origin $1)),$1)
+override var.is.ws          = $(and $($1),$(if $(strip $($1)),,$1))
+override var.is.nonws       = $(and $($1),$(if $(or $(findstring $s,$($1)),$(findstring $t,$($1)),$(findstring $n,$($1))),,$1))
+override var.is.empty       = $(if $($1),,$1)
+override var.is.def.empty   = $(and $(call var.is.empty,$1),$(call var.is.defined,$1))
+override var.is.nonempty    = $(if $($1),$1)
+
+# vars    := s x char.comma PATH $$ ns ( \ \# e xp % SHELL %stupid%
+# $(info $e)
+# $(info $e================================================)
+# $(info $e vars                = [$(strip $(vars))])
+# $(foreach func,\
+# var.is.shortname___\
+# var.is.defined_____\
+# var.is.undefined___\
+# var.is.environment_\
+# var.is.commandline_\
+# var.is.makefile____\
+# var.is.internal____\
+# var.is.ws__________\
+# var.is.nonws_______\
+# var.is.empty_______\
+# var.is.def.empty___\
+# var.is.nonempty____\
+# ,\
+# $(info $e $(subst _,$s,$(func)) = [$(foreach var,$(vars),$(or $(call $(subst _,,$(func)),$(var)),$(call str.subst.list2str,$(var),$(char.vars),$s)))])\
+# )
+# $(info $e)
+# $(error Exiting...)
 
 
+
+# [expr[T]] <-- $(call expr.const,[type:T],[T:val])
+# [expr]    <-- $(call expr.ref,[expr[var]:name],[expr[word.pattern]:find],[expr[str.pattern]:repl])
+# [expr]    <-- $(call expr.builtin,[expr[builtin]:name],[list[expr]:args])
+# [expr]    <-- $(call expr.call,[expr[func]:name],[list[expr]:args])
+# [expr]    <-- $(call expr.assign,[list[expr]:directives],[expr[var]:name],[expr:assign_operator],[expr:value])
+# [expr]    <-- $(call expr.target,[expr[paths]:targets],\
+#                   [expr[paths]:prereqs],[expr[paths]:orderonly],\
+#                   [expr[paths]:prereqs_of],[expr[paths]:orderonly_of],\
+#                   [list[expr]:assignments],\
+#                   [list[expr]:commands]
+#               )
+# [expr]    <-- $(call expr.target,$(call paths.format,$n\
+#                       /target/paths$n\
+#                   ),$(call paths.format,$n\
+#                       /prereq/paths$n\
+#                   ),$(call paths.format,$n\
+#                       /orderonly/paths$n\
+#                   ),$(call paths.format,$n\
+#                       /prereqs/of$n\
+#                   ),$(call paths.format,$n\
+#                       /orderonly/of$n\
+#                   ),$(call list.format,expr,$n\
+#                       localvar := value$n\
+#                   ),$(call list.format,expr,$n\
+#                       commands$n\
+#                   )\
+#               )
+override expr.const   = $(call str.subst.vars2vars,$(call word.pack,$1,$2),c l r j k,xc xl xr xj xk)
+override expr.ref     = $(if $1,$(if $2$3,$$($1:$2=$3),$(if $(call var.is.shortname,$1),$$$1,$$($1))))
+override expr.builtin = $(if $1,$$($1 $(call list.merge,expr,$2,$c)))
+override expr.call    = $(if $1,$(call expr.builtin,call,$(call word.pack,expr,$1) $2))
+override expr.assign  = $(if $2,$(call str.concat.pair,$n,$(call str.concat,$s,$(filter-out define,$1),$(if $(findstring $n,$4),define),$2,$(or $3,=),$(findstring $n,$4)$4),$(if $(findstring $n,$4),endef)))
+override expr.target  = $(if $1,$n$(call __$0,$1,$2,$3,$4,$5,$(call list.prune,expr,$6),$(call list.prune,expr,$7)))
+override define __expr.target
+$(if $4,$4: $1)
+$(if $5,$5: | $1)
+$(if $6,$(call list.merge,expr,$(addprefix $(call word.pack,expr,$1:$s),$6),$n))
+$1:$(if $2, $2)$(if $3, | $3)
+$(if $7,$(or $(.RECIPEPREFIX),$t)$(call list.merge,expr,$7,$n$(or $(.RECIPEPREFIX),$t)))
+$n
+endef
+
+
+
+# str := //a\very, $$trange//(path)//
+
+# expr.const.type   := path
+# expr.const.val    := $(str)
+
+# expr.ref.name     := 1
+# expr.ref.find     := $(call expr.const,word.pattern,$$%)
+# expr.ref.repl     := $(call expr.const,str.pattern,$$<%>)
+
+# expr.builtin.name := subst
+# expr.builtin.args += $(call word.pack,expr,$(call expr.const,str,$c$s))
+# expr.builtin.args += $(call word.pack,expr,$(call expr.const,str,$e))
+# expr.builtin.args += $(call word.pack,expr,$$1)
+
+# expr.call.name    := subst
+# expr.call.args    += $(call word.pack,expr,$(call expr.const,str,$c$s))
+# expr.call.args    += $(call word.pack,expr,$(call expr.const,str,$e))
+# expr.call.args    += $(call word.pack,expr,$$1)
+
+# expr.assign.name  := var
+# expr.assign.directives += $(call word.pack,expr,$(call expr.const,str,define))
+# expr.assign.directives += $(call word.pack,expr,$(call expr.const,str,override))
+# expr.assign.operator :=
+# expr.assign.value := this is$na multiline$nvalue
+
+# expr.target.targets      += $(call word.pack,path.pattern,file 1.tgt)
+# expr.target.targets      += $(call word.pack,path.pattern,file 2.tgt)
+# expr.target.prereqs      += $(call word.pack,path.pattern,prereq 1.tgt)
+# expr.target.prereqs      += $(call word.pack,path.pattern,prereq 2.tgt)
+# expr.target.orderonly    += $(call word.pack,path.pattern,orderonly.tgt)
+# expr.target.prereqs_of   += $(call word.pack,path.pattern,parent.tgt)
+# expr.target.orderonly_of += $(call word.pack,path.pattern,.PHONY)
+# expr.target.assignments  += $(call word.pack,expr,var1 = value1)
+# expr.target.assignments  += $(call word.pack,expr,var2 = value2)
+# expr.target.commands     += $(call word.pack,expr,$(call expr.builtin,info,$(call word.pack,expr,$(call expr.const,str,Target = )[$(call expr.ref,@)])))
+# expr.target.commands     += $(call word.pack,expr,python.exe "$(call expr.ref,^)")
+
+# $(info $e)
+# $(info $e  expr.const)
+# $(info $e==============================================)
+# expr := $(call expr.const,$(expr.const.type),$(expr.const.val))
+# $(info $e type = [$(expr.const.type)])
+# $(info $e val  = [$(expr.const.val)])
+# $(info $e expr = [$(expr)])
+# $(info $e)
+# $(info $e    --> [$(eval func = $(expr))$(call func)])
+# $(info $e)
+# $(info $e  expr.ref)
+# $(info $e==============================================)
+# expr := $(call expr.ref,$(expr.ref.name),$(expr.ref.find),$(expr.ref.repl))
+# $(info $e name = [$(expr.ref.name)])
+# $(info $e find = [$(expr.ref.find)])
+# $(info $e repl = [$(expr.ref.repl)])
+# $(info $e expr = [$(expr)])
+# $(info $e)
+# $(info $e str  = [$(str)])
+# $(info $e    --> [$(eval func = $(expr))$(call func,$(str))])
+# $(info $e)
+# $(info $e  expr.builtin)
+# $(info $e==============================================)
+# expr := $(call expr.builtin,$(expr.builtin.name),$(expr.builtin.args))
+# $(info $e name = [$(expr.builtin.name)])
+# $(info $e args = [$(expr.builtin.args)])
+# $(info $e expr = [$(expr)])
+# $(info $e)
+# $(info $e str  = [$(str)])
+# $(info $e    --> [$(eval func = $(expr))$(call func,$(str))])
+# $(info $e)
+# $(info $e  expr.call)
+# $(info $e==============================================)
+# expr := $(call expr.call,$(expr.call.name),$(expr.call.args))
+# $(eval func = $(expr))
+# $(info $e name = [$(expr.call.name)])
+# $(info $e args = [$(expr.call.args)])
+# $(info $e expr = [$(expr)])
+# $(info $e)
+# $(info $e str  = [$(str)])
+# $(info $e    --> [$(eval func = $(expr))$(call func,$(str))])
+# $(info $e)
+# $(info $e  expr.assign)
+# $(info $e==============================================)
+# expr := $(call expr.assign,$(expr.assign.directives),$(expr.assign.name),$(expr.assign.operator),$(expr.assign.value))
+# $(info $e name       = [$(expr.assign.name)])
+# $(info $e directives = [$(expr.assign.directives)])
+# $(info $e expr       = [$(expr)])
+# $(info $e          --> [$(eval $(expr))$($(expr.assign.name))])
+# $(info $e)
+# $(info $e  expr.target)
+# $(info $e==============================================)
+# expr := $(call expr.target,$(expr.target.targets),$(expr.target.prereqs),$(expr.target.orderonly),$(expr.target.prereqs_of),$(expr.target.orderonly_of),$(expr.target.assignments),$(expr.target.commands))
+# $(info $e targets      = [$(expr.target.targets)])
+# $(info $e prereqs      = [$(expr.target.prereqs)])
+# $(info $e orderonly    = [$(expr.target.orderonly)])
+# $(info $e prereqs_of   = [$(expr.target.prereqs_of)])
+# $(info $e orderonly_of = [$(expr.target.orderonly_of)])
+# $(info $e assignments  = [$(expr.target.assignments)])
+# $(info $e commands     = [$(expr.target.commands)])
+# $(info $e expr         = [$(expr)])
+# $(info $e)
+# $(error Exiting...)
+
+
+
+
+
+
+# Generates an `eval`-uatable expression which performs one or more `subst`-itutions in series.
+# 'expr[str]' is an expression which expands to a [str]. It may contain any combination of the following:
+#             - Variable References: '$v', '$(var)', '${var}', '$(var:[word.pattern:find]=[str.pattern:repl])', etc.
+#               Use `expr.ref` to generate a variable reference.
+#             - Function Calls:      '$({builtin} [arg:1],...)', '$(call {func},[arg:1],...)'
+#               Use `expr.call` to generate a function call.
+#             - Literal Strings: Constants embedded in an expression. Must abide by the following rules
+#               to ensure correct parsing:
+#               - Literals may not contain whitespace; use variable references '$s', '$t', '$n' instead.
+#               - Literals may not contain unpaired '{', '}', '(', ')'; use '$j', '$k', '$l', '$r' instead.
+#               - Literals may not ','; use '$c' instead.
+#               Use `expr.const` to generate an embeddable literal from an arbitrary string.
+#
+# [expr[str]([str:in])] <-- $(call expr.subst.expr2expr,[expr[str]([str:in])],[expr[str]:from],[expr[str]:to])
+# [expr[str]([str:in])] <-- $(call expr.subst.exprs2expr,[expr[str]([str:in])],[list[expr[str]]:from],[expr[str]:to])
+# [expr[str]([str:in])] <-- $(call expr.subst.exprs2exprs,[expr[str]([str:in])],[list[expr[str]]:from],[list[expr[str]]:to])
+# [expr[str]([str:in])] <-- $(call expr.subst.const2const,[expr[str]([str:in])],[str:from],[str:to])
+# [expr[str]([str:in])] <-- $(call expr.subst.const2ref,[expr[str]([str:in])],[str:from],[var:to])
+# [expr[str]([str:in])] <-- $(call expr.subst.ref2const,[expr[str]([str:in])],[var:from],[str:to])
+# [expr[str]([str:in])] <-- $(call expr.subst.ref2ref,[expr[str]([str:in])],[var:from],[var:to])
+# [expr[str]([str:in])] <-- $(call expr.subst.consts2const,[expr[str]([str:in])],[list:from],[str:to])
+# [expr[str]([str:in])] <-- $(call expr.subst.consts2ref,[expr[str]([str:in])],[list:from],[var:to])
+# [expr[str]([str:in])] <-- $(call expr.subst.refs2const,[expr[str]([str:in])],[list[var]:from],[str:to])
+# [expr[str]([str:in])] <-- $(call expr.subst.refs2ref,[expr[str]([str:in])],[list[var]:from],[var:to])
+# [expr[str]([str:in])] <-- $(call expr.subst.consts2consts,[expr[str]([str:in])],[list:from],[list:to])
+# [expr[str]([str:in])] <-- $(call expr.subst.consts2refs,[expr[str]([str:in])],[list:from],[list[var]:to])
+# [expr[str]([str:in])] <-- $(call expr.subst.refs2consts,[expr[str]([str:in])],[list[var]:from],[list:to])
+# [expr[str]([str:in])] <-- $(call expr.subst.refs2refs,[expr[str]([str:in])],[list[var]:from],[list[var]:to])
+override expr.subst.expr2expr     = $(if $(and $1,$2),$(if $(call expr.is.empty,$2),$$(or $1$c$3),$$(subst $2$c$3$c$1)),$1)
+override expr.subst.exprs2expr    = $(if $(and $1,$(firstword $2)),$(call expr.subst.expr2expr,$(call $0,$1,$(wordlist 2,$(words $2),x $2),$3),$(call word.unpack,expr,$(lastword $2)),$3),$1)
+override expr.subst.exprs2exprs   = $(if $(and $1,$(firstword $2),$(firstword $3)),$(call expr.subst.expr2expr,$(call $0,$1,$(wordlist 2,$(words $2),x $2),$(wordlist 2,$(words $3),x $3)),$(call word.unpack,expr,$(lastword $2)),$(call word.unpack,expr,$(lastword $3))),$1)
+override expr.subst.const2const   = $(call expr.subst.expr2expr,$1,$(call expr.const,str,$2),$(call expr.const,str,$3))
+override expr.subst.const2ref     = $(call expr.subst.expr2expr,$1,$(call expr.const,str,$2),$(call expr.ref,$3))
+override expr.subst.ref2const     = $(call expr.subst.expr2expr,$1,$(call expr.ref,$2),$(call expr.const,str,$3))
+override expr.subst.ref2ref       = $(call expr.subst.expr2expr,$1,$(call expr.ref,$2),$(call expr.ref,$3))
+override expr.subst.consts2const  = $(call expr.subst.exprs2expr,$1,$(foreach __wrd,$2,$(call word.pack,expr,$(call expr.const,word,$(__wrd)))),$(call expr.const,str,$3))
+override expr.subst.consts2ref    = $(call expr.subst.exprs2expr,$1,$(foreach __wrd,$2,$(call word.pack,expr,$(call expr.const,word,$(__wrd)))),$(call expr.ref,$3))
+override expr.subst.refs2const    = $(call expr.subst.exprs2expr,$1,$(foreach __var,$2,$(call word.pack,expr,$(call expr.ref,$(call word.unpack,var,$(__var))))),$(call expr.const,str,$3))
+override expr.subst.refs2ref      = $(call expr.subst.exprs2expr,$1,$(foreach __var,$2,$(call word.pack,expr,$(call expr.ref,$(call word.unpack,var,$(__var))))),$(call expr.ref,$3))
+override expr.subst.consts2consts = $(call expr.subst.exprs2exprs,$1,$(foreach __wrd,$2,$(call word.pack,expr,$(call expr.const,word,$(__wrd)))),$(foreach __wrd,$3,$(call word.pack,expr,$(call expr.const,word,$(__wrd)))))
+override expr.subst.consts2refs   = $(call expr.subst.exprs2exprs,$1,$(foreach __wrd,$2,$(call word.pack,expr,$(call expr.const,word,$(__wrd)))),$(foreach __var,$3,$(call word.pack,expr,$(call expr.ref,$(call word.unpack,var,$(__var))))))
+override expr.subst.refs2consts   = $(call expr.subst.exprs2exprs,$1,$(foreach __var,$2,$(call word.pack,expr,$(call expr.ref,$(call word.unpack,var,$(__var))))),$(foreach __wrd,$3,$(call word.pack,expr,$(call expr.const,word,$(__wrd)))))
+override expr.subst.refs2refs     = $(call expr.subst.exprs2exprs,$1,$(foreach __var,$2,$(call word.pack,expr,$(call expr.ref,$(call word.unpack,var,$(__var))))),$(foreach __var,$3,$(call word.pack,expr,$(call expr.ref,$(call word.unpack,var,$(__var))))))
+
+# str    := //thi$$$$//i$$$$  a//$$$$tring//
+# from   := $$
+# to     := ,
+
+# $(info $e)
+# $(info $e str  = [$(str)])
+# $(info $e from = [$(from)])
+# $(info $e to   = [$(to)])
+# $(info $e)
+# $(info $e const2const = [$(eval expr := $$(call expr.subst.const2const$c$$$$1$c$$(from)$c$$(to)))$(expr)])
+# $(info $e   str       = [$(str)])
+# $(info $e   eval      = [$(eval func = $(expr))$(call func,$(str))])
+# $(info $e const2ref   = [$(eval expr := $$(call expr.subst.const2ref$c$$$$1$c$$(from)$cto))$(expr)])
+# $(info $e   str       = [$(str)])
+# $(info $e   eval      = [$(eval func = $(expr))$(call func,$(str))])
+# $(info $e ref2const   = [$(eval expr := $$(call expr.subst.ref2const$c$$$$1$cfrom$c$$(to)))$(expr)])
+# $(info $e   str       = [$(str)])
+# $(info $e   eval      = [$(eval func = $(expr))$(call func,$(str))])
+# $(info $e ref2ref     = [$(eval expr := $$(call expr.subst.ref2ref$c$$$$1$cfrom$cto))$(expr)])
+# $(info $e   str       = [$(str)])
+# $(info $e   eval      = [$(eval func = $(expr))$(call func,$(str))])
+# $(info $e)
+
+# str    := //thi$$$$//i$$$$  a//$$$$tring//
+# from.1 := $$
+# from.2 := /
+# to     := ,
+
+# $(info $e)
+# $(info $e str  = [$(str)])
+# $(info $e from = [$(from.1) $(from.2)])
+# $(info $e to   = [$(to)])
+# $(info $e)
+# $(info $e consts2const = [$(eval expr := $$(call expr.subst.consts2const$c$$$$1$c$$(from.1)$s$$(from.2)$c$$(to)))$(expr)])
+# $(info $e    str       = [$(str)])
+# $(info $e    eval      = [$(eval func = $(expr))$(call func,$(str))])
+# $(info $e consts2var   = [$(eval expr := $$(call expr.subst.consts2ref$c$$$$1$c$$(from.1)$s$$(from.2)$cto))$(expr)])
+# $(info $e    str       = [$(str)])
+# $(info $e    eval      = [$(eval func = $(expr))$(call func,$(str))])
+# $(info $e refs2const   = [$(eval expr := $$(call expr.subst.refs2const$c$$$$1$cfrom.1$sfrom.2$c$$(to)))$(expr)])
+# $(info $e    str       = [$(str)])
+# $(info $e    eval      = [$(eval func = $(expr))$(call func,$(str))])
+# $(info $e refs2var     = [$(eval expr := $$(call expr.subst.refs2ref$c$$$$1$cfrom.1$sfrom.2$cto))$(expr)])
+# $(info $e    str       = [$(str)])
+# $(info $e    eval      = [$(eval func = $(expr))$(call func,$(str))])
+# $(info $e)
+
+# str    := //thi$$$$//i$$$$  a//$$$$tring//
+# from.1 := $$
+# from.2 := /
+# to.1   := ,
+# to.2   := \$e
+
+# $(info $e)
+# $(info $e str  = [$(str)])
+# $(info $e from = [$(from.1) $(from.2)])
+# $(info $e to   = [$(to.1) $(to.2)])
+# $(info $e)
+# $(info $e consts2consts = [$(eval expr := $$(call expr.subst.consts2consts$c$$$$1$c$$(from.1)$s$$(from.2)$c$$(to.1)$s$$(to.2)))$(expr)])
+# $(info $e     str       = [$(str)])
+# $(info $e     eval      = [$(eval func = $(expr))$(call func,$(str))])
+# $(info $e consts2refs   = [$(eval expr := $$(call expr.subst.consts2refs$c$$$$1$c$$(from.1)$s$$(from.2)$cto.1$sto.2))$(expr)])
+# $(info $e     str       = [$(str)])
+# $(info $e     eval      = [$(eval func = $(expr))$(call func,$(str))])
+# $(info $e refs2consts   = [$(eval expr := $$(call expr.subst.refs2consts$c$$$$1$cfrom.1$sfrom.2$c$$(to.1)$s$$(to.2)))$(expr)])
+# $(info $e     str       = [$(str)])
+# $(info $e     eval      = [$(eval func = $(expr))$(call func,$(str))])
+# $(info $e refs2refs     = [$(eval expr := $$(call expr.subst.refs2refs$c$$$$1$cfrom.1$sfrom.2$cto.1$sto.2))$(expr)])
+# $(info $e     str       = [$(str)])
+# $(info $e     eval      = [$(eval func = $(expr))$(call func,$(str))])
+# $(info $e)
+# $(error Exiting...)
+
+
+# [expr]       <-- $(call __expr.is.empty,[expr])
+# [expr[word]] <-- $(call __expr.strip.pre,[expr[str]:in],[list[var]:noescape])
+# [expr[str]]  <-- $(call __expr.strip.post,[expr[word]:in],[list[var]:noescape])
+# [expr[word]] <-- $(call __expr.strip.expr,[expr[word]:in],[expr[word]:strip])
+# [expr[word]] <-- $(call __expr.strip.const,[expr[word]:in],[str:strip],[list[var]:noescape])
+override __expr.is.empty    = $(filter $(xe) $$e $$(e) $${e} $$(empty) $${empty},$1)
+override __expr.strip.pre   = $(call expr.subst.refs2refs,$1,$(filter-out $(subst %,\%,$2),x s t n),$(addprefix x,$(filter-out $(subst %,\%,$2),x s t n)))
+override __expr.strip.post  = $(call expr.subst.refs2refs,$1,$(addprefix x,$(filter-out $(subst %,\%,$2),n t s x)),$(filter-out $(subst %,\%,$2),n t s x))
+override __expr.strip.expr  = $(if $(and $1,$2),$(if $(call __expr.is.empty,$2),$1,$$(subst$s$(xs)$c$2$c$$(strip$s$$(subst$s$2$c$(xs)$c$1)))),$1)
+override __expr.strip.const = $(call __expr.strip.expr,$1,$(call expr.const,word,$(call str.subst.vars2vars,$2,$(filter-out $(subst %,\%,$3),x s t n),$(addprefix x,$(filter-out $(subst %,\%,$3),x s t n)))))
+
+# [expr[str]] <-- $(call expr.strip.consts,[expr[str]:in],[list[str]:strip],[list[var]:noescape])
+# [expr[str]] <-- $(call expr.strip.vars,[expr[str]:in],[list[var]:strip],[list[var]:noescape])
+# [expr[str]] <-- $(call expr.cull.consts,[expr[str]:in],[list[str]:strip],[list[var]:noescape])
+# [expr[str]] <-- $(call expr.cull.vars,[expr[str]:in],[list[var]:strip],[list[var]:noescape])
+# [expr[str]] <-- $(call expr.strip.ws,[expr[str]:in],[list[var]:ws])
+override expr.strip.consts  = $(if $(and $1,$(firstword $2)),$(call __expr.strip.post,$(call list.reduce.1,str,__expr.strip.const,$(call __expr.strip.pre,$1,$3),$2,$3),$3),$1)
+override expr.strip.vars    = $(call expr.strip.consts,$1,$(foreach var,$2,$(call word.pack,str,$($(var)))),$3)
+override expr.cull.consts   = $(if $(and $1,$(firstword $2)),$(call __expr.strip.post,$$(subst $$(xe)$c$c$(call list.reduce.1,str,__expr.strip.const,$$(xe)$(call __expr.strip.pre,$1,$3)$$(xe),$2,$3)),$3),$1)
+override expr.cull.vars     = $(call expr.cull.consts,$1,$(foreach var,$2,$(call word.pack,str,$($(var)))),$3)
+override expr.strip.ws      = $(if $(and $1,$(firstword $2)),$(call __expr.strip.post,$$(strip $(call __expr.strip.pre,$1,$2)),$2),$1)
+
+# str    := //thi$$$$//i$$$$  a//$$$$tring//
+# vars   := f e x s
+# consts := $(foreach var,$(vars),$(call word.pack,str,$($(var))))
+# noescape := n t
+# $(info $e)
+# $(info $e  expr.strip.consts)
+# $(info $e================================================)
+# $(eval func = $(call expr.strip.consts,$$1,$(consts),$(noescape)))
+# $(info $e str          = [$(str)])
+# $(info $e consts       = [$(consts)])
+# $(info $e noescape     = [$(noescape)])
+# $(info $e strip.consts = [$(value func)])
+# $(info $e            --> [$(call func,$(str))])
+# $(info $e)
+# $(info $e)
+# $(info $e  expr.strip.vars)
+# $(info $e================================================)
+# $(eval func = $(call expr.strip.vars,$$1,$(vars),$(noescape)))
+# $(info $e str          = [$(str)])
+# $(info $e vars         = [$(vars)])
+# $(info $e noescape     = [$(noescape)])
+# $(info $e strip.vars   = [$(value func)])
+# $(info $e            --> [$(call func,$(str))])
+# $(info $e)
+# $(info $e  expr.cull.consts)
+# $(info $e================================================)
+# $(eval func = $(call expr.cull.consts,$$1,$(consts),$(noescape)))
+# $(info $e str          = [$(str)])
+# $(info $e consts       = [$(consts)])
+# $(info $e noescape     = [$(noescape)])
+# $(info $e cull.consts  = [$(value func)])
+# $(info $e            --> [$(call func,$(str))])
+# $(info $e)
+# $(info $e  expr.cull.vars)
+# $(info $e================================================)
+# $(eval func = $(call expr.cull.vars,$$1,$(vars),$(noescape)))
+# $(info $e str          = [$(str)])
+# $(info $e vars         = [$(vars)])
+# $(info $e noescape     = [$(noescape)])
+# $(info $e cull.vars    = [$(value func)])
+# $(info $e            --> [$(call func,$(str))])
+# $(info $e)
+# str    := $t$t<--tabs,$s$s$s$s<--spaces
+# ws     := t
+# $(info $e)
+# $(info $e  expr.strip.ws)
+# $(info $e================================================)
+# $(eval func = $(call expr.strip.ws,$$1,$(ws)))
+# $(info $e str          = [$(str)])
+# $(info $e ws           = [$(ws)])
+# $(info $e strip.ws     = [$(value func)])
+# $(info $e            --> [$(call func,$(str))])
+# $(info $e)
+# $(error Exiting...)
+
+
+# [expr[word[T]]([T])] <-- $(call expr.word.pack,[expr[T]:in],[bool:pack_empty],[list[var]:from],[list[var]:to],[list[var]:cull],[list[var]:strip])
+# [expr[T]([word[T]])] <-- $(call expr.word.unpack,[expr[T]:in],[bool:unpack_empty],[list[var]:from],[list[var]:to])
+# [expr[pad]]          <-- $(call expr.pad.pack,[expr[T]:in],[list{char}:nonws],[list{var}:ws])
+override expr.word.pack   = $(if $2,$$$lif $1$c)$(call expr.strip.vars,$(call expr.cull.vars,$(call expr.subst.refs2refs,$1,$3,$4),$5,$3),$6,$3)$(if $2,$c$$(xe)$r)
+override expr.word.unpack = $(call expr.subst.refs2refs,$1,$(if $2,xe) $3,$(if $2,e) $4)
+override expr.pad.pack    = $(call expr.subst.consts2const,$(call expr.subst.refs2const,$1,$3,.),$2,.)
+
+
+# str := //abspath\to/dir\ name.suffix/
+# pack.from    := $(or $(__word.pack.{path}.from),  x          p   bu    u   bv    v   bs    s   bb    b)
+# pack.to      := $(or $(__word.pack.{path}.to),   xx         xp xbxu xbxu xbxv xbxv xbxs xbxs xbxb    f)
+# pack.strip   :=
+# pack.cull    := f
+# pack_empty := $(true)
+
+# unpack.from := $(or $(__word.unpack.{path}.from), xb xs xv xu xp xx)
+# unpack.to   := $(or $(__word.unpack.{path}.to),    b  s  v  u  p  x)
+# unpack_empty := $(true)
+
+# pad.nonws    := $(char.nonws)
+# pad.ws       := $(char.vars.ws)
+
+# $(info $e  expr.word.pack)
+# $(info $e================================================)
+# $(eval func.pack = $(call expr.word.pack,$$1,$(pack_empty),$(pack.from),$(pack.to),$(pack.cull),$(pack.strip)))
+# $(info $e str          = [$(str)])
+# $(info $e pack.from    = [$(pack.from)])
+# $(info $e pack.to      = [$(pack.to)])
+# $(info $e pack.strip   = [$(pack.strip)])
+# $(info $e pack.cull    = [$(pack.cull)])
+# $(info $e pack_empty = [$(pack_empty)])
+# $(info $e)
+# $(info $e word.pack    = [$(value func.pack)])
+# $(info $e            --> [$(call func.pack,$(str))])
+# $(info $e)
+# $(info $e  expr.word.unpack)
+# $(info $e================================================)
+# $(eval func.unpack = $(call expr.word.unpack,$$1,$(unpack_empty),$(unpack.from),$(unpack.to)))
+# $(info $e str          = [$(call func.pack,$(str))])
+# $(info $e unpack.from  = [$(unpack.from)])
+# $(info $e unpack.to    = [$(unpack.to)])
+# $(info $e unpack_empty = [$(unpack_empty)])
+# $(info $e)
+# $(info $e word.unpack  = [$(value func.unpack)])
+# $(info $e            --> [$(call func.unpack,$(call func.pack,$(str)))])
+# $(info $e)
+# $(info $e  expr.pad.pack)
+# $(info $e================================================)
+# $(eval func.pad.pack = $(call expr.pad.pack,$$1,$(pad.nonws),$(pad.ws)))
+# $(info $e str          = [$(str)])
+# $(info $e pad.nonws    = [$(pad.nonws)])
+# $(info $e pad.ws       = [$(pad.ws)])
+# $(info $e)
+# $(info $e pad.pack     = [$(value func.pad.pack)])
+# $(info $e            --> [$(call func.pad.pack,$(str))])
+# $(info $e)
+# $(error Exiting...)
+
+
+
+#===============================================================================
