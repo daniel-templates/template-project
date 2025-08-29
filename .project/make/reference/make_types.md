@@ -93,10 +93,10 @@ Logical False                 |  |  [false]                             {}      
                               |  |  |  [empty]
 Single Line                   |  [line]                                 {*}-{\n}
 Single Word                   |  |  [word]                              {*}-{ws}
-Variable Name                 |  |  |  [var]                            {*}-{ws,#,=,:}
-Variable Containing [type]    |  |  |  |  [var[type]]                   {*}-{ws,#,=,:}
-Callable Function             |  |  |  |  [func]                        {*}-{ws,#,=,:}
-Callable Function w/ Args     |  |  |  |  |  [func[type](...)]          {*}-{ws,#,=,:}
+Variable Name                 |  |  |  [var]                            {*}-{ws,=,:}
+Variable Containing [type]    |  |  |  |  [var[type]]                   {*}-{ws,=,:}
+Callable Function             |  |  |  |  [func]                        {*}-{ws,=,:}
+Callable Function w/ Args     |  |  |  |  |  [func[type](...)]          {*}-{ws,=,:}
 Variable Assignment Type      |  |  |  [flavor]                         See $(flavor)               See $(flavor)
 Single-Word Pattern           |  |  |  [word.pattern]                   {*}-{ws}                    Contains zero or one wildcards '%'. See $(patsubst) for details and escape rules.
 Single-Word Path Pattern      |  |  |  [word.path.pattern]              {*}-{ws,<,>,",|}            Contains zero or more wildcards '*', '?', '[...]'. See $(wildcard) for details and escape rules.

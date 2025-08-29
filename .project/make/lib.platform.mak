@@ -13,7 +13,7 @@
 #		include .project/make/lib.platform.mak
 #
 #===============================================================================
-$(if $(filter-out $(notdir $(MAKEFILE_LIST)), lib.mak ),$(error Makefile $(lastword $(notdir $(MAKEFILE_LIST))) is missing dependencies))
+$(if $(filter lib.mak,$(notdir $(MAKEFILE_LIST))),,$(error Makefile $(lastword $(notdir $(MAKEFILE_LIST))) is missing dependencies))
 #===============================================================================
 
 

@@ -161,16 +161,16 @@ init: $(init.prereqs.normal) | $(init.prereqs.orderonly)
 #	$(if $($@.dirs)$($@.files),$(call print.trace))
 #	@$(call shell.nop)
 #	@$(if $($@.dirs),\
-#	$(call str.eval,$(foreach path,$($@.dirs),$$(call shell.mkdir,$(path))$$n))\
+#	$(call str.expand,$(foreach path,$($@.dirs),$$(call shell.mkdir,$(path))$$n))\
 #	)
 #	@$(if $($@.dirs),$(if $($@.dirs.perms),\
-#	$(call str.eval,$(call list.map,$($@.dirs),perm,$($@.dirs.perms),$$(call shell.chmod,,$$(perm),$$(path)),$$n))\
+#	$(call str.expand,$(call list.map,$($@.dirs),perm,$($@.dirs.perms),$$(call shell.chmod,,$$(perm),$$(path)),$$n))\
 #	))
 #	@$(if $($@.files),\
-#	$(call str.eval,$(foreach path,$($@.files),$$(call shell.touch,$(path))$$n))\
+#	$(call str.expand,$(foreach path,$($@.files),$$(call shell.touch,$(path))$$n))\
 #	)
 #	@$(if $($@.files),$(if $($@.files.perms),\
-#	$(call str.eval,$(call list.map,path,$($@.files),perm,$($@.files.perms),$$(call shell.chmod,,$$(perm),$$(path)),$$n))\
+#	$(call str.expand,$(call list.map,path,$($@.files),perm,$($@.files.perms),$$(call shell.chmod,,$$(perm),$$(path)),$$n))\
 #	))
 
 
