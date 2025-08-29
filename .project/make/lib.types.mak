@@ -228,9 +228,9 @@ override type.{var.pattern}.word.unpack.to    :=         b           p  x
 
 #===============================================================================
 
-# [expr[word[T]]([T])] <-- $(call expr.word.pack,[expr[T]:in],[bool:pack_empty],[list[var]:from],[list[var]:to],[list[var]:cull],[list[var]:strip])
-# [expr[T]([word[T]])] <-- $(call expr.word.unpack,[expr[T]:in],[bool:unpack_empty],[list[var]:from],[list[var]:to])
-# [expr[pad]]          <-- $(call expr.pad.pack,[expr[T]:in],[list{char}:nonws],[list{var}:ws])
+# expr.word.pack        	[expr[word[T]]([T])] <-- $(call expr.word.pack,[expr[T]:in],[bool:pack_empty],[list[var]:from],[list[var]:to],[list[var]:cull],[list[var]:strip])
+# expr.word.unpack      	[expr[T]([word[T]])] <-- $(call expr.word.unpack,[expr[T]:in],[bool:unpack_empty],[list[var]:from],[list[var]:to])
+# expr.pad.pack         	[expr[pad]]          <-- $(call expr.pad.pack,[expr[T]:in],[list{char}:nonws],[list{var}:ws])
 override expr.word.pack   = $(if $2,$$$lif $1$c)$(call expr.strip.vars,$(call expr.cull.vars,$(call expr.subst.refs2refs,$1,$3,$4),$5,$3),$6,$3)$(if $2,$c$$(xe)$r)
 override expr.word.unpack = $(call expr.subst.refs2refs,$1,$(if $2,xe) $3,$(if $2,e) $4)
 override expr.pad.pack    = $(call expr.subst.consts2const,$(call expr.subst.refs2const,$1,$3,.),$2,.)
@@ -241,7 +241,7 @@ $(file > $(outfile),$g$s<lib.types.mak>)
 $(foreach type,$(types),\
 $(file >> $(outfile),override type.$(type).word.pack = $(call expr.word.pack,$$1,$(false),$(type.$(type).word.pack.from),$(type.$(type).word.pack.to),$(type.$(type).word.pack.cull),$(type.$(type).word.pack.strip)))\
 $(file >> $(outfile),override type.$(type).word.unpack = $(call expr.word.unpack,$$1,$(false),$(type.$(type).word.unpack.from),$(type.$(type).word.unpack.to)))\
-$(file >> $(outfile),override type.$(type).pad = $(call expr.pad.pack,$$1,$(type.$(type).chars.nonws),$(type.$(type).chars.ws)))\
+$(file >> $(outfile),override type.$(type).pad.pack = $(call expr.pad.pack,$$1,$(type.$(type).chars.nonws),$(type.$(type).chars.ws)))\
 $(file >> $(outfile),$e)\
 )
 $(file >> $(outfile),$g$s<$blib.types.mak>)\

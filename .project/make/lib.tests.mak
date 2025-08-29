@@ -5,7 +5,7 @@
 #
 # Usage:
 #
-# 	make -f .project/make/lib.tests.mak [tests=...]
+# 	make -f .project/make/lib.tests.mak ["tests=..."]
 #
 #===============================================================================
 ifeq "$(filter lib.mak,$(notdir $(MAKEFILE_LIST)))" ""
@@ -57,8 +57,79 @@ $(info $e)
 
 endif
 
+#-------------------------------------------------------------------------------
+# var.set       	[empty] <-- $(call var.set,[directives],[var],[type:T],[T:val])
+# var.append    	[empty] <-- $(call var.append,[directives],[var],[type:T],[T:val])
+#-------------------------------------------------------------------------------
+ifneq "$(filter $(tests),var.set var.append)" ""
 
+var := original value
+new := thi$$ i$$$na $$tring
 
+$(info $e)
+$(info $e  var.append)
+$(info $e==================================)
+$(info $e var       = [$(var)])
+$(info $e new       = [$(new)])
+$(info $e var.append --> [$(call var.append,,var,str,$(new))])
+$(info $e var       = [$(var)])
+$(info $e)
+$(info $e  var.set)
+$(info $e==================================)
+$(info $e var       = [$(var)])
+$(info $e new       = [$(new)])
+$(info $e var.set --> [$(call var.set,,var,str,$(new))])
+$(info $e var       = [$(var)])
+$(info $e)
+
+endif
+
+#-------------------------------------------------------------------------------
+# var.push        	[empty] <-- $(call var.push,[var],[type:T],[T:val])
+# var.pop         	[empty] <-- $(call var.pop,[var])
+#-------------------------------------------------------------------------------
+ifneq "$(filter $(tests),var.push var.pop)" ""
+
+var := Original Value
+val1  := $$(call func,$$1,$$2)
+type1 :=
+val2  := this$$ i$$ a $$tring
+type2 := str
+
+$(info $e)
+$(info $e $$(flavor var)   = [$(flavor var)])\
+$(info $e $$(var)          = [$(var)])\
+$(info $e $$(value var)    = [$(value var)])\
+$(info $e stack            = [$(var.var.stack)])
+$(info $e)
+$(foreach i,1 2,\
+	$(info $e var.push)$(call var.push,var,$(type$i),$(val$i))\
+	$(info $e===========================================)\
+	$(info $e new             = [$(val$i)])\
+	$(info $e type            = [$(type$i)])\
+	$(info $e $$(flavor var)   = [$(flavor var)])\
+	$(info $e $$(var)          = [$(var)])\
+	$(info $e $$(value var)    = [$(value var)])\
+	$(info $e stack            = [$(var.var.stack)])\
+	$(info $e)\
+)
+$(info $e)
+$(info $e $$(flavor var)   = [$(flavor var)])\
+$(info $e $$(var)          = [$(var)])\
+$(info $e $$(value var)    = [$(value var)])\
+$(info $e stack            = [$(var.var.stack)])
+$(info $e)
+$(foreach i,2 1,\
+	$(info $e var.pop)$(call var.pop,var)\
+	$(info $e===========================================)\
+	$(info $e $$(flavor var)   = [$(flavor var)])\
+	$(info $e $$(var)          = [$(var)])\
+	$(info $e $$(value var)    = [$(value var)])\
+	$(info $e stack            = [$(var.var.stack)])\
+	$(info $e)\
+)
+
+endif
 
 #-------------------------------------------------------------------------------
 # str.split         	[list[T]] <-- $(call str.split,[type:T],[str],[str:sep])
@@ -600,8 +671,90 @@ $(info $e ws           = [$(ws)])
 $(info $e strip.ws     = [$(value func)])
 $(info $e            --> [$(call func,$(str))])
 $(info $e)
-$(error Exiting...)
 
 endif
 
 
+
+#-------------------------------------------------------------------------------
+# shell.push    	[empty] <-- $(call shell.push,[path:shell],[str:flags])
+# shell.pop     	[empty] <-- $(call shell.pop)
+#-------------------------------------------------------------------------------
+ifneq "$(filter $(tests),shell.push shell.pop)" ""
+
+$(info $e)
+$(info $e SHELL       = [$(SHELL)])
+$(info $e.SHELLFLAGS  = [$(.SHELLFLAGS)])
+$(info $e.SHELLSTATUS = [$(.SHELLSTATUS)])
+$(info $e)
+
+$(info $e  shell.push)
+$(info $e======================================================)
+$(call shell.push,$(if $(findstring Windows_NT,$(OS)),python.exe,python),-q -c)
+$(info $(shell print("If you can read this, Make is using Python as the Shell")))
+$(info $e SHELL       = [$(SHELL)])
+$(info $e.SHELLFLAGS  = [$(.SHELLFLAGS)])
+$(info $e.SHELLSTATUS = [$(.SHELLSTATUS)])
+$(info $e)
+$(info $e  shell.pop)
+$(info $e======================================================)
+$(call shell.pop)
+$(info $e SHELL       = [$(SHELL)])
+$(info $e.SHELLFLAGS  = [$(.SHELLFLAGS)])
+$(info $e.SHELLSTATUS = [$(.SHELLSTATUS)])
+$(info $e)
+
+endif
+
+
+#-------------------------------------------------------------------------------
+# shell.run     	[str:stdout]   <-- $(call shell.run,[str:command],[var:exitcode],[path:shell],[str:shellflags])
+# shell.test    	[bool:success] <-- $(call shell.test,[str:command],[var:stdout],[path:shell],[str:shellflags])
+#-------------------------------------------------------------------------------
+ifneq "$(filter $(tests),shell.run shell.test)" ""
+
+path  := $(if $(findstring Windows_NT,$(OS)),python.exe,python)
+flags := -q -c
+command_success := import sys; print("Exiting python with code 0"); sys.exit(0)
+command_failure := import sys; print("Exiting python with code 1"); sys.exit(1)
+
+$(info $e)
+$(info $e  shell.run)
+$(info $e====================================)
+$(info $e SHELL       = [$(SHELL)])
+$(info $e.SHELLFLAGS  = [$(.SHELLFLAGS)])
+$(info $e.SHELLSTATUS = [$(.SHELLSTATUS)])
+$(info $e)
+$(info $e Running with shell: $(path) $(flags) $$(command_success))
+$(info $e   stdout   = [$(call shell.run,$(command_success),exitcode,$(path),$(flags))])
+$(info $e   exitcode = [$(exitcode)])
+$(info $e)
+$(info $e Running with shell: $(path) $(flags) $$(command_failure))
+$(info $e   stdout   = [$(call shell.run,$(command_failure),exitcode,$(path),$(flags))])
+$(info $e   exitcode = [$(exitcode)])
+$(info $e)
+$(info $e SHELL       = [$(SHELL)])
+$(info $e.SHELLFLAGS  = [$(.SHELLFLAGS)])
+$(info $e.SHELLSTATUS = [$(.SHELLSTATUS)])
+$(info $e)
+$(info $e)
+$(info $e  shell.test)
+$(info $e====================================)
+$(info $e SHELL       = [$(SHELL)])
+$(info $e.SHELLFLAGS  = [$(.SHELLFLAGS)])
+$(info $e.SHELLSTATUS = [$(.SHELLSTATUS)])
+$(info $e)
+$(info $e Running with shell: $(path) $(flags) $$(command_success))
+$(info $e   status   = [$(if $(call shell.test,$(command_success),stdout,$(path),$(flags)),SUCCESS,FAILURE)])
+$(info $e   stdout   = [$(stdout)])
+$(info $e)
+$(info $e Running with shell: $(path) $(flags) $$(command_failure))
+$(info $e   status   = [$(if $(call shell.test,$(command_failure),stdout,$(path),$(flags)),SUCCESS,FAILURE)])
+$(info $e   stdout   = [$(stdout)])
+$(info $e)
+$(info $e SHELL       = [$(SHELL)])
+$(info $e.SHELLFLAGS  = [$(.SHELLFLAGS)])
+$(info $e.SHELLSTATUS = [$(.SHELLSTATUS)])
+$(info $e)
+
+endif

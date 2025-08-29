@@ -779,3 +779,25 @@ ifeq "$(SHELL_TYPE)" "POSIX"
 endif
 
 
+
+shell = cmd.exe
+shellflags = /Q /D /E:ON /F:OFF /V:OFF /S /C
+
+SHELL = $(shell)
+.SHELLFLAGS = $(shellflags)
+MAKESHELL = $(shell)
+$(info $e)
+$(info SHELL = $(SHELL))
+$(info .SHELLFLAGS = $(.SHELLFLAGS))
+$(info MAKESHELL = $(MAKESHELL))
+$(info $e)
+
+# Subshell and `exit` are required to prevent spawning orphan processes in some cases
+shell.prompt = (cmd.exe /Q /D /E:ON /F:OFF /V:ON /S /C "set /p in=&echo$l!in!&exit 0") 2>nul & exit 0
+
+prompt.str = $(if $1,$(info $1))$(shell $(shell.prompt))
+
+$(info [$(call prompt.str,Enter a string:)])
+
+
+$(error Done.)
