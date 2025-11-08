@@ -1,12 +1,18 @@
 #===============================================================================
-# lib.expr.mak
+# lib.generics.mak
 #
-# Generates type definitions for 'lib.mak'.
-# Not intended for general use.
+# Advanced expression generators.
+# Adds build targets for each expression definition of the form:
+#
+#		[expr] <-- $(call expr...<T>...,{type:T})
+#
+# where '<T>' is each type defined as:
+#
+#		list[char] <--  $(char.<T>)
 #
 # Usage:
 #
-# 	make -f .project/make/lib.expr.mak word.pack word.unpack chars.split
+# 	make -f .project/make/lib.generics.mak generics
 #
 #===============================================================================
 ifeq "$(filter lib.mak,$(notdir $(MAKEFILE_LIST)))" ""
@@ -139,20 +145,25 @@ override expr.word.pack.<T> = $(strip $(foreach T,$1, \
 	$(foreach var,$($0.locals),$(call var.set,override,$(var),{str},$e)) \
 ))
 
-# Type-Specific Overrides
-override expr.word.pack.{int} = $(call expr.subst,+,,$(call expr.word.pack.<T>,$1,$2))
-override expr.word.pack.[int] = $(expr.word.pack.{int})
-
-override expr.word.pack.{path} = $(strip \
+# Type-Specific Overrides ------------------------------------------------------
+override expr.word.pack.{int}    = $(call expr.subst,+,,$(call expr.word.pack.<T>,$1,$2))
+override expr.word.pack.{uint}   = $(call $(if $2,expr.call,expr.var),word.pack.{int},$2)
+override expr.word.pack.{idx}    = $(call $(if $2,expr.call,expr.var),word.pack.{int},$2)
+override expr.word.pack.{char}   = $(call $(if $2,expr.call,expr.var),word.pack.{str},$2)
+override expr.word.pack.{expr}   = $(call $(if $2,expr.call,expr.var),word.pack.{str},$2)
+override expr.word.pack.{origin} = $(call $(if $2,expr.call,expr.var),word.pack.{list},$2)
+override expr.word.pack.{flavor} = $(call $(if $2,expr.call,expr.var),word.pack.{alpha},$2)
+override expr.word.pack.{type}   = $(call $(if $2,expr.call,expr.var),word.pack.{word},$2)
+override expr.word.pack.{path}   = $(strip \
 	$(call expr.subst.list2list,$(call expr.strip,$(call expr.subst.list2list,$(call expr.word.pack.<T>,$1,$2),\
-		$$b      \\    \[   \]   \$$s  \   $$t   $$n    / 	,\
-		  \  $$b$$b  $$b[ $$b] $$b$$s  /  $$xt  $$xn  $$s 	 \
+		$$b      \\    \[   \]   \$$s    $$s  \   $$t   $$n    / 	,\
+		  \  $$b$$b  $$b[ $$b] $$b$$s $$b$$s  /  $$xt  $$xn  $$s 	 \
 	)), \
 		$$s  $$xn  $$xt 	,\
 		  /   $$n   $$t 	\
 	) \
 )
-override expr.word.pack.[path]      = $(expr.word.pack.{path})
+
 
 
 
@@ -175,6 +186,15 @@ override expr.word.unpack.<T> = $(strip $(foreach T,$1, \
 	$(foreach var,$($0.locals),$(call var.set,override,$(var),{str},$e)) \
 ))
 
+# Type-Specific Overrides ------------------------------------------------------
+override expr.word.unpack.{char}   = $(call $(if $2,expr.call,expr.var),word.unpack.{str},$2)
+override expr.word.unpack.{expr}   = $(call $(if $2,expr.call,expr.var),word.unpack.{str},$2)
+override expr.word.unpack.{idx}    = $(call $(if $2,expr.call,expr.var),word.unpack.{int},$2)
+override expr.word.unpack.{origin} = $(call $(if $2,expr.call,expr.var),word.unpack.{list},$2)
+override expr.word.unpack.{flavor} = $(call $(if $2,expr.call,expr.var),word.unpack.{alpha},$2)
+override expr.word.unpack.{type}   = $(call $(if $2,expr.call,expr.var),word.unpack.{word},$2)
+
+
 
 
 #-------------------------------------------------------------------------------
@@ -196,7 +216,14 @@ override expr.chars.split.<T> = $(strip $(foreach T,$1, \
 	$(foreach var,$($0.locals),$(call var.set,override,$(var),{str},$e)) \
 ))
 
-
+# Type-Specific Overrides ------------------------------------------------------
+override expr.chars.split.{digit}  = $(or $2,$$1)
+override expr.chars.split.{char}   = $(or $2,$$1)
+override expr.chars.split.{expr}   = $(call $(if $2,expr.call,expr.var),chars.split.{str},$2)
+override expr.chars.split.{idx}    = $(call $(if $2,expr.call,expr.var),chars.split.{int},$2)
+override expr.chars.split.{origin} = $(call $(if $2,expr.call,expr.var),chars.split.{list},$2)
+override expr.chars.split.{flavor} = $(call $(if $2,expr.call,expr.var),chars.split.{alpha},$2)
+override expr.chars.split.{type}   = $(call $(if $2,expr.call,expr.var),chars.split.{word},$2)
 
 
 

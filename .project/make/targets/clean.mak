@@ -136,7 +136,7 @@ clean.remove.dirs ?=
 
 # Help text
 $(call help.targets.define,clean.remove.dirs,\
-	$(empty)\
+	$(char.empty)\
 	,\
 	Removes each file in $$$$($$@.files).$n\
 	Removes each directory in $$$$($$@.dirs).$n\

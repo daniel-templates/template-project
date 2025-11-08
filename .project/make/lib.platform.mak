@@ -346,7 +346,7 @@ $(foreach prop,$(filter-out name print,$(shell.properties)),$(eval shell.$(prop)
 #-----------------------------------------------------------
 # $(call shell.names.define,{shell_name},{shell_type})
 #-----------------------------------------------------------
-shell.names := $(empty)
+shell.names := $(char.empty)
 define shell.names.define
 $(eval shell.names += $1)
 $(eval shell.names.$1.type := $(or $2,$(error Empty shell_type in definition of '$1')))
@@ -508,7 +508,7 @@ $(call shell.names.define,python,python)
 #-----------------------------------------------------------
 # $(call shell.types.define,{name})
 #-----------------------------------------------------------
-shell.types := $(empty)
+shell.types := $(char.empty)
 define shell.types.define
 $(eval shell.types += $1)
 $(eval shell.types.$1.isactive = $$(if $$(filter $1,$$(shell.type)),$(TRUE.m),$(FALSE.m)))

@@ -137,7 +137,7 @@ init: $(init.prereqs.normal) | $(init.prereqs.orderonly)
 
 ## Help Text
 #$(call help.targets.define,init.create,\
-#	$(empty)\
+#	$(char.empty)\
 #	,\
 #	For each directory listed in $$$$($$@.dirs):$n\
 #	$$(line.indent)1. Creates directory$$c if it doesn't already exist.$n\

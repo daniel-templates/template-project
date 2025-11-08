@@ -135,7 +135,7 @@ git.gitconfig.hooksdir ?= .project/git/hooks
 
 # Help Text
 $(call help.targets.define,git.gitconfig,\
-	$(empty)\
+	$(char.empty)\
 	,\
 	Sets Git property "include.path" to ../$$$$($$@.file).$n\
 	Also sets executable bit on files in $$$$($$@.hooksdir).$n\
@@ -169,7 +169,7 @@ git.gitignore.commitmsg ?= $(if $(commitmsg),$(commitmsg),Updated file tracking 
 
 # Help Text
 $(call help.targets.define,git.gitignore,\
-	$(empty)\
+	$(char.empty)\
 	,\
 	Untrack files identified in the repo's .gitignore.$n\
 	$n\
@@ -215,7 +215,7 @@ git.gitattributes.commitmsg ?= $(if $(commitmsg),$(commitmsg),Reencoded files ac
 
 # Help Text
 $(call help.targets.define,git.gitattributes,\
-	$(empty)\
+	$(char.empty)\
 	,\
 	Reencode files according to the repo's .gitattributes.$n\
 	$n\
@@ -266,7 +266,7 @@ git.require.no-uncommitted-changes.prereqs = $(git.require.no-uncommitted-change
 
 # Help Text
 $(call help.targets.define,git.require.no-uncommitted-changes,\
-	$(empty)\
+	$(char.empty)\
 	,\
 	Terminates make with an error message if repository contains$n\
 	unstaged changes$$c or staged but uncommitted changes.$n\
