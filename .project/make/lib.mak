@@ -95,24 +95,13 @@ override char.gt     := >
 override char.sol    := /
 override char.quest  := ?
 
-# Character Sets ====================== type: {list{char}}
-override char.lowers      := a b c d e f g h i j k l m n o p q r s t u v w x y z
-override char.uppers      := A B C D E F G H I J K L M N O P Q R S T U V W X Y Z
-override char.digits      := 0 1 2 3 4 5 6 7 8 9
-override char.symbols     := ` ~ ! @ \# $$ % ^ & * ( ) - _ = + [ ] { } \ | ; : ' " , . < > / ?
-override char.nonws       := $(char.lowers) $(char.uppers) $(char.digits) $(char.symbols)
-override char.vars        := $(char.lowers) $(char.uppers) $(char.digits) $(filter-out = :,$(char.symbols))
-override char.alphanums   := $(char.lowers) $(char.uppers) $(char.digits)
-override char.letters     := $(char.lowers) $(char.uppers)
-
-# Aliases for Common Sequences ======== type: [str]
+# Aliases for Common Sequences ======== type: [char]
 override e    := $(empty)#         $e --> [empty]             Empty string
 override s    := $(char.space)#    $s --> {space}             Space char
 override t    := $(char.tab)#      $t --> {tab}               Tab char
 override n    := $(char.linefeed)# $n --> {lf}                Linefeed char
 override x    := $(char.dollar)#   $x --> '$'                 Expansion operator
 override c    := $(char.comma)#    $c --> ','                 Comma (Argument Separator)
-override h    := $(char.tilde)#    $h --> '~'                 On Unixy platforms, represents the user's $(HOME) directory when placed at the start of the path.
 override g    := $(char.num)#      $g --> '#'                 Makefile comment
 override l    := $(char.lparen)#   $l --> '('                 L Paren
 override r    := $(char.rparen)#   $r --> ')'                 R Paren
@@ -120,151 +109,47 @@ override j    := $(char.lcub)#     $j --> '{'                 L Brace
 override k    := $(char.rcub)#     $k --> '}'                 R Brace
 override f    := $(char.sol)#      $f --> '/'                 Forward Slash
 override b    := $(char.bsol)#     $b --> '\'                 Backslash (required to escape certain characters in paths and patterns)
-override p    := $(char.percnt)#   $p --> '%'                 Wildcard for $(patsubst), $(filter), etc. (type: word.pattern); Matches 0 or more characters in a [word].
-override q    := $(char.quest)#    $q --> '?'                 Wildcard for $(wildcard), file targets, prereqs, etc. (type: path.pattern); Matches 1 char in a [path].
-override u    := $(char.lsqb)#     $u --> '['                 Wildcard for $(wildcard), file targets, prereqs, etc. (type: path.pattern); Matches 1 from the set of chars [...] in a path.
-override v    := $(char.rsqb)#     $v --> ']'                 Wildcard for $(wildcard), file targets, prereqs, etc. (type: path.pattern); Matches 1 from the set of chars [...] in a path.
-override w    := $(char.ast)#      $w --> '*'                 Wildcard for $(wildcard), file targets, prereqs, etc. (type: path.pattern); Matches 0 or more chars in a [path].
-override ns   := $n$s#          $(ns) --> {lf}{space}         The string when a user passes a multiline string to a function by typing '$n\' at the end of a line.
-override bs   := $b$s#          $(bs) --> '\ '                Escape sequence for {space} in [path], [path.pattern].
-override bg   := $b$g#          $(bg) --> '\#'                Escape sequence for '#'
-override bb   := $b$b#          $(bb) --> '\\'                Escape sequence for '\' in [word.pattern]
-override bp   := $b$p#          $(bp) --> '\%'                Escape sequence for '%' in [word.pattern]
-override bu   := $b$u#          $(bu) --> '\['                Escape sequence for '[' in [path.pattern]
-override bv   := $b$v#          $(bv) --> '\]'                Escape sequence for ']' in [path.pattern]
-override xe   := $xe#           $(xe) --> '$e' --> [empty]    Word-packed [empty].
-override xs   := $xs#           $(xs) --> '$s' --> {space}    Word-packed {space}.
-override xt   := $xt#           $(xt) --> '$t' --> {tab}      Word-packed {tab}.
-override xn   := $xn#           $(xn) --> '$n' --> {lf}       Word-packed {linefeed}.
-override xx   := $xx#           $(xx) --> '$x' --> '$'        Word-packed '$'.
-override xc   := $xc#           $(xc) --> '$c' --> ','        Word-packed ','.
-override xh   := $xh#           $(xh) --> '$h' --> '~'        Word-packed '~'.
-override xg   := $xg#           $(xg) --> '$g' --> '#'        Word-packed '#'.
-override xl   := $xl#           $(xl) --> '$l' --> '('        Word-packed '('.
-override xr   := $xr#           $(xr) --> '$r' --> ')'        Word-packed ')'.
-override xj   := $xj#           $(xj) --> '$j' --> '{'        Word-packed '{'.
-override xk   := $xk#           $(xk) --> '$k' --> '}'        Word-packed '}'.
-override xf   := $xf#           $(xf) --> '$f' --> '/'        Word-packed '\'.
-override xb   := $xb#           $(xb) --> '$b' --> '\'        Word-packed '\'.
-override xp   := $xp#           $(xp) --> '$p' --> '%'        Word-packed '%'.
-override xq   := $xq#           $(xq) --> '$q' --> '?'        Word-packed '?'.
-override xu   := $xu#           $(xu) --> '$u' --> '['        Word-packed '['.
-override xv   := $xv#           $(xv) --> '$v' --> ']'        Word-packed ']'.
-override xw   := $xw#           $(xw) --> '$w' --> '*'        Word-packed '*'.
-override xnxs := $xn$xs#      $(xnxs) --> '$n$s' --> {lf}' '  Word-packed {lf}{space}
-override xbxs := $xb$xs#      $(xbxs) --> '$b$s' --> '\ '     Word-packed '\ '
-override xbxg := $xb$xg#      $(xbxg) --> '$b$g' --> '\#'     Word-packed '\#'
-override xbxb := $xb$xb#      $(xbxb) --> '$b$b' --> '\\'     Word-packed '\\'
-override xbxp := $xb$xp#      $(xbxp) --> '$b$p' --> '\%'     Word-packed '\%'
-override xbxu := $xb$xu#      $(xbxu) --> '$b$u' --> '\['     Word-packed '\['
-override xbxv := $xb$xv#      $(xbxv) --> '$b$v' --> '\]'     Word-packed '\]'
+override p    := $(char.percnt)#   $p --> '%'                 Wildcard for $(patsubst), $(filter), etc. (type: word); Matches 0 or more characters in a [word].
+override q    := $(char.quest)#    $q --> '?'                 Wildcard for $(wildcard), file targets, prereqs, etc. (type: path); Matches 1 char in a [path].
+override u    := $(char.lsqb)#     $u --> '['                 Wildcard for $(wildcard), file targets, prereqs, etc. (type: path); Matches 1 from the set of chars [...] in a path.
+override v    := $(char.rsqb)#     $v --> ']'                 Wildcard for $(wildcard), file targets, prereqs, etc. (type: path); Matches 1 from the set of chars [...] in a path.
+override w    := $(char.ast)#      $w --> '*'                 Wildcard for $(wildcard), file targets, prereqs, etc. (type: path); Matches 0 or more chars in a [path].
 
-# TODO: Update 'xbb' etc in lib.mak.md
 
-# Character Namespaces ================ type: {ns{char}}
-override char.vars.symbols := char.grave char.tilde char.excl char.commat char.num \
-  char.dollar char.percnt char.hat char.amp char.ast char.lparen char.rparen \
-  char.hyphen char.lowbar char.equals char.plus char.lsqb char.rsqb char.lcub \
-  char.rcub char.bsol char.verbar char.semi char.colon char.apos char.quot \
-  char.comma char.period char.lt char.gt char.sol char.quest
-override char.vars.ws := char.space char.tab char.linefeed
+# Character Sets ====================== type: list[char]
+override char.lowers     := a b c d e f g h i j k l m n o p q r s t u v w x y z
+override char.uppers     := A B C D E F G H I J K L M N O P Q R S T U V W X Y Z
+override char.digits     := 0 1 2 3 4 5 6 7 8 9
+#                                     #   $           (   )               {   }   \             ,
+override char.symbols    := ` ~ ! @ $$g $$x % ^ & * $$l $$r - _ = + [ ] $$j $$k $$b | ; : ' " $$c . < > / ?
+#                         space tab newline
+override char.whitespace := $$s $$t $$n
+
+override char.{str}      := $(char.lowers) $(char.uppers) $(char.digits) $(char.whitespace) $(char.symbols)
+override char.{line}     := $(char.lowers) $(char.uppers) $(char.digits) $$s $$t            $(char.symbols)
+override char.{word}     := $(char.lowers) $(char.uppers) $(char.digits)                    $(char.symbols)
+override char.{var}      := $(char.lowers) $(char.uppers) $(char.digits) $(char.whitespace) $(filter-out : =,$(char.symbols))
+override char.{int}      :=                               $(char.digits)                    + -
+override char.{path}     := $(char.lowers) $(char.uppers) $(char.digits) $$s                $(filter-out < > | & ",$(char.symbols))
+override char.{expr}     := $(char.lowers) $(char.uppers) $(char.digits) $(char.whitespace) $(char.symbols)
+
 
 #-------------------------------------------------------------------------------
-# [word{T}] <-- $(call type.{T}.word.pack,[T:val])
-# [T]       <-- $(call type.{T}.word.unpack,[word[T]:packed_val])
-# [pad]     <-- $(call type.{T}.pad.pack,[T:val])
-#
-# Low-level type conversion functions. Not intended for general use.
-# DO NOT MODIFY: These definitions are auto-generated. See 'lib.types.mak' for details.
+# chars.split           	[list{char}] <-- $(call chars.split,[type:T],[T:val])
 #-------------------------------------------------------------------------------
-# <lib.types.mak>
-override type.{str}.word.pack = $(subst $n,$(xn),$(subst $t,$(xt),$(subst $b,$(xb),$(subst $s,$(xs),$(subst $v,$(xv),$(subst $u,$(xu),$(subst $p,$(xp),$(subst $x,$(xx),$1))))))))
-override type.{str}.word.unpack = $(subst $(xx),$x,$(subst $(xp),$p,$(subst $(xu),$u,$(subst $(xv),$v,$(subst $(xs),$s,$(subst $(xb),$b,$(subst $(xt),$t,$(subst $(xn),$n,$1))))))))
-override type.{str}.pad.pack = $(subst ?,.,$(subst /,.,$(subst >,.,$(subst <,.,$(subst .,.,$(subst $c,.,$(subst ",.,$(subst ',.,$(subst :,.,$(subst ;,.,$(subst |,.,$(subst $b,.,$(subst $k,.,$(subst $j,.,$(subst $v,.,$(subst $u,.,$(subst +,.,$(subst =,.,$(subst _,.,$(subst -,.,$(subst $r,.,$(subst $l,.,$(subst *,.,$(subst &,.,$(subst ^,.,$(subst $p,.,$(subst $x,.,$(subst #,.,$(subst @,.,$(subst !,.,$(subst ~,.,$(subst `,.,$(subst 9,.,$(subst 8,.,$(subst 7,.,$(subst 6,.,$(subst 5,.,$(subst 4,.,$(subst 3,.,$(subst 2,.,$(subst 1,.,$(subst 0,.,$(subst Z,.,$(subst Y,.,$(subst X,.,$(subst W,.,$(subst V,.,$(subst U,.,$(subst T,.,$(subst S,.,$(subst R,.,$(subst Q,.,$(subst P,.,$(subst O,.,$(subst N,.,$(subst M,.,$(subst L,.,$(subst K,.,$(subst J,.,$(subst I,.,$(subst H,.,$(subst G,.,$(subst F,.,$(subst E,.,$(subst D,.,$(subst C,.,$(subst B,.,$(subst A,.,$(subst z,.,$(subst y,.,$(subst x,.,$(subst w,.,$(subst v,.,$(subst u,.,$(subst t,.,$(subst s,.,$(subst r,.,$(subst q,.,$(subst p,.,$(subst o,.,$(subst n,.,$(subst m,.,$(subst l,.,$(subst k,.,$(subst j,.,$(subst i,.,$(subst h,.,$(subst g,.,$(subst f,.,$(subst e,.,$(subst d,.,$(subst c,.,$(subst b,.,$(subst a,.,$(subst $n,.,$(subst $t,.,$(subst $s,.,$1)))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))
+override chars.split = $(if $1,$(if $2,$(call chars.split.{$(patsubst [%],%,$(1:{%}=%))},$2)),$2)
 
-override type.{str.pattern}.word.pack = $(subst $n,$(xn),$(subst $t,$(xt),$(subst $b,$(xb),$(subst $s,$(xs),$(subst $v,$(xv),$(subst $u,$(xu),$(subst $(bp),$(xbxp),$(subst $x,$(xx),$1))))))))
-override type.{str.pattern}.word.unpack = $(subst $(xx),$x,$(subst $(xp),$p,$(subst $(xu),$u,$(subst $(xv),$v,$(subst $(xs),$s,$(subst $(xb),$b,$(subst $(xt),$t,$(subst $(xn),$n,$1))))))))
-override type.{str.pattern}.pad.pack = $(subst ?,.,$(subst /,.,$(subst >,.,$(subst <,.,$(subst .,.,$(subst $c,.,$(subst ",.,$(subst ',.,$(subst :,.,$(subst ;,.,$(subst |,.,$(subst $b,.,$(subst $k,.,$(subst $j,.,$(subst $v,.,$(subst $u,.,$(subst +,.,$(subst =,.,$(subst _,.,$(subst -,.,$(subst $r,.,$(subst $l,.,$(subst *,.,$(subst &,.,$(subst ^,.,$(subst $p,.,$(subst $x,.,$(subst #,.,$(subst @,.,$(subst !,.,$(subst ~,.,$(subst `,.,$(subst 9,.,$(subst 8,.,$(subst 7,.,$(subst 6,.,$(subst 5,.,$(subst 4,.,$(subst 3,.,$(subst 2,.,$(subst 1,.,$(subst 0,.,$(subst Z,.,$(subst Y,.,$(subst X,.,$(subst W,.,$(subst V,.,$(subst U,.,$(subst T,.,$(subst S,.,$(subst R,.,$(subst Q,.,$(subst P,.,$(subst O,.,$(subst N,.,$(subst M,.,$(subst L,.,$(subst K,.,$(subst J,.,$(subst I,.,$(subst H,.,$(subst G,.,$(subst F,.,$(subst E,.,$(subst D,.,$(subst C,.,$(subst B,.,$(subst A,.,$(subst z,.,$(subst y,.,$(subst x,.,$(subst w,.,$(subst v,.,$(subst u,.,$(subst t,.,$(subst s,.,$(subst r,.,$(subst q,.,$(subst p,.,$(subst o,.,$(subst n,.,$(subst m,.,$(subst l,.,$(subst k,.,$(subst j,.,$(subst i,.,$(subst h,.,$(subst g,.,$(subst f,.,$(subst e,.,$(subst d,.,$(subst c,.,$(subst b,.,$(subst a,.,$(subst $n,.,$(subst $t,.,$(subst $s,.,$1)))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))
+# <lib.generics.mak>
+override chars.split.{expr} = $(strip $(subst ~,~$s,$(subst |,|$s,$(subst z,z$s,$(subst y,y$s,$(subst x,x$s,$(subst w,w$s,$(subst v,v$s,$(subst u,u$s,$(subst t,t$s,$(subst s,s$s,$(subst r,r$s,$(subst q,q$s,$(subst p,p$s,$(subst o,o$s,$(subst n,n$s,$(subst m,m$s,$(subst l,l$s,$(subst k,k$s,$(subst j,j$s,$(subst i,i$s,$(subst h,h$s,$(subst g,g$s,$(subst f,f$s,$(subst e,e$s,$(subst d,d$s,$(subst c,c$s,$(subst b,b$s,$(subst a,a$s,$(subst `,`$s,$(subst _,_$s,$(subst ^,^$s,$(subst ],]$s,$(subst [,[$s,$(subst Z,Z$s,$(subst Y,Y$s,$(subst X,X$s,$(subst W,W$s,$(subst V,V$s,$(subst U,U$s,$(subst T,T$s,$(subst S,S$s,$(subst R,R$s,$(subst Q,Q$s,$(subst P,P$s,$(subst O,O$s,$(subst N,N$s,$(subst M,M$s,$(subst L,L$s,$(subst K,K$s,$(subst J,J$s,$(subst I,I$s,$(subst H,H$s,$(subst G,G$s,$(subst F,F$s,$(subst E,E$s,$(subst D,D$s,$(subst C,C$s,$(subst B,B$s,$(subst A,A$s,$(subst @,@$s,$(subst ?,?$s,$(subst >,>$s,$(subst =,=$s,$(subst <,<$s,$(subst ;,;$s,$(subst :,:$s,$(subst 9,9$s,$(subst 8,8$s,$(subst 7,7$s,$(subst 6,6$s,$(subst 5,5$s,$(subst 4,4$s,$(subst 3,3$s,$(subst 2,2$s,$(subst 1,1$s,$(subst 0,0$s,$(subst /,/$s,$(subst .,.$s,$(subst -,-$s,$(subst +,+$s,$(subst *,*$s,$(subst ','$s,$(subst &,&$s,$(subst %,%$s,$(subst ","$s,$(subst !,!$s,$(subst $$t,$$t$s,$(subst $$s,$$s$s,$(subst $$r,$$r$s,$(subst $$n,$$n$s,$(subst $$l,$$l$s,$(subst $$k,$$k$s,$(subst $$j,$$j$s,$(subst $$g,$$g$s,$(subst $$c,$$c$s,$(subst $$b,$$b$s,$(subst $$x,$$x$s,$(call word.pack.{expr},$1)))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))
+override chars.split.{int} = $(strip $(subst 9,9$s,$(subst 8,8$s,$(subst 7,7$s,$(subst 6,6$s,$(subst 5,5$s,$(subst 4,4$s,$(subst 3,3$s,$(subst 2,2$s,$(subst 1,1$s,$(subst 0,0$s,$(subst -,-$s,$(subst +,+$s,$(call word.pack.{int},$1))))))))))))))
+override chars.split.{line} = $(strip $(subst ~,~$s,$(subst |,|$s,$(subst z,z$s,$(subst y,y$s,$(subst x,x$s,$(subst w,w$s,$(subst v,v$s,$(subst u,u$s,$(subst t,t$s,$(subst s,s$s,$(subst r,r$s,$(subst q,q$s,$(subst p,p$s,$(subst o,o$s,$(subst n,n$s,$(subst m,m$s,$(subst l,l$s,$(subst k,k$s,$(subst j,j$s,$(subst i,i$s,$(subst h,h$s,$(subst g,g$s,$(subst f,f$s,$(subst e,e$s,$(subst d,d$s,$(subst c,c$s,$(subst b,b$s,$(subst a,a$s,$(subst `,`$s,$(subst _,_$s,$(subst ^,^$s,$(subst ],]$s,$(subst [,[$s,$(subst Z,Z$s,$(subst Y,Y$s,$(subst X,X$s,$(subst W,W$s,$(subst V,V$s,$(subst U,U$s,$(subst T,T$s,$(subst S,S$s,$(subst R,R$s,$(subst Q,Q$s,$(subst P,P$s,$(subst O,O$s,$(subst N,N$s,$(subst M,M$s,$(subst L,L$s,$(subst K,K$s,$(subst J,J$s,$(subst I,I$s,$(subst H,H$s,$(subst G,G$s,$(subst F,F$s,$(subst E,E$s,$(subst D,D$s,$(subst C,C$s,$(subst B,B$s,$(subst A,A$s,$(subst @,@$s,$(subst ?,?$s,$(subst >,>$s,$(subst =,=$s,$(subst <,<$s,$(subst ;,;$s,$(subst :,:$s,$(subst 9,9$s,$(subst 8,8$s,$(subst 7,7$s,$(subst 6,6$s,$(subst 5,5$s,$(subst 4,4$s,$(subst 3,3$s,$(subst 2,2$s,$(subst 1,1$s,$(subst 0,0$s,$(subst /,/$s,$(subst .,.$s,$(subst -,-$s,$(subst +,+$s,$(subst *,*$s,$(subst ','$s,$(subst &,&$s,$(subst %,%$s,$(subst ","$s,$(subst !,!$s,$(subst $$t,$$t$s,$(subst $$s,$$s$s,$(subst $$r,$$r$s,$(subst $$l,$$l$s,$(subst $$k,$$k$s,$(subst $$j,$$j$s,$(subst $$g,$$g$s,$(subst $$c,$$c$s,$(subst $$b,$$b$s,$(subst $$x,$$x$s,$(call word.pack.{line},$1))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))
+override chars.split.{path} = $(strip $(subst ~,~$s,$(subst z,z$s,$(subst y,y$s,$(subst x,x$s,$(subst w,w$s,$(subst v,v$s,$(subst u,u$s,$(subst t,t$s,$(subst s,s$s,$(subst r,r$s,$(subst q,q$s,$(subst p,p$s,$(subst o,o$s,$(subst n,n$s,$(subst m,m$s,$(subst l,l$s,$(subst k,k$s,$(subst j,j$s,$(subst i,i$s,$(subst h,h$s,$(subst g,g$s,$(subst f,f$s,$(subst e,e$s,$(subst d,d$s,$(subst c,c$s,$(subst b,b$s,$(subst a,a$s,$(subst `,`$s,$(subst _,_$s,$(subst ^,^$s,$(subst ],]$s,$(subst [,[$s,$(subst Z,Z$s,$(subst Y,Y$s,$(subst X,X$s,$(subst W,W$s,$(subst V,V$s,$(subst U,U$s,$(subst T,T$s,$(subst S,S$s,$(subst R,R$s,$(subst Q,Q$s,$(subst P,P$s,$(subst O,O$s,$(subst N,N$s,$(subst M,M$s,$(subst L,L$s,$(subst K,K$s,$(subst J,J$s,$(subst I,I$s,$(subst H,H$s,$(subst G,G$s,$(subst F,F$s,$(subst E,E$s,$(subst D,D$s,$(subst C,C$s,$(subst B,B$s,$(subst A,A$s,$(subst @,@$s,$(subst ?,?$s,$(subst =,=$s,$(subst ;,;$s,$(subst :,:$s,$(subst 9,9$s,$(subst 8,8$s,$(subst 7,7$s,$(subst 6,6$s,$(subst 5,5$s,$(subst 4,4$s,$(subst 3,3$s,$(subst 2,2$s,$(subst 1,1$s,$(subst 0,0$s,$(subst /,/$s,$(subst .,.$s,$(subst -,-$s,$(subst +,+$s,$(subst *,*$s,$(subst ','$s,$(subst %,%$s,$(subst !,!$s,$(subst $$s,$$s$s,$(subst $$r,$$r$s,$(subst $$l,$$l$s,$(subst $$k,$$k$s,$(subst $$j,$$j$s,$(subst $$g,$$g$s,$(subst $$c,$$c$s,$(subst $$b,$$b$s,$(subst $$x,$$x$s,$(call word.pack.{path},$1))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))
+override chars.split.{str} = $(strip $(subst ~,~$s,$(subst |,|$s,$(subst z,z$s,$(subst y,y$s,$(subst x,x$s,$(subst w,w$s,$(subst v,v$s,$(subst u,u$s,$(subst t,t$s,$(subst s,s$s,$(subst r,r$s,$(subst q,q$s,$(subst p,p$s,$(subst o,o$s,$(subst n,n$s,$(subst m,m$s,$(subst l,l$s,$(subst k,k$s,$(subst j,j$s,$(subst i,i$s,$(subst h,h$s,$(subst g,g$s,$(subst f,f$s,$(subst e,e$s,$(subst d,d$s,$(subst c,c$s,$(subst b,b$s,$(subst a,a$s,$(subst `,`$s,$(subst _,_$s,$(subst ^,^$s,$(subst ],]$s,$(subst [,[$s,$(subst Z,Z$s,$(subst Y,Y$s,$(subst X,X$s,$(subst W,W$s,$(subst V,V$s,$(subst U,U$s,$(subst T,T$s,$(subst S,S$s,$(subst R,R$s,$(subst Q,Q$s,$(subst P,P$s,$(subst O,O$s,$(subst N,N$s,$(subst M,M$s,$(subst L,L$s,$(subst K,K$s,$(subst J,J$s,$(subst I,I$s,$(subst H,H$s,$(subst G,G$s,$(subst F,F$s,$(subst E,E$s,$(subst D,D$s,$(subst C,C$s,$(subst B,B$s,$(subst A,A$s,$(subst @,@$s,$(subst ?,?$s,$(subst >,>$s,$(subst =,=$s,$(subst <,<$s,$(subst ;,;$s,$(subst :,:$s,$(subst 9,9$s,$(subst 8,8$s,$(subst 7,7$s,$(subst 6,6$s,$(subst 5,5$s,$(subst 4,4$s,$(subst 3,3$s,$(subst 2,2$s,$(subst 1,1$s,$(subst 0,0$s,$(subst /,/$s,$(subst .,.$s,$(subst -,-$s,$(subst +,+$s,$(subst *,*$s,$(subst ','$s,$(subst &,&$s,$(subst %,%$s,$(subst ","$s,$(subst !,!$s,$(subst $$t,$$t$s,$(subst $$s,$$s$s,$(subst $$r,$$r$s,$(subst $$n,$$n$s,$(subst $$l,$$l$s,$(subst $$k,$$k$s,$(subst $$j,$$j$s,$(subst $$g,$$g$s,$(subst $$c,$$c$s,$(subst $$b,$$b$s,$(subst $$x,$$x$s,$(call word.pack.{str},$1)))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))
+override chars.split.{var} = $(strip $(subst ~,~$s,$(subst |,|$s,$(subst z,z$s,$(subst y,y$s,$(subst x,x$s,$(subst w,w$s,$(subst v,v$s,$(subst u,u$s,$(subst t,t$s,$(subst s,s$s,$(subst r,r$s,$(subst q,q$s,$(subst p,p$s,$(subst o,o$s,$(subst n,n$s,$(subst m,m$s,$(subst l,l$s,$(subst k,k$s,$(subst j,j$s,$(subst i,i$s,$(subst h,h$s,$(subst g,g$s,$(subst f,f$s,$(subst e,e$s,$(subst d,d$s,$(subst c,c$s,$(subst b,b$s,$(subst a,a$s,$(subst `,`$s,$(subst _,_$s,$(subst ^,^$s,$(subst ],]$s,$(subst [,[$s,$(subst Z,Z$s,$(subst Y,Y$s,$(subst X,X$s,$(subst W,W$s,$(subst V,V$s,$(subst U,U$s,$(subst T,T$s,$(subst S,S$s,$(subst R,R$s,$(subst Q,Q$s,$(subst P,P$s,$(subst O,O$s,$(subst N,N$s,$(subst M,M$s,$(subst L,L$s,$(subst K,K$s,$(subst J,J$s,$(subst I,I$s,$(subst H,H$s,$(subst G,G$s,$(subst F,F$s,$(subst E,E$s,$(subst D,D$s,$(subst C,C$s,$(subst B,B$s,$(subst A,A$s,$(subst @,@$s,$(subst ?,?$s,$(subst >,>$s,$(subst <,<$s,$(subst ;,;$s,$(subst 9,9$s,$(subst 8,8$s,$(subst 7,7$s,$(subst 6,6$s,$(subst 5,5$s,$(subst 4,4$s,$(subst 3,3$s,$(subst 2,2$s,$(subst 1,1$s,$(subst 0,0$s,$(subst /,/$s,$(subst .,.$s,$(subst -,-$s,$(subst +,+$s,$(subst *,*$s,$(subst ','$s,$(subst &,&$s,$(subst %,%$s,$(subst ","$s,$(subst !,!$s,$(subst $$t,$$t$s,$(subst $$s,$$s$s,$(subst $$r,$$r$s,$(subst $$n,$$n$s,$(subst $$l,$$l$s,$(subst $$k,$$k$s,$(subst $$j,$$j$s,$(subst $$g,$$g$s,$(subst $$c,$$c$s,$(subst $$b,$$b$s,$(subst $$x,$$x$s,$(call word.pack.{var},$1)))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))
+override chars.split.{word} = $(strip $(subst ~,~$s,$(subst |,|$s,$(subst z,z$s,$(subst y,y$s,$(subst x,x$s,$(subst w,w$s,$(subst v,v$s,$(subst u,u$s,$(subst t,t$s,$(subst s,s$s,$(subst r,r$s,$(subst q,q$s,$(subst p,p$s,$(subst o,o$s,$(subst n,n$s,$(subst m,m$s,$(subst l,l$s,$(subst k,k$s,$(subst j,j$s,$(subst i,i$s,$(subst h,h$s,$(subst g,g$s,$(subst f,f$s,$(subst e,e$s,$(subst d,d$s,$(subst c,c$s,$(subst b,b$s,$(subst a,a$s,$(subst `,`$s,$(subst _,_$s,$(subst ^,^$s,$(subst ],]$s,$(subst [,[$s,$(subst Z,Z$s,$(subst Y,Y$s,$(subst X,X$s,$(subst W,W$s,$(subst V,V$s,$(subst U,U$s,$(subst T,T$s,$(subst S,S$s,$(subst R,R$s,$(subst Q,Q$s,$(subst P,P$s,$(subst O,O$s,$(subst N,N$s,$(subst M,M$s,$(subst L,L$s,$(subst K,K$s,$(subst J,J$s,$(subst I,I$s,$(subst H,H$s,$(subst G,G$s,$(subst F,F$s,$(subst E,E$s,$(subst D,D$s,$(subst C,C$s,$(subst B,B$s,$(subst A,A$s,$(subst @,@$s,$(subst ?,?$s,$(subst >,>$s,$(subst =,=$s,$(subst <,<$s,$(subst ;,;$s,$(subst :,:$s,$(subst 9,9$s,$(subst 8,8$s,$(subst 7,7$s,$(subst 6,6$s,$(subst 5,5$s,$(subst 4,4$s,$(subst 3,3$s,$(subst 2,2$s,$(subst 1,1$s,$(subst 0,0$s,$(subst /,/$s,$(subst .,.$s,$(subst -,-$s,$(subst +,+$s,$(subst *,*$s,$(subst ','$s,$(subst &,&$s,$(subst %,%$s,$(subst ","$s,$(subst !,!$s,$(subst $$r,$$r$s,$(subst $$l,$$l$s,$(subst $$k,$$k$s,$(subst $$j,$$j$s,$(subst $$g,$$g$s,$(subst $$c,$$c$s,$(subst $$b,$$b$s,$(subst $$x,$$x$s,$(call word.pack.{word},$1))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))
+# <\lib.generics.mak>
 
-override type.{list}.word.pack = $(subst $s,$xs,$(strip $(subst $xs,$s,$(subst $n,$(xs),$(subst $t,$(xs),$(subst $b,$(xb),$(subst $s,$(xs),$(subst $v,$(xv),$(subst $u,$(xu),$(subst $p,$(xp),$(subst $x,$(xx),$1)))))))))))
-override type.{list}.word.unpack = $(subst $(xx),$x,$(subst $(xp),$p,$(subst $(xu),$u,$(subst $(xv),$v,$(subst $(xs),$s,$(subst $(xb),$b,$1))))))
-override type.{list}.pad.pack = $(subst ?,.,$(subst /,.,$(subst >,.,$(subst <,.,$(subst .,.,$(subst $c,.,$(subst ",.,$(subst ',.,$(subst :,.,$(subst ;,.,$(subst |,.,$(subst $b,.,$(subst $k,.,$(subst $j,.,$(subst $v,.,$(subst $u,.,$(subst +,.,$(subst =,.,$(subst _,.,$(subst -,.,$(subst $r,.,$(subst $l,.,$(subst *,.,$(subst &,.,$(subst ^,.,$(subst $p,.,$(subst $x,.,$(subst #,.,$(subst @,.,$(subst !,.,$(subst ~,.,$(subst `,.,$(subst 9,.,$(subst 8,.,$(subst 7,.,$(subst 6,.,$(subst 5,.,$(subst 4,.,$(subst 3,.,$(subst 2,.,$(subst 1,.,$(subst 0,.,$(subst Z,.,$(subst Y,.,$(subst X,.,$(subst W,.,$(subst V,.,$(subst U,.,$(subst T,.,$(subst S,.,$(subst R,.,$(subst Q,.,$(subst P,.,$(subst O,.,$(subst N,.,$(subst M,.,$(subst L,.,$(subst K,.,$(subst J,.,$(subst I,.,$(subst H,.,$(subst G,.,$(subst F,.,$(subst E,.,$(subst D,.,$(subst C,.,$(subst B,.,$(subst A,.,$(subst z,.,$(subst y,.,$(subst x,.,$(subst w,.,$(subst v,.,$(subst u,.,$(subst t,.,$(subst s,.,$(subst r,.,$(subst q,.,$(subst p,.,$(subst o,.,$(subst n,.,$(subst m,.,$(subst l,.,$(subst k,.,$(subst j,.,$(subst i,.,$(subst h,.,$(subst g,.,$(subst f,.,$(subst e,.,$(subst d,.,$(subst c,.,$(subst b,.,$(subst a,.,$(subst $n,.,$(subst $t,.,$(subst $s,.,$1)))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))
 
-override type.{list.pattern}.word.pack = $(subst $s,$xs,$(strip $(subst $xs,$s,$(subst $n,$(xs),$(subst $t,$(xs),$(subst $b,$(xb),$(subst $s,$(xs),$(subst $v,$(xv),$(subst $u,$(xu),$(subst $(bp),$(xbxp),$(subst $x,$(xx),$1)))))))))))
-override type.{list.pattern}.word.unpack = $(subst $(xx),$x,$(subst $(xp),$p,$(subst $(xu),$u,$(subst $(xv),$v,$(subst $(xs),$s,$(subst $(xb),$b,$1))))))
-override type.{list.pattern}.pad.pack = $(subst ?,.,$(subst /,.,$(subst >,.,$(subst <,.,$(subst .,.,$(subst $c,.,$(subst ",.,$(subst ',.,$(subst :,.,$(subst ;,.,$(subst |,.,$(subst $b,.,$(subst $k,.,$(subst $j,.,$(subst $v,.,$(subst $u,.,$(subst +,.,$(subst =,.,$(subst _,.,$(subst -,.,$(subst $r,.,$(subst $l,.,$(subst *,.,$(subst &,.,$(subst ^,.,$(subst $p,.,$(subst $x,.,$(subst #,.,$(subst @,.,$(subst !,.,$(subst ~,.,$(subst `,.,$(subst 9,.,$(subst 8,.,$(subst 7,.,$(subst 6,.,$(subst 5,.,$(subst 4,.,$(subst 3,.,$(subst 2,.,$(subst 1,.,$(subst 0,.,$(subst Z,.,$(subst Y,.,$(subst X,.,$(subst W,.,$(subst V,.,$(subst U,.,$(subst T,.,$(subst S,.,$(subst R,.,$(subst Q,.,$(subst P,.,$(subst O,.,$(subst N,.,$(subst M,.,$(subst L,.,$(subst K,.,$(subst J,.,$(subst I,.,$(subst H,.,$(subst G,.,$(subst F,.,$(subst E,.,$(subst D,.,$(subst C,.,$(subst B,.,$(subst A,.,$(subst z,.,$(subst y,.,$(subst x,.,$(subst w,.,$(subst v,.,$(subst u,.,$(subst t,.,$(subst s,.,$(subst r,.,$(subst q,.,$(subst p,.,$(subst o,.,$(subst n,.,$(subst m,.,$(subst l,.,$(subst k,.,$(subst j,.,$(subst i,.,$(subst h,.,$(subst g,.,$(subst f,.,$(subst e,.,$(subst d,.,$(subst c,.,$(subst b,.,$(subst a,.,$(subst $n,.,$(subst $t,.,$(subst $s,.,$1)))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))
-
-override type.{line}.word.pack = $(subst $t,$(xt),$(subst $b,$(xb),$(subst $s,$(xs),$(subst $v,$(xv),$(subst $u,$(xu),$(subst $p,$(xp),$(subst $x,$(xx),$1)))))))
-override type.{line}.word.unpack = $(subst $(xx),$x,$(subst $(xp),$p,$(subst $(xu),$u,$(subst $(xv),$v,$(subst $(xs),$s,$(subst $(xb),$b,$(subst $(xt),$t,$1)))))))
-override type.{line}.pad.pack = $(subst ?,.,$(subst /,.,$(subst >,.,$(subst <,.,$(subst .,.,$(subst $c,.,$(subst ",.,$(subst ',.,$(subst :,.,$(subst ;,.,$(subst |,.,$(subst $b,.,$(subst $k,.,$(subst $j,.,$(subst $v,.,$(subst $u,.,$(subst +,.,$(subst =,.,$(subst _,.,$(subst -,.,$(subst $r,.,$(subst $l,.,$(subst *,.,$(subst &,.,$(subst ^,.,$(subst $p,.,$(subst $x,.,$(subst #,.,$(subst @,.,$(subst !,.,$(subst ~,.,$(subst `,.,$(subst 9,.,$(subst 8,.,$(subst 7,.,$(subst 6,.,$(subst 5,.,$(subst 4,.,$(subst 3,.,$(subst 2,.,$(subst 1,.,$(subst 0,.,$(subst Z,.,$(subst Y,.,$(subst X,.,$(subst W,.,$(subst V,.,$(subst U,.,$(subst T,.,$(subst S,.,$(subst R,.,$(subst Q,.,$(subst P,.,$(subst O,.,$(subst N,.,$(subst M,.,$(subst L,.,$(subst K,.,$(subst J,.,$(subst I,.,$(subst H,.,$(subst G,.,$(subst F,.,$(subst E,.,$(subst D,.,$(subst C,.,$(subst B,.,$(subst A,.,$(subst z,.,$(subst y,.,$(subst x,.,$(subst w,.,$(subst v,.,$(subst u,.,$(subst t,.,$(subst s,.,$(subst r,.,$(subst q,.,$(subst p,.,$(subst o,.,$(subst n,.,$(subst m,.,$(subst l,.,$(subst k,.,$(subst j,.,$(subst i,.,$(subst h,.,$(subst g,.,$(subst f,.,$(subst e,.,$(subst d,.,$(subst c,.,$(subst b,.,$(subst a,.,$(subst $t,.,$(subst $s,.,$1))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))
-
-override type.{line.pattern}.word.pack = $(subst $t,$(xt),$(subst $b,$(xb),$(subst $s,$(xs),$(subst $v,$(xv),$(subst $u,$(xu),$(subst $(bp),$(xbxp),$(subst $x,$(xx),$1)))))))
-override type.{line.pattern}.word.unpack = $(subst $(xx),$x,$(subst $(xp),$p,$(subst $(xu),$u,$(subst $(xv),$v,$(subst $(xs),$s,$(subst $(xb),$b,$(subst $(xt),$t,$1)))))))
-override type.{line.pattern}.pad.pack = $(subst ?,.,$(subst /,.,$(subst >,.,$(subst <,.,$(subst .,.,$(subst $c,.,$(subst ",.,$(subst ',.,$(subst :,.,$(subst ;,.,$(subst |,.,$(subst $b,.,$(subst $k,.,$(subst $j,.,$(subst $v,.,$(subst $u,.,$(subst +,.,$(subst =,.,$(subst _,.,$(subst -,.,$(subst $r,.,$(subst $l,.,$(subst *,.,$(subst &,.,$(subst ^,.,$(subst $p,.,$(subst $x,.,$(subst #,.,$(subst @,.,$(subst !,.,$(subst ~,.,$(subst `,.,$(subst 9,.,$(subst 8,.,$(subst 7,.,$(subst 6,.,$(subst 5,.,$(subst 4,.,$(subst 3,.,$(subst 2,.,$(subst 1,.,$(subst 0,.,$(subst Z,.,$(subst Y,.,$(subst X,.,$(subst W,.,$(subst V,.,$(subst U,.,$(subst T,.,$(subst S,.,$(subst R,.,$(subst Q,.,$(subst P,.,$(subst O,.,$(subst N,.,$(subst M,.,$(subst L,.,$(subst K,.,$(subst J,.,$(subst I,.,$(subst H,.,$(subst G,.,$(subst F,.,$(subst E,.,$(subst D,.,$(subst C,.,$(subst B,.,$(subst A,.,$(subst z,.,$(subst y,.,$(subst x,.,$(subst w,.,$(subst v,.,$(subst u,.,$(subst t,.,$(subst s,.,$(subst r,.,$(subst q,.,$(subst p,.,$(subst o,.,$(subst n,.,$(subst m,.,$(subst l,.,$(subst k,.,$(subst j,.,$(subst i,.,$(subst h,.,$(subst g,.,$(subst f,.,$(subst e,.,$(subst d,.,$(subst c,.,$(subst b,.,$(subst a,.,$(subst $t,.,$(subst $s,.,$1))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))
-
-override type.{word}.word.pack = $(subst $b,$(xb),$(subst $v,$(xv),$(subst $u,$(xu),$(subst $p,$(xp),$(subst $x,$(xx),$1)))))
-override type.{word}.word.unpack = $(subst $(xx),$x,$(subst $(xp),$p,$(subst $(xu),$u,$(subst $(xv),$v,$(subst $(xb),$b,$1)))))
-override type.{word}.pad.pack = $(subst ?,.,$(subst /,.,$(subst >,.,$(subst <,.,$(subst .,.,$(subst $c,.,$(subst ",.,$(subst ',.,$(subst :,.,$(subst ;,.,$(subst |,.,$(subst $b,.,$(subst $k,.,$(subst $j,.,$(subst $v,.,$(subst $u,.,$(subst +,.,$(subst =,.,$(subst _,.,$(subst -,.,$(subst $r,.,$(subst $l,.,$(subst *,.,$(subst &,.,$(subst ^,.,$(subst $p,.,$(subst $x,.,$(subst #,.,$(subst @,.,$(subst !,.,$(subst ~,.,$(subst `,.,$(subst 9,.,$(subst 8,.,$(subst 7,.,$(subst 6,.,$(subst 5,.,$(subst 4,.,$(subst 3,.,$(subst 2,.,$(subst 1,.,$(subst 0,.,$(subst Z,.,$(subst Y,.,$(subst X,.,$(subst W,.,$(subst V,.,$(subst U,.,$(subst T,.,$(subst S,.,$(subst R,.,$(subst Q,.,$(subst P,.,$(subst O,.,$(subst N,.,$(subst M,.,$(subst L,.,$(subst K,.,$(subst J,.,$(subst I,.,$(subst H,.,$(subst G,.,$(subst F,.,$(subst E,.,$(subst D,.,$(subst C,.,$(subst B,.,$(subst A,.,$(subst z,.,$(subst y,.,$(subst x,.,$(subst w,.,$(subst v,.,$(subst u,.,$(subst t,.,$(subst s,.,$(subst r,.,$(subst q,.,$(subst p,.,$(subst o,.,$(subst n,.,$(subst m,.,$(subst l,.,$(subst k,.,$(subst j,.,$(subst i,.,$(subst h,.,$(subst g,.,$(subst f,.,$(subst e,.,$(subst d,.,$(subst c,.,$(subst b,.,$(subst a,.,$1))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))
-
-override type.{word.pattern}.word.pack = $(subst $b,$(xb),$(subst $v,$(xv),$(subst $u,$(xu),$(subst $(bp),$(xbxp),$(subst $x,$(xx),$1)))))
-override type.{word.pattern}.word.unpack = $(subst $(xx),$x,$(subst $(xp),$p,$(subst $(xu),$u,$(subst $(xv),$v,$(subst $(xb),$b,$1)))))
-override type.{word.pattern}.pad.pack = $(subst ?,.,$(subst /,.,$(subst >,.,$(subst <,.,$(subst .,.,$(subst $c,.,$(subst ",.,$(subst ',.,$(subst :,.,$(subst ;,.,$(subst |,.,$(subst $b,.,$(subst $k,.,$(subst $j,.,$(subst $v,.,$(subst $u,.,$(subst +,.,$(subst =,.,$(subst _,.,$(subst -,.,$(subst $r,.,$(subst $l,.,$(subst *,.,$(subst &,.,$(subst ^,.,$(subst $p,.,$(subst $x,.,$(subst #,.,$(subst @,.,$(subst !,.,$(subst ~,.,$(subst `,.,$(subst 9,.,$(subst 8,.,$(subst 7,.,$(subst 6,.,$(subst 5,.,$(subst 4,.,$(subst 3,.,$(subst 2,.,$(subst 1,.,$(subst 0,.,$(subst Z,.,$(subst Y,.,$(subst X,.,$(subst W,.,$(subst V,.,$(subst U,.,$(subst T,.,$(subst S,.,$(subst R,.,$(subst Q,.,$(subst P,.,$(subst O,.,$(subst N,.,$(subst M,.,$(subst L,.,$(subst K,.,$(subst J,.,$(subst I,.,$(subst H,.,$(subst G,.,$(subst F,.,$(subst E,.,$(subst D,.,$(subst C,.,$(subst B,.,$(subst A,.,$(subst z,.,$(subst y,.,$(subst x,.,$(subst w,.,$(subst v,.,$(subst u,.,$(subst t,.,$(subst s,.,$(subst r,.,$(subst q,.,$(subst p,.,$(subst o,.,$(subst n,.,$(subst m,.,$(subst l,.,$(subst k,.,$(subst j,.,$(subst i,.,$(subst h,.,$(subst g,.,$(subst f,.,$(subst e,.,$(subst d,.,$(subst c,.,$(subst b,.,$(subst a,.,$1))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))
-
-override type.{path}.word.pack = $(subst $(xt),$t,$(subst $(xn),$n,$(subst $(xe),,$(subst $s,/,$(strip $(subst /,$s,$(xe)$(subst $n,$(xn),$(subst $t,$(xt),$(subst $b,$f,$(subst $(bb),$(xbxb),$(subst $s,$(xbxs),$(subst $(bs),$(xbxs),$(subst $v,$(xbxv),$(subst $(bv),$(xbxv),$(subst $u,$(xbxu),$(subst $(bu),$(xbxu),$(subst $p,$(xp),$(subst $x,$(xx),$1))))))))))))$(xe)))))))
-override type.{path}.word.unpack = $(subst $(xx),$x,$(subst $(xp),$p,$(subst $(xu),$u,$(subst $(xv),$v,$(subst $(xs),$s,$(subst $(xb),$b,$1))))))
-override type.{path}.pad.pack = $(subst /,.,$(subst .,.,$(subst $c,.,$(subst ',.,$(subst :,.,$(subst ;,.,$(subst $b,.,$(subst $k,.,$(subst $j,.,$(subst $v,.,$(subst $u,.,$(subst +,.,$(subst =,.,$(subst _,.,$(subst -,.,$(subst $r,.,$(subst $l,.,$(subst &,.,$(subst ^,.,$(subst $p,.,$(subst $x,.,$(subst #,.,$(subst @,.,$(subst !,.,$(subst ~,.,$(subst `,.,$(subst 9,.,$(subst 8,.,$(subst 7,.,$(subst 6,.,$(subst 5,.,$(subst 4,.,$(subst 3,.,$(subst 2,.,$(subst 1,.,$(subst 0,.,$(subst Z,.,$(subst Y,.,$(subst X,.,$(subst W,.,$(subst V,.,$(subst U,.,$(subst T,.,$(subst S,.,$(subst R,.,$(subst Q,.,$(subst P,.,$(subst O,.,$(subst N,.,$(subst M,.,$(subst L,.,$(subst K,.,$(subst J,.,$(subst I,.,$(subst H,.,$(subst G,.,$(subst F,.,$(subst E,.,$(subst D,.,$(subst C,.,$(subst B,.,$(subst A,.,$(subst z,.,$(subst y,.,$(subst x,.,$(subst w,.,$(subst v,.,$(subst u,.,$(subst t,.,$(subst s,.,$(subst r,.,$(subst q,.,$(subst p,.,$(subst o,.,$(subst n,.,$(subst m,.,$(subst l,.,$(subst k,.,$(subst j,.,$(subst i,.,$(subst h,.,$(subst g,.,$(subst f,.,$(subst e,.,$(subst d,.,$(subst c,.,$(subst b,.,$(subst a,.,$(subst $s,.,$1)))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))
-
-override type.{path.pattern}.word.pack = $(subst $(xt),$t,$(subst $(xn),$n,$(subst $(xe),,$(subst $s,/,$(strip $(subst /,$s,$(xe)$(subst $n,$(xn),$(subst $t,$(xt),$(subst $b,$f,$(subst $(bb),$(xbxb),$(subst $s,$(xbxs),$(subst $(bs),$(xbxs),$(subst $(bv),$(xbxv),$(subst $(bu),$(xbxu),$(subst $(bp),$(xbxp),$(subst $x,$(xx),$1))))))))))$(xe)))))))
-override type.{path.pattern}.word.unpack = $(subst $(xx),$x,$(subst $(xp),$p,$(subst $(xu),$u,$(subst $(xv),$v,$(subst $(xs),$s,$(subst $(xb),$b,$1))))))
-override type.{path.pattern}.pad.pack = $(subst ?,.,$(subst /,.,$(subst .,.,$(subst $c,.,$(subst ',.,$(subst :,.,$(subst ;,.,$(subst $b,.,$(subst $k,.,$(subst $j,.,$(subst $v,.,$(subst $u,.,$(subst +,.,$(subst =,.,$(subst _,.,$(subst -,.,$(subst $r,.,$(subst $l,.,$(subst *,.,$(subst &,.,$(subst ^,.,$(subst $p,.,$(subst $x,.,$(subst #,.,$(subst @,.,$(subst !,.,$(subst ~,.,$(subst `,.,$(subst 9,.,$(subst 8,.,$(subst 7,.,$(subst 6,.,$(subst 5,.,$(subst 4,.,$(subst 3,.,$(subst 2,.,$(subst 1,.,$(subst 0,.,$(subst Z,.,$(subst Y,.,$(subst X,.,$(subst W,.,$(subst V,.,$(subst U,.,$(subst T,.,$(subst S,.,$(subst R,.,$(subst Q,.,$(subst P,.,$(subst O,.,$(subst N,.,$(subst M,.,$(subst L,.,$(subst K,.,$(subst J,.,$(subst I,.,$(subst H,.,$(subst G,.,$(subst F,.,$(subst E,.,$(subst D,.,$(subst C,.,$(subst B,.,$(subst A,.,$(subst z,.,$(subst y,.,$(subst x,.,$(subst w,.,$(subst v,.,$(subst u,.,$(subst t,.,$(subst s,.,$(subst r,.,$(subst q,.,$(subst p,.,$(subst o,.,$(subst n,.,$(subst m,.,$(subst l,.,$(subst k,.,$(subst j,.,$(subst i,.,$(subst h,.,$(subst g,.,$(subst f,.,$(subst e,.,$(subst d,.,$(subst c,.,$(subst b,.,$(subst a,.,$(subst $s,.,$1)))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))
-
-override type.{paths}.word.pack = $(subst $(xn),$n,$(subst $s,$xs,$(strip $(subst $xs,$s,$(subst $n,$(xn),$(subst $t,$(xs),$(subst $b,$f,$(subst $(bb),$(xbxb),$(subst $s,$(xs),$(subst $(bs),$(xbxs),$(subst $v,$(xbxv),$(subst $(bv),$(xbxv),$(subst $u,$(xbxu),$(subst $(bu),$(xbxu),$(subst $p,$(xp),$(subst $x,$(xx),$1))))))))))))))))
-override type.{paths}.word.unpack = $1
-override type.{paths}.pad.pack = $(subst /,.,$(subst .,.,$(subst $c,.,$(subst ',.,$(subst :,.,$(subst ;,.,$(subst $b,.,$(subst $k,.,$(subst $j,.,$(subst $v,.,$(subst $u,.,$(subst +,.,$(subst =,.,$(subst _,.,$(subst -,.,$(subst $r,.,$(subst $l,.,$(subst &,.,$(subst ^,.,$(subst $p,.,$(subst $x,.,$(subst #,.,$(subst @,.,$(subst !,.,$(subst ~,.,$(subst `,.,$(subst 9,.,$(subst 8,.,$(subst 7,.,$(subst 6,.,$(subst 5,.,$(subst 4,.,$(subst 3,.,$(subst 2,.,$(subst 1,.,$(subst 0,.,$(subst Z,.,$(subst Y,.,$(subst X,.,$(subst W,.,$(subst V,.,$(subst U,.,$(subst T,.,$(subst S,.,$(subst R,.,$(subst Q,.,$(subst P,.,$(subst O,.,$(subst N,.,$(subst M,.,$(subst L,.,$(subst K,.,$(subst J,.,$(subst I,.,$(subst H,.,$(subst G,.,$(subst F,.,$(subst E,.,$(subst D,.,$(subst C,.,$(subst B,.,$(subst A,.,$(subst z,.,$(subst y,.,$(subst x,.,$(subst w,.,$(subst v,.,$(subst u,.,$(subst t,.,$(subst s,.,$(subst r,.,$(subst q,.,$(subst p,.,$(subst o,.,$(subst n,.,$(subst m,.,$(subst l,.,$(subst k,.,$(subst j,.,$(subst i,.,$(subst h,.,$(subst g,.,$(subst f,.,$(subst e,.,$(subst d,.,$(subst c,.,$(subst b,.,$(subst a,.,$(subst $t,.,$(subst $s,.,$1))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))
-
-override type.{paths.pattern}.word.pack = $(subst $(xn),$n,$(subst $s,$xs,$(strip $(subst $xs,$s,$(subst $n,$(xn),$(subst $t,$(xs),$(subst $b,$f,$(subst $(bb),$(xbxb),$(subst $s,$(xs),$(subst $(bs),$(xbxs),$(subst $(bv),$(xbxv),$(subst $(bu),$(xbxu),$(subst $(bp),$(xbxp),$(subst $x,$(xx),$1))))))))))))))
-override type.{paths.pattern}.word.unpack = $1
-override type.{paths.pattern}.pad.pack = $(subst ?,.,$(subst /,.,$(subst .,.,$(subst $c,.,$(subst ',.,$(subst :,.,$(subst ;,.,$(subst $b,.,$(subst $k,.,$(subst $j,.,$(subst $v,.,$(subst $u,.,$(subst +,.,$(subst =,.,$(subst _,.,$(subst -,.,$(subst $r,.,$(subst $l,.,$(subst *,.,$(subst &,.,$(subst ^,.,$(subst $p,.,$(subst $x,.,$(subst #,.,$(subst @,.,$(subst !,.,$(subst ~,.,$(subst `,.,$(subst 9,.,$(subst 8,.,$(subst 7,.,$(subst 6,.,$(subst 5,.,$(subst 4,.,$(subst 3,.,$(subst 2,.,$(subst 1,.,$(subst 0,.,$(subst Z,.,$(subst Y,.,$(subst X,.,$(subst W,.,$(subst V,.,$(subst U,.,$(subst T,.,$(subst S,.,$(subst R,.,$(subst Q,.,$(subst P,.,$(subst O,.,$(subst N,.,$(subst M,.,$(subst L,.,$(subst K,.,$(subst J,.,$(subst I,.,$(subst H,.,$(subst G,.,$(subst F,.,$(subst E,.,$(subst D,.,$(subst C,.,$(subst B,.,$(subst A,.,$(subst z,.,$(subst y,.,$(subst x,.,$(subst w,.,$(subst v,.,$(subst u,.,$(subst t,.,$(subst s,.,$(subst r,.,$(subst q,.,$(subst p,.,$(subst o,.,$(subst n,.,$(subst m,.,$(subst l,.,$(subst k,.,$(subst j,.,$(subst i,.,$(subst h,.,$(subst g,.,$(subst f,.,$(subst e,.,$(subst d,.,$(subst c,.,$(subst b,.,$(subst a,.,$(subst $t,.,$(subst $s,.,$1))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))
-
-override type.{int}.word.pack = $(subst $(char.plus),$e,$1)
-override type.{int}.word.unpack = $1
-override type.{int}.pad.pack = $(subst -,.,$(subst +,.,$(subst 9,.,$(subst 8,.,$(subst 7,.,$(subst 6,.,$(subst 5,.,$(subst 4,.,$(subst 3,.,$(subst 2,.,$(subst 1,.,$(subst 0,.,$1))))))))))))
-
-override type.{int.pattern}.word.pack = $1
-override type.{int.pattern}.word.unpack = $1
-override type.{int.pattern}.pad.pack = $(subst $p,.,$(subst -,.,$(subst +,.,$(subst 9,.,$(subst 8,.,$(subst 7,.,$(subst 6,.,$(subst 5,.,$(subst 4,.,$(subst 3,.,$(subst 2,.,$(subst 1,.,$(subst 0,.,$1)))))))))))))
-
-override type.{uint}.word.pack = $(subst $(char.plus),$e,$1)
-override type.{uint}.word.unpack = $1
-override type.{uint}.pad.pack = $(subst +,.,$(subst 9,.,$(subst 8,.,$(subst 7,.,$(subst 6,.,$(subst 5,.,$(subst 4,.,$(subst 3,.,$(subst 2,.,$(subst 1,.,$(subst 0,.,$1)))))))))))
-
-override type.{uint.pattern}.word.pack = $1
-override type.{uint.pattern}.word.unpack = $1
-override type.{uint.pattern}.pad.pack = $(subst $p,.,$(subst +,.,$(subst 9,.,$(subst 8,.,$(subst 7,.,$(subst 6,.,$(subst 5,.,$(subst 4,.,$(subst 3,.,$(subst 2,.,$(subst 1,.,$(subst 0,.,$1))))))))))))
-
-override type.{idx}.word.pack = $(subst $(char.plus),$e,$1)
-override type.{idx}.word.unpack = $1
-override type.{idx}.pad.pack = $(subst +,.,$(subst 9,.,$(subst 8,.,$(subst 7,.,$(subst 6,.,$(subst 5,.,$(subst 4,.,$(subst 3,.,$(subst 2,.,$(subst 1,.,$(subst 0,.,$1)))))))))))
-
-override type.{idx.pattern}.word.pack = $1
-override type.{idx.pattern}.word.unpack = $1
-override type.{idx.pattern}.pad.pack = $(subst $p,.,$(subst +,.,$(subst 9,.,$(subst 8,.,$(subst 7,.,$(subst 6,.,$(subst 5,.,$(subst 4,.,$(subst 3,.,$(subst 2,.,$(subst 1,.,$(subst 0,.,$1))))))))))))
-
-override type.{var}.word.pack = $(subst $b,$(xb),$(subst $p,$(xp),$(subst $x,$(xx),$1)))
-override type.{var}.word.unpack = $(subst $(xx),$x,$(subst $(xp),$p,$(subst $(xb),$b,$1)))
-override type.{var}.pad.pack = $(subst ?,.,$(subst /,.,$(subst >,.,$(subst <,.,$(subst .,.,$(subst $c,.,$(subst ",.,$(subst ',.,$(subst ;,.,$(subst |,.,$(subst $b,.,$(subst $k,.,$(subst $j,.,$(subst $v,.,$(subst $u,.,$(subst +,.,$(subst _,.,$(subst -,.,$(subst $r,.,$(subst $l,.,$(subst *,.,$(subst &,.,$(subst ^,.,$(subst $p,.,$(subst $x,.,$(subst #,.,$(subst @,.,$(subst !,.,$(subst ~,.,$(subst `,.,$(subst 9,.,$(subst 8,.,$(subst 7,.,$(subst 6,.,$(subst 5,.,$(subst 4,.,$(subst 3,.,$(subst 2,.,$(subst 1,.,$(subst 0,.,$(subst Z,.,$(subst Y,.,$(subst X,.,$(subst W,.,$(subst V,.,$(subst U,.,$(subst T,.,$(subst S,.,$(subst R,.,$(subst Q,.,$(subst P,.,$(subst O,.,$(subst N,.,$(subst M,.,$(subst L,.,$(subst K,.,$(subst J,.,$(subst I,.,$(subst H,.,$(subst G,.,$(subst F,.,$(subst E,.,$(subst D,.,$(subst C,.,$(subst B,.,$(subst A,.,$(subst z,.,$(subst y,.,$(subst x,.,$(subst w,.,$(subst v,.,$(subst u,.,$(subst t,.,$(subst s,.,$(subst r,.,$(subst q,.,$(subst p,.,$(subst o,.,$(subst n,.,$(subst m,.,$(subst l,.,$(subst k,.,$(subst j,.,$(subst i,.,$(subst h,.,$(subst g,.,$(subst f,.,$(subst e,.,$(subst d,.,$(subst c,.,$(subst b,.,$(subst a,.,$1))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))
-
-override type.{expr}.word.pack = $(subst $n,$(xn),$(subst $t,$(xt),$(subst $b,$(xb),$(subst $s,$(xs),$(subst $p,$(xp),$(subst $x,$(xx),$1))))))
-override type.{expr}.word.unpack = $(subst $(xx),$x,$(subst $(xp),$p,$(subst $(xs),$s,$(subst $(xb),$b,$(subst $(xt),$t,$(subst $(xn),$n,$1))))))
-override type.{expr}.pad.pack = $(subst ?,.,$(subst /,.,$(subst >,.,$(subst <,.,$(subst .,.,$(subst $c,.,$(subst ",.,$(subst ',.,$(subst :,.,$(subst ;,.,$(subst |,.,$(subst $b,.,$(subst $k,.,$(subst $j,.,$(subst $v,.,$(subst $u,.,$(subst +,.,$(subst =,.,$(subst _,.,$(subst -,.,$(subst $r,.,$(subst $l,.,$(subst *,.,$(subst &,.,$(subst ^,.,$(subst $p,.,$(subst $x,.,$(subst #,.,$(subst @,.,$(subst !,.,$(subst ~,.,$(subst `,.,$(subst 9,.,$(subst 8,.,$(subst 7,.,$(subst 6,.,$(subst 5,.,$(subst 4,.,$(subst 3,.,$(subst 2,.,$(subst 1,.,$(subst 0,.,$(subst Z,.,$(subst Y,.,$(subst X,.,$(subst W,.,$(subst V,.,$(subst U,.,$(subst T,.,$(subst S,.,$(subst R,.,$(subst Q,.,$(subst P,.,$(subst O,.,$(subst N,.,$(subst M,.,$(subst L,.,$(subst K,.,$(subst J,.,$(subst I,.,$(subst H,.,$(subst G,.,$(subst F,.,$(subst E,.,$(subst D,.,$(subst C,.,$(subst B,.,$(subst A,.,$(subst z,.,$(subst y,.,$(subst x,.,$(subst w,.,$(subst v,.,$(subst u,.,$(subst t,.,$(subst s,.,$(subst r,.,$(subst q,.,$(subst p,.,$(subst o,.,$(subst n,.,$(subst m,.,$(subst l,.,$(subst k,.,$(subst j,.,$(subst i,.,$(subst h,.,$(subst g,.,$(subst f,.,$(subst e,.,$(subst d,.,$(subst c,.,$(subst b,.,$(subst a,.,$(subst $n,.,$(subst $t,.,$(subst $s,.,$1)))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))
-
-override type.{expr.pattern}.word.pack = $(subst $n,$(xn),$(subst $t,$(xt),$(subst $b,$(xb),$(subst $s,$(xs),$(subst $(bp),$(xbxp),$(subst $x,$(xx),$1))))))
-override type.{expr.pattern}.word.unpack = $(subst $(xx),$x,$(subst $(xp),$p,$(subst $(xs),$s,$(subst $(xb),$b,$(subst $(xt),$t,$(subst $(xn),$n,$1))))))
-override type.{expr.pattern}.pad.pack = $(subst ?,.,$(subst /,.,$(subst >,.,$(subst <,.,$(subst .,.,$(subst $c,.,$(subst ",.,$(subst ',.,$(subst :,.,$(subst ;,.,$(subst |,.,$(subst $b,.,$(subst $k,.,$(subst $j,.,$(subst $v,.,$(subst $u,.,$(subst +,.,$(subst =,.,$(subst _,.,$(subst -,.,$(subst $r,.,$(subst $l,.,$(subst *,.,$(subst &,.,$(subst ^,.,$(subst $p,.,$(subst $x,.,$(subst #,.,$(subst @,.,$(subst !,.,$(subst ~,.,$(subst `,.,$(subst 9,.,$(subst 8,.,$(subst 7,.,$(subst 6,.,$(subst 5,.,$(subst 4,.,$(subst 3,.,$(subst 2,.,$(subst 1,.,$(subst 0,.,$(subst Z,.,$(subst Y,.,$(subst X,.,$(subst W,.,$(subst V,.,$(subst U,.,$(subst T,.,$(subst S,.,$(subst R,.,$(subst Q,.,$(subst P,.,$(subst O,.,$(subst N,.,$(subst M,.,$(subst L,.,$(subst K,.,$(subst J,.,$(subst I,.,$(subst H,.,$(subst G,.,$(subst F,.,$(subst E,.,$(subst D,.,$(subst C,.,$(subst B,.,$(subst A,.,$(subst z,.,$(subst y,.,$(subst x,.,$(subst w,.,$(subst v,.,$(subst u,.,$(subst t,.,$(subst s,.,$(subst r,.,$(subst q,.,$(subst p,.,$(subst o,.,$(subst n,.,$(subst m,.,$(subst l,.,$(subst k,.,$(subst j,.,$(subst i,.,$(subst h,.,$(subst g,.,$(subst f,.,$(subst e,.,$(subst d,.,$(subst c,.,$(subst b,.,$(subst a,.,$(subst $n,.,$(subst $t,.,$(subst $s,.,$1)))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))
-
-# <\lib.types.mak>
-
-#-------------------------------------------------------------------------------
 
 #-------------------------------------------------------------------------------
 # word.pack             	[word[T]] <-- $(call word.pack,[type:T],[T:val])
@@ -285,8 +170,29 @@ override type.{expr.pattern}.pad.pack = $(subst ?,.,$(subst /,.,$(subst >,.,$(su
 #	  [type:T] = '[T]'     Specifies a type which includes the [empty] string. [empty] and '$e' are handled.
 #	  [type:T] = 'T'       Same as [T].
 #-------------------------------------------------------------------------------
-override word.pack   = $(if $1,$(if $(filter {%},$1),$(if $2,$(call type.$1.word.pack,$2)),$(if $2,$(call type.{$(1:[%]=%)}.word.pack,$2),$(xe))),$2)
-override word.unpack = $(if $1,$(if $(filter {%},$1),$(if $2,$(call type.$1.word.unpack,$2)),$(if $2,$(call type.{$(1:[%]=%)}.word.unpack,$(subst $(xe),$e,$2)))),$2)
+override word.pack   = $(or $(call word.pack.{$(patsubst [%],%,$(1:{%}=%))},$2),$(if $(1:{%}=),$$e))
+override word.unpack = $(call word.unpack.{$(patsubst [%],%,$(1:{%}=%))},$(if $(1:{%}=),$(subst $$e,,$2),$2))
+
+
+# <lib.generics.mak>
+override word.pack.{expr} = $(subst $t,$$t,$(subst $s,$$s,$(subst $r,$$r,$(subst $n,$$n,$(subst $l,$$l,$(subst $k,$$k,$(subst $j,$$j,$(subst $g,$$g,$(subst $c,$$c,$(subst $b,$$b,$(subst $$,$$x,$1)))))))))))
+override word.pack.{int} = $(subst +,,$1)
+override word.pack.{line} = $(subst $t,$$t,$(subst $s,$$s,$(subst $r,$$r,$(subst $l,$$l,$(subst $k,$$k,$(subst $j,$$j,$(subst $g,$$g,$(subst $c,$$c,$(subst $b,$$b,$(subst $$,$$x,$1))))))))))
+override word.pack.{path} = $(subst $xt,$t,$(subst $xn,$n,$(subst $s,/,$(strip $(subst /,$s,$(subst $n,$xn,$(subst $t,$xt,$(subst $b,/,$(subst $b$s,$b$s,$(subst $b],$b],$(subst $b[,$b[,$(subst $b$b,$b$b,$(subst $b,$b,$(subst $s,$$s,$(subst $r,$$r,$(subst $l,$$l,$(subst $k,$$k,$(subst $j,$$j,$(subst $g,$$g,$(subst $c,$$c,$(subst $b,$$b,$(subst $$,$$x,$1))))))))))))))))))))))
+override word.pack.{str} = $(subst $t,$$t,$(subst $s,$$s,$(subst $r,$$r,$(subst $n,$$n,$(subst $l,$$l,$(subst $k,$$k,$(subst $j,$$j,$(subst $g,$$g,$(subst $c,$$c,$(subst $b,$$b,$(subst $$,$$x,$1)))))))))))
+override word.pack.{var} = $(subst $t,$$t,$(subst $s,$$s,$(subst $r,$$r,$(subst $n,$$n,$(subst $l,$$l,$(subst $k,$$k,$(subst $j,$$j,$(subst $g,$$g,$(subst $c,$$c,$(subst $b,$$b,$(subst $$,$$x,$1)))))))))))
+override word.pack.{word} = $(subst $r,$$r,$(subst $l,$$l,$(subst $k,$$k,$(subst $j,$$j,$(subst $g,$$g,$(subst $c,$$c,$(subst $b,$$b,$(subst $$,$$x,$1))))))))
+
+override word.unpack.{expr} = $(subst $$x,$$,$(subst $$b,$b,$(subst $$c,$c,$(subst $$g,$g,$(subst $$j,$j,$(subst $$k,$k,$(subst $$l,$l,$(subst $$n,$n,$(subst $$r,$r,$(subst $$s,$s,$(subst $$t,$t,$1)))))))))))
+override word.unpack.{int} = $1
+override word.unpack.{line} = $(subst $$x,$$,$(subst $$b,$b,$(subst $$c,$c,$(subst $$g,$g,$(subst $$j,$j,$(subst $$k,$k,$(subst $$l,$l,$(subst $$r,$r,$(subst $$s,$s,$(subst $$t,$t,$1))))))))))
+override word.unpack.{path} = $(subst $$x,$$,$(subst $$b,$b,$(subst $$c,$c,$(subst $$g,$g,$(subst $$j,$j,$(subst $$k,$k,$(subst $$l,$l,$(subst $$r,$r,$(subst $$s,$s,$1)))))))))
+override word.unpack.{str} = $(subst $$x,$$,$(subst $$b,$b,$(subst $$c,$c,$(subst $$g,$g,$(subst $$j,$j,$(subst $$k,$k,$(subst $$l,$l,$(subst $$n,$n,$(subst $$r,$r,$(subst $$s,$s,$(subst $$t,$t,$1)))))))))))
+override word.unpack.{var} = $(subst $$x,$$,$(subst $$b,$b,$(subst $$c,$c,$(subst $$g,$g,$(subst $$j,$j,$(subst $$k,$k,$(subst $$l,$l,$(subst $$n,$n,$(subst $$r,$r,$(subst $$s,$s,$(subst $$t,$t,$1)))))))))))
+override word.unpack.{word} = $(subst $$x,$$,$(subst $$b,$b,$(subst $$c,$c,$(subst $$g,$g,$(subst $$j,$j,$(subst $$k,$k,$(subst $$l,$l,$(subst $$r,$r,$1))))))))
+# <\lib.generics.mak>
+
+
 
 
 #-------------------------------------------------------------------------------
@@ -318,6 +224,202 @@ override word.join.pair = $(call word.pack,$1,$(call str.concat.pair,$2,$(call w
 override normalize.pair = $(call normalize,$1,$(call str.concat.pair,$2,$3,$4))
 
 
+
+
+
+#===============================================================================
+# STRING PADDING
+#===============================================================================
+# A [pad] is a string of zero or more '.' characters representing the
+# "column width" of a string.
+# - For strings without tabs or linefeeds, a [pad] is equal in length to the string.
+# - Tabs are replaced with $(pad.tab) during the pad conversion.
+# - Linefeeds are treated as separators; each [line] is padded individually, and
+#   the resulting [pad] is equal in length to the longest [line].
+#
+# Example:
+#   pad := ..............................
+#   line := Some Text
+#   $(info [$(pad)])                                    -->  [..............................]
+#   $(info [$(str)])                                    -->  [Some Text]
+#   $(info [$(call line.justify.r,$(line),$(pad))]) -->  [Some Text                     ]
+#   $(info [$(call line.justify.l,$(line),$(pad))])  -->  [                     Some Text]
+#
+#-------------------------------------------------------------------------------
+#
+# Pad Differences:
+#
+# Right/Left Justification:
+#  [str]  <-- $(call str.justify.r,[str],[pad],[char])      Right-pads each line of [str] with [char]s up to the length of [pad].
+#  [str]  <-- $(call str.justify.l,[str],[pad],[char])       Left-pads each line of [str]. Similar to a right-justify.
+#                                                             [pad] defaults to a pad the length of the longest line in [str].
+#                                                             [char] defaults to $s.
+#
+#-------------------------------------------------------------------------------
+
+#-------------------------------------------------------------------------------
+# str.to.pad
+#
+#	[pad] <-- $(call str.to.list[pad],[str:lines])              For singular multiline types: Returns a [pad] equal to the length of the longest line in [str].
+#	[pad] <-- $(call {T}.to.pad,[T:val])                  For all other singular types: Returns a [pad] equal to the length of [val].
+#	[pad] <-- $(call list.to.list[pad],[list:vals])             For normal lists:             Returns a [pad] equal to the length of the longest [word] in [list].
+#	[pad] <-- $(call list[{T}].to.pad,[list[T]:vals])     For packed-word lists:        Returns a [pad] equal to the length of the longest {T} value in [list[T]].
+#
+#-------------------------------------------------------------------------------
+
+
+# pad.pack          	[pad] <-- $(call pad.pack,[type:T],[T:val])     Returns a [pad] equal in length to the [val].
+# str.rept          	[str] <-- $(call str.rept,[pad],[str:rept])     Returns [str:rept] repeated N times, where N is the length of [pad].
+# pad.len           	[uint] <-- $(call pad.len,[pad])                Returns the length of [pad].
+# pad.diff          	[pad] <-- $(call pad.diff,[pad],[pad])          Returns a [pad] equal to the difference in lengths of the two arguments.
+override pad.pack    = $(if $2,$(call type.{$(or $(patsubst {%},%,$(1:[%]=%)),str)}.$0,$2))
+override pad.len     = $(words $(call str.rept,$1,.$s))
+override pad.diff    = $(filter-out $1,$(1:$2%=%))
+
+override str.rept    = $(subst .,$(or $2,$s),$1)
+override str.len     = $(words $(call str.rept))
+
+
+# String Padding ====================== type: [pad]
+override pad.line.indent    = $(call line.to.pad,$(line.indent))
+override pad.tab            = $(pad.line.indent)
+
+
+
+# Left/Right Justification ============ type: [str]
+override T.justify.r    = $(call str.rept,$(call pad.diff,$3,$(call $1.to.pad,$2)),$4)$2
+override T.justify.l    = $2$(call str.rept,$(call pad.diff,$3,$(call $1.to.pad,$2)),$4)
+
+override str.justify.r  = $(call str.rept,$(call pad.diff,$(or $2,$(call str.to.list[pad],$1)),$(call line.to.pad,$(subst $t,$(pad.tab),$1))),$3)
+#override str.justify.l  =
+override line.justify.r = $(call T.justify.r,line,$1,$2,$3)
+override line.justify.l = $(call T.justify.l,line,$1,$2,$3)
+override word.justify.r = $(call T.justify.r,word,$(strip $1),$2,$3)
+override word.justify.l = $(call T.justify.l,word,$(strip $1),$2,$3)
+override int.justify.r  = $(call T.justify.r,int,$(strip $1),$2,$3)
+override int.justify.l  = $(call T.justify.l,int,$(strip $1),$2,$3)
+override uint.justify.r = $(call T.justify.r,uint,$(strip $1),$2,$3)
+override uint.justify.l = $(call T.justify.l,uint,$(strip $1),$2,$3)
+override idx.justify.r  = $(call T.justify.r,idx,$(strip $1),$2,$3)
+override idx.justify.l  = $(call T.justify.l,idx,$(strip $1),$2,$3)
+#===============================================================================
+
+
+
+
+
+
+#===============================================================================
+# PRINTING
+#===============================================================================
+# Info
+# $(call print.info,{msg},[indent])
+# $(call print.vars,{vars},[indent],[col])
+# $(call print.list,[list],[indent],[col])
+# $(call print.debug,{msg},[indent])
+# $(call print.trace,{msg},[indent])
+# Warnings
+#-------------------------------------------------------------------------------
+
+
+
+
+
+COLOUR_GREEN=\033[0;32m
+COLOUR_RED=\033[0;31m
+COLOUR_BLUE=\033[0;34m
+COLOUR_END=\033[0m
+
+override print.var =
+# $(call print.var,{var},{indent},{col},{prefix},{suffix})
+override print.var = $(info $2$(call str.justify.l,$1,$3)=$4$(subst $n,$5$n$2$(subst .,$s,$3.)$4,$($1))$5)
+
+
+
+
+override print.vars = $(if $2,$(if $3,$(foreach var,$1,$(call print.var,$(var),$2,$3,[,])),$(call print.vars,$1,$2,$(call print.vars.col,$1))),$(call print.vars,$1,$(line.indent),$3))
+
+# $(call print.vars.col,{vars})
+override print.vars.col = $(lastword $(sort $(call str.subst.list2str,$1,$(var.char.list),.)))
+
+override print.break = $(info )$(call print.vars,$1)$(info )$(error Breakpoint reached. Exiting...)
+
+override print.debug.enable ?= false
+override print.debug = $(if $(findstring $(print.debug.enable),true),$(info DEBUG: $(strip $1)))
+
+override print.trace.enable ?= false
+override print.trace = $(if $(findstring $(print.trace.enable),true),$(info $n======= $(if $(strip $1),$(strip $1),make $@) =======))
+
+# [str]   <-- $(call str.lines.wrap,[str],[str:prefix],[str:suffix])
+override str.lines.wrap = $2$(subst $n,$3$n$2,$1)$3
+
+# [str]   <-- $(call str.info.var,[var],[col])
+override str.info.var = $(if $(strip $1),$(call str.justify.l,$1,$2)=$4$(subst $n,$5$n$(subst .,$s,$2.)$4,$($1))$5)
+
+
+
+# msg.trace                 	[word[str]] <-- $(msg.trace)
+# msg.trace                 	[str] <-- $(call msg.trace,[str:trace])
+#
+# msg.block                 	[str] <-- $(call msg.block,[str:header],[str:body])
+# msg.info.variables        	[str] <-- $(call msg.info.variables,[str:title],[list[var]])
+# msg.info.variables        	[str] <-- $(call msg.info.variables,[list[var]])
+# msg.info.command          	[str] <-- $(call msg.info.command,[str:title],[str:trace],[str:subject],[str:details],[list[var]:print])
+#
+# msg.error                 	[str] <-- $(call str.trace,[str:title],[str:trace],[str:subject],[str:details],[list[var]:print])
+# msg.error.value           	[str] <-- $(call msg.error.value,[str:trace],[str:label],[str:value],[str:details],[list[var]:print])
+# msg.error.argument        	[str] <-- $(call msg.error.argument,[str:trace],[idx:argnum],[str:value],[str:details],[list[var]:print])
+# msg.error.variable        	[str] <-- $(call msg.error.variable,[str:trace],[var],[str:details],[list[var]:print])
+# msg.error.file            	[str] <-- $(call msg.error.file,[str:trace],[file:path],[str:details],[list[var]:print])
+# msg.error.shell           	[str] <-- $(call msg.error.shell,[str:trace],[str:command],[str:details],[list[var]:print])
+#
+# assert.value.empty        	[empty] <-- $(call assert.empty,[str:label],[str:value],[str:details],[str:trace])
+# assert.value.nonempty     	[empty] <--
+# assert.value.is.word      	[empty] <--
+# assert.value.var.is.nonempty    	[empty] <--
+#
+#-------------------------------------------------------------------------------
+# [str] <-- $(error.prefix)          Error message line prefix
+# [str] <-- $(line.indent)          Error message line indentation
+#
+
+override msg.block                 = $(if $1,$(if $(strip $1),$1$n$(call str.indent.add,$2,$s$s),$n$2),$2)
+
+
+override msg.trace                 = $(if $(filter msg.trace,$0),$(if $(or $@,$(strip $1)),$(call str.indent.add,$(call str.concat,$n,$(if $@,Target: $@),$(if $(strip $1),$(call word.unpack,{line},$(subst $s,$n,$(strip $1)))))-->$s)),$(call word.pack,{line},$(if $0,$x(call $0))))
+
+override msg.error                 = $(call str.concat,$n,$(or $1,Error),$(call msg.trace,$2),$(if $3,$3),$(if $4,$(call str.indent.add,$4,$s$s)),$(if $5,$(call str.indent.add,$5,$s$s)))
+override msg.error.value           = $(call msg.error,$1 $(msg.trace),$(or $(strip $2),Value) = [$3]$(if $4,:$n$(call str.indent.add,$4,$s$s)),$5)
+override msg.error.argument        = $(call msg.error.value,$1 $(msg.trace),Invalid argument$(if $2,$s$x$2),$3,$4,$5)
+override msg.error.variable        = $(call msg.error.value,$1 $(msg.trace),Invalid $(if $2,$s$x($2)),$($2),$3,$4)
+override msg.error.file            = $(call msg.error.value,$1 $(msg.trace),File Error,$3,$4)
+override msg.error.shell           = $(call msg.error.value,$1 $(msg.trace),Shell,$3,$4)
+
+
+# $(ASSERT_LEVEL)
+# [empty] <-- $(call _assert.failed,{word:errortype},$(str.trace),[args]...)
+override _assert.failed            = $(call $(or $(ASSERT_LEVEL),error),$n$(call msg.error.$1,$2 $(str.trace),$3,$4,$5,$6,$7,$8,$9)$n)
+override assert.value.empty        = $(if $1,$(call assert,$(true),$2,$x(call),),)
+override assert.value.nonempty     = $(if $1,,$(error $(call msg.error.var.empty,$0,1)))
+override assert.var.has.words      = $(if $(strip $1),,$(error $(call msg.error.var.nowords,$0,1)))
+override assert.var.is.line        = $(if $(findstring $n,$1),$(error $(call msg.error.var.multiline,$0,1)))
+override assert.var.is.word        = $(if $(filter-out 1,$(words $1)),$(error $(call msg.error.var.multiword,$0,1)))
+
+#-------------------------------------------------------------------------------
+# assert.shell.success 	[empty] <-- $(call make.exit.if.badshell,[path:shell],[str:flags],[str:command])
+#-------------------------------------------------------------------------------
+#	Exits Make with an error message if $(MAKE_EXIT_IF_BADSHELL) is [true],
+#	and either:
+#	- The most recent recipe command or $(shell) invocation failed to start due to
+#	  an improperly specified SHELL or .SHELLFLAGS.
+#	- The value of $(SHELL) is invalid
+#-------------------------------------------------------------------------------
+override assert.shell.success = $(if $(filter       0,$(.SHELLSTATUS)),,$(throw Failed to start shell process:$n  SHELL       = [$(or $1,$(SHELL))]$n  .SHELLFLAGS = [$(or $2,$(.SHELLFLAGS))]$(if $3,$n  Command:      [$3])$n$n))
+override assert.shell.started = $(if $(filter-out 127,$(.SHELLSTATUS)),,$(error Failed to start shell process:$n  SHELL       = [$(or $1,$(SHELL))]$n  .SHELLFLAGS = [$(or $2,$(.SHELLFLAGS))]$(if $3,$n  Command:      [$3])$n$n))
+override assert.shell.started = $(and $1,$(call str.neq,$(basename $(SHELL)),$(basename $1),/i))
+
+#===============================================================================
+
 #===============================================================================
 # VARIABLES
 #===============================================================================
@@ -338,7 +440,7 @@ override normalize.pair = $(call normalize,$1,$(call str.concat.pair,$2,$3,$4))
 # var.is.def.empty      	[bool:var] <-- $(call var.is.def.empty,[var])
 # var.is.nonempty       	[bool:var] <-- $(call var.is.nonempty,[var])
 #-------------------------------------------------------------------------------
-override var.is.shortname   = $(filter $(char.vars:\%=\%),$1)
+override var.is.shortname   = $(filter $(filter-out $$%,$(char.{var}:\%=\%)),$1)
 override var.is.defined     = $(if $(filter-out undefined,$(flavor $1)),$1)
 override var.is.undefined   = $(if $(filter undefined,$(flavor $1)),$1)
 override var.is.environment = $(if $(filter environment,$(origin $1)),$1)
@@ -366,7 +468,7 @@ override var.is.nonempty    = $(if $($1),$1)
 #	- If [type:T] is omitted, [val] must be a valid expression, and is assigned "recursively" with '='.
 #	The internal stack can be accessed via $(var.{var}.stack)
 #-------------------------------------------------------------------------------
-var.push = $(if $1,$(eval var.$1.stack += $(subst $x,$(xx),$(call word.pack,expr,$1$(if $(filter recursive,$(flavor $1)),=,:=)$(value $1)))$n$1$(if $2,:=$(call word.pack,$2,$3),=$3)))
+var.push = $(if $1,$(eval var.$1.stack += $(subst $x,$$x,$(call word.pack,expr,$1$(if $(filter recursive,$(flavor $1)),=,:=)$(value $1)))$n$1$(if $2,:=$(call word.pack,$2,$3),=$3)))
 var.pop  = $(if $1,$(eval $(call word.unpack,expr,$(lastword $(var.$1.stack)))$nvar.$1.stack := $$(wordlist 2,$$(words $$(var.$1.stack)),x $$(var.$1.stack))))
 
 
@@ -454,7 +556,7 @@ override list.merge = $(call word.unpack,$1,$(subst $s,$(call word.pack,$1,$3),$
 #	- If T == '[T]', then [empty] is a valid string, so empty words are KEPT.
 #	- If T == '{T}', then [empty] cannot be encoded/decoded, so empty words are REMOVED.
 #-------------------------------------------------------------------------------
-override list.format = $(call str.split,$1,$(subst $(ns),$n,$(subst $t,$(ns),$2),$n))
+override list.format = $(call str.split,$1,$(subst $n$s,$n,$(subst $t,$n$s,$2),$n))
 
 
 
@@ -507,9 +609,9 @@ override list.filter-out.end   = $(if $(filter $2,$(lastword $1)),$(call $0,$(wo
 #
 #-------------------------------------------------------------------------------
 override list.join   = $(call list.join.2,$1,$2)# Alias
-override list.join.2 = $(strip $(if $(firstword $1$2)    ,$(call word.pack,{list},$(or $(firstword $1),$$e)$s$(or $(firstword $2),$$e))$s$(call $0,$(wordlist 2,$(words $1),$1),$(wordlist 2,$(words $2),$2))))
-override list.join.3 = $(strip $(if $(firstword $1$2$3)  ,$(call word.pack,{list},$(or $(firstword $1),$$e)$s$(or $(firstword $2),$$e)$s$(or $(firstword $3),$$e))$s$(call $0,$(wordlist 2,$(words $1),$1),$(wordlist 2,$(words $2),$2),$(wordlist 2,$(words $3),$3))))
-override list.join.4 = $(strip $(if $(firstword $1$2$3$4),$(call word.pack,{list},$(or $(firstword $1),$$e)$s$(or $(firstword $2),$$e)$s$(or $(firstword $3),$$e)$s$(or $(firstword $4),$$e)$s)$s$(call $0,$(wordlist 2,$(words $1),$1),$(wordlist 2,$(words $2),$2),$(wordlist 2,$(words $3),$3),$(wordlist 2,$(words $4),$4))))
+override list.join.2 = $(strip $(if $(firstword $1$2)    ,$(call word.pack,{str},$(or $(firstword $1),$$e)$s$(or $(firstword $2),$$e))$s$(call $0,$(wordlist 2,$(words $1),$1),$(wordlist 2,$(words $2),$2))))
+override list.join.3 = $(strip $(if $(firstword $1$2$3)  ,$(call word.pack,{str},$(or $(firstword $1),$$e)$s$(or $(firstword $2),$$e)$s$(or $(firstword $3),$$e))$s$(call $0,$(wordlist 2,$(words $1),$1),$(wordlist 2,$(words $2),$2),$(wordlist 2,$(words $3),$3))))
+override list.join.4 = $(strip $(if $(firstword $1$2$3$4),$(call word.pack,{str},$(or $(firstword $1),$$e)$s$(or $(firstword $2),$$e)$s$(or $(firstword $3),$$e)$s$(or $(firstword $4),$$e)$s)$s$(call $0,$(wordlist 2,$(words $1),$1),$(wordlist 2,$(words $2),$2),$(wordlist 2,$(words $3),$3),$(wordlist 2,$(words $4),$4))))
 
 
 #-----------------------------------------------------------
@@ -651,13 +753,15 @@ override list.set.last  = $(call list.set.N,$1,$2,$3,$(call list.idx.last,$2))
 
 
 #-------------------------------------------------------------------------------
-# str.equ   	[str] <-- $(call str.equ,[str:1],[str:2])
-# str.neq   	[str] <-- $(call str.neq,[str:1],[str:2])
+# str.equ   	[str] <-- $(call str.equ,[str:1],[str:2],[bool:case_insensitive])
+# str.neq   	[str] <-- $(call str.neq,[str:1],[str:2],[bool:case_insensitive])
 #
 #	Returns {true} if the strings are equal (or notequal).
+#	Case-sensitive by default.
+#
 #-------------------------------------------------------------------------------
-override str.equ = $(if $(subst x$1,,x$2)$(subst x$2,,x$1),$(false),$(true))
-override str.neq = $(if $(subst x$1,,x$2)$(subst x$2,,x$1),$(true),$(false))
+override str.equ = $(if $3,$(call str.equ,$(call str.lower,$1),$(call str.lower,$2)),$(if $(subst x$1,,x$2)$(subst x$2,,x$1),$(false),$(true)))
+override str.neq = $(if $3,$(call str.equ,$(call str.lower,$1),$(call str.lower,$2)),$(if $(subst x$1,,x$2)$(subst x$2,,x$1),$(true),$(false)))
 
 
 
@@ -666,11 +770,11 @@ override str.neq = $(if $(subst x$1,,x$2)$(subst x$2,,x$1),$(true),$(false))
 # str.concat        	[str] <-- $(call str.concat,[str:sep],[str:1],[str:2],...,[str:8])
 #
 #	Concatentates each nonempty [str] argument with the given separator [sep].
-#	Each [empty] argument is skipped; no separator is included for them.
+#	Empty arguments are skipped; no separator is included for them.
 #
 #-------------------------------------------------------------------------------
 override str.concat.pair = $(if $(and $2,$3),$2$1$3,$(or $2,$3))
-override str.concat = $(if $(or $3,$4,$5,$6,$7,$8,$9),$(call str.concat.pair,$1,$2,$(call str.concat,$1,$3,$4,$5,$6,$7,$8,$9)),$2)
+override str.concat      = $(if $(or $3,$4,$5,$6,$7,$8,$9),$(call str.concat.pair,$1,$2,$(call str.concat,$1,$3,$4,$5,$6,$7,$8,$9)),$2)
 
 
 
@@ -892,14 +996,14 @@ override str.expand.vars = $(call word.unpack,str,$(call __str.treesubst.many2ma
 
 
 #-------------------------------------------------------------------------------
-# str.to.lower      	[lower] <-- $(call str.to.lower,[str])
-# str.to.upper      	[upper] <-- $(call str.to.upper,[str])
+# str.lower      	[lower] <-- $(call str.lower,[str])
+# str.upper      	[upper] <-- $(call str.upper,[str])
 #
 #	Returns [lower]-case or [upper]-case of [str].
 #
 #-------------------------------------------------------------------------------
-override str.to.lower = $(call str.subst.list2list,$1,$(char.uppers),$(char.lowers))
-override str.to.upper = $(call str.subst.list2list,$1,$(char.lowers),$(char.uppers))
+override str.lower = $(call str.subst.list2list,$1,$(char.uppers),$(char.lowers))
+override str.upper = $(call str.subst.list2list,$1,$(char.lowers),$(char.uppers))
 
 
 
@@ -952,17 +1056,17 @@ override path.name.base = $(__list.path.op)
 override path.basename  = $(__list.path.op)
 override path.suffix    = $(__list.path.op)
 
-override list.path.abspath     = $(foreach __path,$1,$(or $(abspath $(__path)),$(xe)))
-override list.path.realpath    = $(foreach __path,$1,$(or $(call word.pack,{path},$(realpath $(call word.unpack,{path},$(__path)))),$(xe)))
+override list.path.abspath     = $(foreach __path,$1,$(or $(abspath $(__path)),$$e))
+override list.path.realpath    = $(foreach __path,$1,$(or $(call word.pack,{path},$(realpath $(call word.unpack,{path},$(__path)))),$$e))
 override __list.path.mark      = $(foreach __path,$1,$(call word.join.pair,[path],/,$(if $(__path:/%=),,/)<MARK>/..,$(__path)))
-override list.path.dir         = $(foreach __path,$1,$(or $(dir $(__path)),$(xe)))
-override list.path.notdir      = $(foreach __path,$1,$(or $(notdir $(__path)),$(xe)))
-override list.path.parent      = $(foreach __path,$1,$(or $(patsubst %/,%,$(dir $(patsubst %/,%,$(__path)))),$(xe)))
-override list.path.name        = $(foreach __path,$1,$(or $(notdir $(patsubst %/,%,$(__path))),$(xe)))
-override list.path.name.base   = $(foreach __path,$1,$(or $(basename $(notdir $(patsubst %/,%,$(__path)))),$(xe)))
-override list.path.name.suffix = $(foreach __path,$1,$(or $(suffix $(notdir $(patsubst %/,%,$(__path)))),$(xe)))
-override list.path.basename    = $(foreach __path,$1,$(or $(basename $(__path)),$(xe)))
-override list.path.suffix      = $(foreach __path,$1,$(or $(suffix $(__path)),$(xe)))
+override list.path.dir         = $(foreach __path,$1,$(or $(dir $(__path)),$$e))
+override list.path.notdir      = $(foreach __path,$1,$(or $(notdir $(__path)),$$e))
+override list.path.parent      = $(foreach __path,$1,$(or $(patsubst %/,%,$(dir $(patsubst %/,%,$(__path)))),$$e))
+override list.path.name        = $(foreach __path,$1,$(or $(notdir $(patsubst %/,%,$(__path))),$$e))
+override list.path.name.base   = $(foreach __path,$1,$(or $(basename $(notdir $(patsubst %/,%,$(__path)))),$$e))
+override list.path.name.suffix = $(foreach __path,$1,$(or $(suffix $(notdir $(patsubst %/,%,$(__path)))),$$e))
+override list.path.basename    = $(foreach __path,$1,$(or $(basename $(__path)),$$e))
+override list.path.suffix      = $(foreach __path,$1,$(or $(suffix $(__path)),$$e))
 
 
 #-------------------------------------------------------------------------------
@@ -986,24 +1090,24 @@ override list.path.addsuffix = $(addsuffix $(call word.pack,[path],$2),$1)
 # Path: Substitutions
 #-------------------------------------------------------------------------------
 # path.subst                    	[path]       <-- $(call path.subst,[path:in],[path:find],[path:repl])
-# path.patsubst                 	[path]       <-- $(call path.patsubst,[path:in],[path.pattern:find],[path.pattern:repl])
-# path.patsubst.dir             	[path]       <-- $(call path.patsubst.dir,[path:in],[path.pattern:dir],[path.pattern:repl])
-# path.patsubst.notdir          	[path]       <-- $(call path.patsubst.notdir,[path:in],[path.pattern:notdir],[path.pattern:repl])
-# path.patsubst.parent          	[path]       <-- $(call path.patsubst.parent,[path:in],[path.pattern:parent],[path.pattern:repl])
-# path.patsubst.name            	[path]       <-- $(call path.patsubst.name,[path:in],[path.pattern:name],[path.pattern:repl])
-# path.patsubst.name.base       	[path]       <-- $(call path.patsubst.name.base,[path:in],[path.pattern:name.base],[path.pattern:repl])
-# path.patsubst.basename        	[path]       <-- $(call path.patsubst.basename,[path:in],[path.pattern:basename],[path.pattern:repl])
-# path.patsubst.suffix          	[path]       <-- $(call path.patsubst.suffix,[path:in],[path.pattern:suffix],[path.pattern:repl])
+# path.patsubst                 	[path]       <-- $(call path.patsubst,[path:in],[path:find],[path:repl])
+# path.patsubst.dir             	[path]       <-- $(call path.patsubst.dir,[path:in],[path:dir],[path:repl])
+# path.patsubst.notdir          	[path]       <-- $(call path.patsubst.notdir,[path:in],[path:notdir],[path:repl])
+# path.patsubst.parent          	[path]       <-- $(call path.patsubst.parent,[path:in],[path:parent],[path:repl])
+# path.patsubst.name            	[path]       <-- $(call path.patsubst.name,[path:in],[path:name],[path:repl])
+# path.patsubst.name.base       	[path]       <-- $(call path.patsubst.name.base,[path:in],[path:name.base],[path:repl])
+# path.patsubst.basename        	[path]       <-- $(call path.patsubst.basename,[path:in],[path:basename],[path:repl])
+# path.patsubst.suffix          	[path]       <-- $(call path.patsubst.suffix,[path:in],[path:suffix],[path:repl])
 # list.path.subst               	[list[path]] <-- $(call list.path.subst,[list[path]:in],[path:find],[path:repl])
-# list.path.patsubst            	[list[path]] <-- $(call list.path.patsubst,[list[path]:in],[path.pattern:find],[path.pattern:repl])
-# list.path.patsubst.dir        	[list[path]] <-- $(call list.path.patsubst.dir,[list[path]:in],[path.pattern:dir],[path.pattern:repl])
-# list.path.patsubst.notdir     	[list[path]] <-- $(call list.path.patsubst.notdir,[list[path]:in],[path.pattern:notdir],[path.pattern:repl])
-# list.path.patsubst.parent     	[list[path]] <-- $(call list.path.patsubst.parent,[list[path]:in],[path.pattern:parent],[path.pattern:repl])
-# list.path.patsubst.name       	[list[path]] <-- $(call list.path.patsubst.name,[list[path]:in],[path.pattern:name],[path.pattern:repl])
-# list.path.patsubst.name.base  	[list[path]] <-- $(call list.path.patsubst.name.base,[list[path]:in],[path.pattern:name.base],[path.pattern:repl])
-# list.path.patsubst.name.suffix	[list[path]] <-- $(call list.path.patsubst.name.suffix,[list[path]:in],[path.pattern:name.suffix],[path.pattern:repl])
-# list.path.patsubst.basename   	[list[path]] <-- $(call list.path.patsubst.basename,[list[path]:in],[path.pattern:basename],[path.pattern:repl])
-# list.path.patsubst.suffix     	[list[path]] <-- $(call list.path.patsubst.suffix,[list[path]:in],[path.pattern:suffix],[path.pattern:repl])
+# list.path.patsubst            	[list[path]] <-- $(call list.path.patsubst,[list[path]:in],[path:find],[path:repl])
+# list.path.patsubst.dir        	[list[path]] <-- $(call list.path.patsubst.dir,[list[path]:in],[path:dir],[path:repl])
+# list.path.patsubst.notdir     	[list[path]] <-- $(call list.path.patsubst.notdir,[list[path]:in],[path:notdir],[path:repl])
+# list.path.patsubst.parent     	[list[path]] <-- $(call list.path.patsubst.parent,[list[path]:in],[path:parent],[path:repl])
+# list.path.patsubst.name       	[list[path]] <-- $(call list.path.patsubst.name,[list[path]:in],[path:name],[path:repl])
+# list.path.patsubst.name.base  	[list[path]] <-- $(call list.path.patsubst.name.base,[list[path]:in],[path:name.base],[path:repl])
+# list.path.patsubst.name.suffix	[list[path]] <-- $(call list.path.patsubst.name.suffix,[list[path]:in],[path:name.suffix],[path:repl])
+# list.path.patsubst.basename   	[list[path]] <-- $(call list.path.patsubst.basename,[list[path]:in],[path:basename],[path:repl])
+# list.path.patsubst.suffix     	[list[path]] <-- $(call list.path.patsubst.suffix,[list[path]:in],[path:suffix],[path:repl])
 #
 #	Performs a find/replace operation on the input [path],
 #	or within each [path] in the input [list[path]].
@@ -1036,22 +1140,22 @@ override path.patsubst.name.base        = $(__list.path.op)
 override path.patsubst.basename         = $(__list.path.op)
 override path.patsubst.suffix           = $(__list.path.op)
 override list.path.subst                = $(subst $(call word.pack,[path],$2),$(call word.pack,[path],$3),$(call list.repack,[path],$1))
-override list.path.patsubst             = $(patsubst $(call word.pack,[path.pattern],$2),$(call word.pack,[path.pattern],$3),$(call list.repack,[path],$1))
-override list.path.patsubst.dir         = $(foreach __find,$(call word.pack,[path.pattern],$2),$(foreach __repl,$(call word.pack,[path.pattern],$3),$(foreach __in,$(call list.repack,[path],$1),$(call word.join.pair,[path],/,$(patsubst $(__find),$(__repl),$(call list.path.dir,$(__in))),$(call list.path.notdir,$(__in))))))
-override list.path.patsubst.notdir      = $(foreach __find,$(call word.pack,[path.pattern],$2),$(foreach __repl,$(call word.pack,[path.pattern],$3),$(foreach __in,$(call list.repack,[path],$1),$(call word.join.pair,[path],/,$(call list.path.dir,$(__in)),$(patsubst $(__find),$(__repl),$(call list.path.notdir,$(__in)))))))
-override list.path.patsubst.parent      = $(foreach __find,$(call word.pack,[path.pattern],$2),$(foreach __repl,$(call word.pack,[path.pattern],$3),$(foreach __in,$(call list.repack,[path],$1),$(call word.join.pair,[path],/,$(patsubst $(__find),$(__repl),$(call list.path.parent,$(__in))),$(call list.path.name,$(__in))$(and $(filter-out /,$(__in)),$(if $(__in:%/=),,/))))))
-override list.path.patsubst.name        = $(foreach __find,$(call word.pack,[path.pattern],$2),$(foreach __repl,$(call word.pack,[path.pattern],$3),$(foreach __in,$(call list.repack,[path],$1),$(call word.join.pair,[path],/,$(call list.path.parent,$(__in)),$(patsubst $(__find),$(__repl),$(call list.path.name,$(__in)))$(and $(filter-out /,$(__in)),$(if $(__in:%/=),,/))))))
-override list.path.patsubst.name.base   = $(foreach __find,$(call word.pack,[path.pattern],$2),$(foreach __repl,$(call word.pack,[path.pattern],$3),$(foreach __in,$(call list.repack,[path],$1),$(call word.join.pair,[path],/,$(call list.path.parent,$(__in)),$(patsubst $(__find),$(__repl),$(call list.path.name.base,$(__in)))$(call list.path.name.suffix,$(__in))$(and $(filter-out /,$(__in)),$(if $(__in:%/=),,/))))))
-override list.path.patsubst.name.suffix = $(foreach __find,$(call word.pack,[path.pattern],$2),$(foreach __repl,$(call word.pack,[path.pattern],$3),$(foreach __in,$(call list.repack,[path],$1),$(call word.join.pair,[path],/,$(call list.path.parent,$(__in)),$(call list.path.name.base,$(__in))$(patsubst $(__find),$(__repl),$(call list.path.name.suffix,$(__in)))$(and $(filter-out /,$(__in)),$(if $(__in:%/=),,/))))))
-override list.path.patsubst.basename    = $(foreach __find,$(call word.pack,[path.pattern],$2),$(foreach __repl,$(call word.pack,[path.pattern],$3),$(foreach __in,$(call list.repack,[path],$1),$(call word.join.pair,[path],,$(patsubst $(__find),$(__repl),$(call list.path.basename,$(__in))),$(call list.path.suffix,$(__in))))))
-override list.path.patsubst.suffix      = $(foreach __find,$(call word.pack,[path.pattern],$2),$(foreach __repl,$(call word.pack,[path.pattern],$3),$(foreach __in,$(call list.repack,[path],$1),$(call word.join.pair,[path],,$(call list.path.basename,$(__in)),$(patsubst $(__find),$(__repl),$(call list.path.suffix,$(__in)))))))
+override list.path.patsubst             = $(patsubst $(call word.pack,[path],$2),$(call word.pack,[path],$3),$(call list.repack,[path],$1))
+override list.path.patsubst.dir         = $(foreach __find,$(call word.pack,[path],$2),$(foreach __repl,$(call word.pack,[path],$3),$(foreach __in,$(call list.repack,[path],$1),$(call word.join.pair,[path],/,$(patsubst $(__find),$(__repl),$(call list.path.dir,$(__in))),$(call list.path.notdir,$(__in))))))
+override list.path.patsubst.notdir      = $(foreach __find,$(call word.pack,[path],$2),$(foreach __repl,$(call word.pack,[path],$3),$(foreach __in,$(call list.repack,[path],$1),$(call word.join.pair,[path],/,$(call list.path.dir,$(__in)),$(patsubst $(__find),$(__repl),$(call list.path.notdir,$(__in)))))))
+override list.path.patsubst.parent      = $(foreach __find,$(call word.pack,[path],$2),$(foreach __repl,$(call word.pack,[path],$3),$(foreach __in,$(call list.repack,[path],$1),$(call word.join.pair,[path],/,$(patsubst $(__find),$(__repl),$(call list.path.parent,$(__in))),$(call list.path.name,$(__in))$(and $(filter-out /,$(__in)),$(if $(__in:%/=),,/))))))
+override list.path.patsubst.name        = $(foreach __find,$(call word.pack,[path],$2),$(foreach __repl,$(call word.pack,[path],$3),$(foreach __in,$(call list.repack,[path],$1),$(call word.join.pair,[path],/,$(call list.path.parent,$(__in)),$(patsubst $(__find),$(__repl),$(call list.path.name,$(__in)))$(and $(filter-out /,$(__in)),$(if $(__in:%/=),,/))))))
+override list.path.patsubst.name.base   = $(foreach __find,$(call word.pack,[path],$2),$(foreach __repl,$(call word.pack,[path],$3),$(foreach __in,$(call list.repack,[path],$1),$(call word.join.pair,[path],/,$(call list.path.parent,$(__in)),$(patsubst $(__find),$(__repl),$(call list.path.name.base,$(__in)))$(call list.path.name.suffix,$(__in))$(and $(filter-out /,$(__in)),$(if $(__in:%/=),,/))))))
+override list.path.patsubst.name.suffix = $(foreach __find,$(call word.pack,[path],$2),$(foreach __repl,$(call word.pack,[path],$3),$(foreach __in,$(call list.repack,[path],$1),$(call word.join.pair,[path],/,$(call list.path.parent,$(__in)),$(call list.path.name.base,$(__in))$(patsubst $(__find),$(__repl),$(call list.path.name.suffix,$(__in)))$(and $(filter-out /,$(__in)),$(if $(__in:%/=),,/))))))
+override list.path.patsubst.basename    = $(foreach __find,$(call word.pack,[path],$2),$(foreach __repl,$(call word.pack,[path],$3),$(foreach __in,$(call list.repack,[path],$1),$(call word.join.pair,[path],,$(patsubst $(__find),$(__repl),$(call list.path.basename,$(__in))),$(call list.path.suffix,$(__in))))))
+override list.path.patsubst.suffix      = $(foreach __find,$(call word.pack,[path],$2),$(foreach __repl,$(call word.pack,[path],$3),$(foreach __in,$(call list.repack,[path],$1),$(call word.join.pair,[path],,$(call list.path.basename,$(__in)),$(patsubst $(__find),$(__repl),$(call list.path.suffix,$(__in)))))))
 
 
 #-------------------------------------------------------------------------------
 # Path: Search
 #-------------------------------------------------------------------------------
-# path.wildcard     	[list[path]] <-- $(call path.wildcard,[path.pattern:find])
-# list.path.wildcard	[list[path]] <-- $(call list.path.wildcard,[list[path.pattern]:find])
+# path.wildcard     	[list[path]] <-- $(call path.wildcard,[path:find])
+# list.path.wildcard	[list[path]] <-- $(call list.path.wildcard,[list[path]:find])
 #
 #	Returns a list of word-packed paths which match the wildcard pattern(s).
 #	- Unlike built-in $(wildcard), these functions fully support spaces in both
@@ -1060,7 +1164,7 @@ override list.path.patsubst.suffix      = $(foreach __find,$(call word.pack,[pat
 #	  otherwise both files and directories are returned.
 #	Returns [empty] if there are no paths matching [find].
 #
-#	Notes on type [path.pattern]:
+#	Notes on type [path]:
 #	- May contain any valid filename characters, plus zero or more wildcards:
 #	 '*'     matches zero or more characters within a file/directory name
 #	 '?'     matches exactly 1 character within a file/directory name
@@ -1071,8 +1175,8 @@ override list.path.patsubst.suffix      = $(foreach __find,$(call word.pack,[pat
 #	- Redundant '/' are removed.
 #
 #-------------------------------------------------------------------------------
-override path.wildcard      = $(call list.path.wildcard,$(call word.pack,[path.pattern],$1))
-override list.path.wildcard = $(if $1,$(call str.split,{path},$(subst <MARK>/..,,$(subst <MARK>/../,,$(subst /<MARK>/..,,$(subst $s<MARK>/../,<SPLIT>,$(subst $s/<MARK>/..,<SPLIT>,$(wildcard $(foreach __path,$(call __list.path.mark,$1),$(call word.unpack,[path.pattern],$(__path))))))))),<SPLIT>))
+override path.wildcard      = $(call list.path.wildcard,$(call word.pack,[path],$1))
+override list.path.wildcard = $(if $1,$(call str.split,{path},$(subst <MARK>/..,,$(subst <MARK>/../,,$(subst /<MARK>/..,,$(subst $s<MARK>/../,<SPLIT>,$(subst $s/<MARK>/..,<SPLIT>,$(wildcard $(foreach __path,$(call __list.path.mark,$1),$(call word.unpack,[path],$(__path))))))))),<SPLIT>))
 
 
 #-------------------------------------------------------------------------------
@@ -1090,31 +1194,31 @@ override list.path.wildcard = $(if $1,$(call str.split,{path},$(subst <MARK>/..,
 #
 #-------------------------------------------------------------------------------
 #	[word[path]] <-- $(call __list.filter.*,[word[path]],[list[path]])
-override __list.filter.path = $(if $(filter $1,$2),$1,$(xe))
-override __list.filter.dir  = $(if $(filter $(1:%/=%)/,$2),$1,$(xe))
-override __list.filter.file = $(if $(and $(if $(filter $(1:%/=%)/,$2),,T),$(filter $1,$2)),$1,$(xe))
+override __list.filter.path = $(if $(filter $1,$2),$1,$$e)
+override __list.filter.dir  = $(if $(filter $(1:%/=%)/,$2),$1,$$e)
+override __list.filter.file = $(if $(and $(if $(filter $(1:%/=%)/,$2),,T),$(filter $1,$2)),$1,$$e)
 
 override path.exists = $(__list.path.op)
 override dir.exists  = $(__list.path.op)
 override file.exists = $(__list.path.op)
-override list.path.exists = $(call list.map.1,,__list.filter.path,$(call list.repack,[path],$1),$(call list.path.wildcard,$(foreach __path,$(call list.repack,[path],$1),$(if $(filter-out $(xe),$(__path)),$(__path:%/=%)$s$(__path:%/=%)/))))
-override list.dir.exists  = $(call list.map.1,,__list.filter.dir,$(call list.repack,[path],$1),$(call list.path.wildcard,$(foreach __path,$(call list.repack,[path],$1),$(if $(filter-out $(xe),$(__path)),$(__path:%/=%)$s$(__path:%/=%)/))))
-override list.file.exists = $(call list.map.1,,__list.filter.file,$(call list.repack,[path],$1),$(call list.path.wildcard,$(foreach __path,$(call list.repack,[path],$1),$(if $(filter-out $(xe),$(__path)),$(__path:%/=%)$s$(__path:%/=%)/))))
+override list.path.exists = $(call list.map.1,,__list.filter.path,$(call list.repack,[path],$1),$(call list.path.wildcard,$(foreach __path,$(call list.repack,[path],$1),$(if $(filter-out $$e,$(__path)),$(__path:%/=%)$s$(__path:%/=%)/))))
+override list.dir.exists  = $(call list.map.1,,__list.filter.dir,$(call list.repack,[path],$1),$(call list.path.wildcard,$(foreach __path,$(call list.repack,[path],$1),$(if $(filter-out $$e,$(__path)),$(__path:%/=%)$s$(__path:%/=%)/))))
+override list.file.exists = $(call list.map.1,,__list.filter.file,$(call list.repack,[path],$1),$(call list.path.wildcard,$(foreach __path,$(call list.repack,[path],$1),$(if $(filter-out $$e,$(__path)),$(__path:%/=%)$s$(__path:%/=%)/))))
 
 
 #-------------------------------------------------------------------------------
-# paths.format       	[paths] <-- $(call paths.format,$n\
+# multipath.create       	[multipath] <-- $(call multipath.create,$n\
 #                   	                  /path/to a/file.1	$n\
 #                   	                  path/to a/dir/	$n\
 #                   	            )
 #
-#	Convenience method for manual [paths] definition.
+#	Convenience method for manual [multipath] definition.
 #	Splits the second argument on {tab} and {lf}, encoding each section as a word-packed [path],
-#	then merges the resulting list into a [paths] string.
+#	then merges the resulting list into a [multipath] string.
 #	- Each line must end with '$n\'.
 #	- Leading whitespace is removed. Trailing {space} is kept. Trailing {tab} and {lf} are removed.
 #-------------------------------------------------------------------------------
-override paths.format = $(call word.unpack,{path.pattern},$(call list.format,{path.pattern},$1))
+override multipath.create = $(call word.unpack,{path},$(call list.format,{path},$1))
 
 
 
@@ -1228,39 +1332,57 @@ override iter.inc.define = $(eval $1 := $(or $2,0))$(eval $1.next = $$(eval $1 :
 #===============================================================================
 
 #-----------------------------------------------------------
-# [expr[T]] <-- $(call expr.const,[type:T],[T:val])
-# [expr]    <-- $(call expr.ref,[expr[var]:name],[expr[word.pattern]:find],[expr[str.pattern]:repl])
-# [expr]    <-- $(call expr.builtin,[expr[builtin]:name],[list[expr]:args])
-# [expr]    <-- $(call expr.call,[expr[func]:name],[list[expr]:args])
-# [expr]    <-- $(call expr.assign,[list[expr]:directives],[expr[var]:name],[expr:assign_operator],[expr:value])
-# [expr]    <-- $(call expr.target,[expr[paths]:targets],\
-#                   [expr[paths]:prereqs],[expr[paths]:orderonly],\
-#                   [expr[paths]:prereqs_of],[expr[paths]:orderonly_of],\
-#                   [list[expr]:assignments],\
-#                   [list[expr]:commands]
-#               )
-# [expr]    <-- $(call expr.target,$(call paths.format,$n\
-#                       /target/paths$n\
-#                   ),$(call paths.format,$n\
-#                       /prereq/paths$n\
-#                   ),$(call paths.format,$n\
-#                       /orderonly/paths$n\
-#                   ),$(call paths.format,$n\
-#                       /prereqs/of$n\
-#                   ),$(call paths.format,$n\
-#                       /orderonly/of$n\
-#                   ),$(call list.format,expr,$n\
-#                       localvar := value$n\
-#                   ),$(call list.format,expr,$n\
-#                       commands$n\
-#                   )\
-#               )
+# [str]         	<-- $(call expr.expand,[expr])
+# [expr]        	<-- $(call expr.assign,[list[expr]:directives],[expr[var]:name],[expr:assign_operator],[expr:value])
+# [expr]        	<-- $(call expr.str,[str])
+# [list[expr]]  	<-- $(call expr.list,[list[str]])
+# [expr]        	<-- $(call expr.var,[expr[var]:name],[expr[word]:find],[expr[str]:repl])
+# [list[expr]]  	<-- $(call expr.vars,[list[var]])
+# [expr]        	<-- $(call expr.builtin,{expr[builtin]:name},[expr:arg1],[expr:arg2],...)
+# [expr]        	<-- $(call expr.call,{expr[func]:name},[expr:arg1],[expr:arg2],...)
+# [expr]        	<-- $(call expr.if,[expr:cond],[expr:ifnonempty],[expr:ifempty])
+# [expr]        	<-- $(call expr.or,[expr:1],[expr:2],...)
+# [expr]        	<-- $(call expr.and,[expr:1],[expr:2],...)
+# [expr]        	<-- $(call expr.foreach,[expr[var]],[expr[list]:in],[expr[str](var)])
+# [expr]        	<-- $(call expr.subst,[expr:from],[expr:to],[expr([str:in])])
+# [expr]        	<-- $(call expr.strip,[expr([str:in])])
+# [expr]        	<-- $(call expr.target,[expr[multipath]:targets],\
+#               	        [expr[multipath]:prereqs],[expr[multipath]:orderonly],\
+#               	        [expr[multipath]:prereqs_of],[expr[multipath]:orderonly_of],\
+#               	        [list[expr]:assignments],\
+#               	        [list[expr]:commands]
+#               	    )
+# [expr]        	<-- $(call expr.target,$(call multipath.create,$n\
+#               	            /target/multipath$n\
+#               	        ),$(call multipath.create,$n\
+#               	            /prereq/multipath$n\
+#               	        ),$(call multipath.create,$n\
+#               	            /orderonly/multipath$n\
+#               	        ),$(call multipath.create,$n\
+#               	            /prereqs/of$n\
+#               	        ),$(call multipath.create,$n\
+#               	            /orderonly/of$n\
+#               	        ),$(call list.format,expr,$n\
+#               	            localvar := value$n\
+#               	        ),$(call list.format,expr,$n\
+#               	            commands$n\
+#               	        )\
+#               	    )
 #-----------------------------------------------------------
-override expr.const   = $(call str.subst.vars2vars,$(call word.pack,$1,$2),c l r j k,xc xl xr xj xk)
-override expr.ref     = $(if $1,$(if $2$3,$$($1:$2=$3),$(if $(call var.is.shortname,$1),$$$1,$$($1))))
-override expr.builtin = $(if $1,$$($1 $(call list.merge,expr,$2,$c)))
-override expr.call    = $(if $1,$(call expr.builtin,call,$(call word.pack,expr,$1) $2))
+override expr.expand  = $(eval override $0.tmp := $$e$1$$e)$($0.tmp)$(eval override $0.tmp :=)
 override expr.assign  = $(if $2,$(call str.concat.pair,$n,$(call str.concat,$s,$(filter-out define,$1),$(if $(findstring $n,$4),define),$2,$(or $3,=),$(findstring $n,$4)$4),$(if $(findstring $n,$4),endef)))
+override expr.str     = $(call word.pack,{str},$1)
+override expr.list    = $(foreach word,$1,$(call word.pack,expr,$(call expr.str,$(call word.unpack,str,$(word)))))
+override expr.var     = $(if $2$3,$$($1:$2=$3),$(if $(call var.is.shortname,$1),$$$1,$$($1)))
+override expr.vars    = $(foreach word,$1,$(call word.pack,expr,$(call expr.var,$(call word.unpack,var,$(word)))))
+override expr.builtin = $(if $1,$$($1 $(call expr.builtin,,$2,$3,$4,$5,$6,$7,$8,$9)),$(if $(or $3,$4,$5,$6,$7,$8,$9),$2$c$(call expr.builtin,,$3,$4,$5,$6,$7,$8,$9),$2))
+override expr.call    = $(call expr.builtin,call,$1,$2,$3,$4,$5,$6,$7,$8,$9)
+override expr.if      = $(call expr.builtin,if,$1,$2,$3)
+override expr.or      = $(call expr.builtin,or,$1,$2,$3,$4,$5,$6,$7,$8,$9)
+override expr.and     = $(call expr.builtin,and,$1,$2,$3,$4,$5,$6,$7,$8,$9)
+override expr.foreach = $(call expr.builtin,foreach,$1,$2,$3)
+override expr.subst   = $(call expr.builtin,subst,$1,$2,$3)
+override expr.strip   = $(call expr.builtin,strip,$1)
 override expr.target  = $(if $1,$n$(call __$0,$1,$2,$3,$4,$5,$(call list.prune,expr,$6),$(call list.prune,expr,$7)))
 override define __expr.target
 $(if $4,$4: $1)
@@ -1273,81 +1395,38 @@ endef
 
 
 
+#-------------------------------------------------------------------------------
+# shell.push    	[empty] <-- $(call shell.push,[path:shell],[str:flags])
+# shell.pop     	[empty] <-- $(call shell.pop)
+#-------------------------------------------------------------------------------
+#	Push: Stores the current values of SHELL, .SHELLFLAGS, and .SHELLSTATUS,
+#	      then assigns new values to SHELL and/or .SHELLFLAGS.
+#	      No-op if [shell] is omitted.
+#	Pop:  Restores the previous values of SHELL, .SHELLFLAGS, and .SHELLSTATUS.
+#	      No-op if there is no previous value of SHELL.
+#-------------------------------------------------------------------------------
+shell.push = $(if $1,$(call var.push,SHELL,path,$1)$(call var.push,.SHELLFLAGS,str,$2)$(call var.push,.SHELLSTATUS,int,))
+shell.pop  = $(if $(var.SHELL.stack),$(call var.pop,.SHELLSTATUS)$(call var.pop,.SHELLFLAGS)$(call var.pop,SHELL))
 
 
-#-----------------------------------------------------------
-# [expr[str]([str:in])] <-- $(call expr.subst.expr2expr,[expr[str]([str:in])],[expr[str]:from],[expr[str]:to])
-# [expr[str]([str:in])] <-- $(call expr.subst.exprs2expr,[expr[str]([str:in])],[list[expr[str]]:from],[expr[str]:to])
-# [expr[str]([str:in])] <-- $(call expr.subst.exprs2exprs,[expr[str]([str:in])],[list[expr[str]]:from],[list[expr[str]]:to])
-# [expr[str]([str:in])] <-- $(call expr.subst.const2const,[expr[str]([str:in])],[str:from],[str:to])
-# [expr[str]([str:in])] <-- $(call expr.subst.const2ref,[expr[str]([str:in])],[str:from],[var:to])
-# [expr[str]([str:in])] <-- $(call expr.subst.ref2const,[expr[str]([str:in])],[var:from],[str:to])
-# [expr[str]([str:in])] <-- $(call expr.subst.ref2ref,[expr[str]([str:in])],[var:from],[var:to])
-# [expr[str]([str:in])] <-- $(call expr.subst.consts2const,[expr[str]([str:in])],[list:from],[str:to])
-# [expr[str]([str:in])] <-- $(call expr.subst.consts2ref,[expr[str]([str:in])],[list:from],[var:to])
-# [expr[str]([str:in])] <-- $(call expr.subst.refs2const,[expr[str]([str:in])],[list[var]:from],[str:to])
-# [expr[str]([str:in])] <-- $(call expr.subst.refs2ref,[expr[str]([str:in])],[list[var]:from],[var:to])
-# [expr[str]([str:in])] <-- $(call expr.subst.consts2consts,[expr[str]([str:in])],[list:from],[list:to])
-# [expr[str]([str:in])] <-- $(call expr.subst.consts2refs,[expr[str]([str:in])],[list:from],[list[var]:to])
-# [expr[str]([str:in])] <-- $(call expr.subst.refs2consts,[expr[str]([str:in])],[list[var]:from],[list:to])
-# [expr[str]([str:in])] <-- $(call expr.subst.refs2refs,[expr[str]([str:in])],[list[var]:from],[list[var]:to])
-#-----------------------------------------------------------
+#-------------------------------------------------------------------------------
+# shell.run     	[str:stdout]   <-- $(call shell.run,[str:command],[var:exitcode],[path:shell],[str:flags])
+# shell.test    	[bool:success] <-- $(call shell.test,[str:command],[var:stdout],[path:shell],[str:flags])
+#-------------------------------------------------------------------------------
+#	Run:  Expands to the stdout of the command.
+#	      Optionally stores the exit code for later use.
+#	Test: Expands to the '0' if the command was successful, or [empty] if the command failed.
+#	      Optionally stores the stdout for later use.
 #
-# Generates an `eval`-uatable expression which performs one or more `subst`-itutions in series.
-# 'expr[str]' is an expression which expands to a [str]. It may contain any combination of the following:
-#             - Variable References: '$v', '$(var)', '${var}', '$(var:[word.pattern:find]=[str.pattern:repl])', etc.
-#               Use `expr.ref` to generate a variable reference.
-#             - Function Calls:      '$({builtin} [arg:1],...)', '$(call {func},[arg:1],...)'
-#               Use `expr.call` to generate a function call.
-#             - Literal Strings: Constants embedded in an expression. Must abide by the following rules
-#               to ensure correct parsing:
-#               - Literals may not contain whitespace; use variable references '$s', '$t', '$n' instead.
-#               - Literals may not contain unpaired '{', '}', '(', ')'; use '$j', '$k', '$l', '$r' instead.
-#               - Literals may not ','; use '$c' instead.
-#               Use `expr.const` to generate an embeddable literal from an arbitrary string.
-#-----------------------------------------------------------
-override expr.subst.expr2expr     = $(if $(and $1,$2),$(if $(call expr.is.empty,$2),$$(or $1$c$3),$$(subst $2$c$3$c$1)),$1)
-override expr.subst.exprs2expr    = $(if $(and $1,$(firstword $2)),$(call expr.subst.expr2expr,$(call $0,$1,$(wordlist 2,$(words $2),x $2),$3),$(call word.unpack,expr,$(lastword $2)),$3),$1)
-override expr.subst.exprs2exprs   = $(if $(and $1,$(firstword $2),$(firstword $3)),$(call expr.subst.expr2expr,$(call $0,$1,$(wordlist 2,$(words $2),x $2),$(wordlist 2,$(words $3),x $3)),$(call word.unpack,expr,$(lastword $2)),$(call word.unpack,expr,$(lastword $3))),$1)
-override expr.subst.const2const   = $(call expr.subst.expr2expr,$1,$(call expr.const,str,$2),$(call expr.const,str,$3))
-override expr.subst.const2ref     = $(call expr.subst.expr2expr,$1,$(call expr.const,str,$2),$(call expr.ref,$3))
-override expr.subst.ref2const     = $(call expr.subst.expr2expr,$1,$(call expr.ref,$2),$(call expr.const,str,$3))
-override expr.subst.ref2ref       = $(call expr.subst.expr2expr,$1,$(call expr.ref,$2),$(call expr.ref,$3))
-override expr.subst.consts2const  = $(call expr.subst.exprs2expr,$1,$(foreach __wrd,$2,$(call word.pack,expr,$(call expr.const,word,$(__wrd)))),$(call expr.const,str,$3))
-override expr.subst.consts2ref    = $(call expr.subst.exprs2expr,$1,$(foreach __wrd,$2,$(call word.pack,expr,$(call expr.const,word,$(__wrd)))),$(call expr.ref,$3))
-override expr.subst.refs2const    = $(call expr.subst.exprs2expr,$1,$(foreach __var,$2,$(call word.pack,expr,$(call expr.ref,$(call word.unpack,var,$(__var))))),$(call expr.const,str,$3))
-override expr.subst.refs2ref      = $(call expr.subst.exprs2expr,$1,$(foreach __var,$2,$(call word.pack,expr,$(call expr.ref,$(call word.unpack,var,$(__var))))),$(call expr.ref,$3))
-override expr.subst.consts2consts = $(call expr.subst.exprs2exprs,$1,$(foreach __wrd,$2,$(call word.pack,expr,$(call expr.const,word,$(__wrd)))),$(foreach __wrd,$3,$(call word.pack,expr,$(call expr.const,word,$(__wrd)))))
-override expr.subst.consts2refs   = $(call expr.subst.exprs2exprs,$1,$(foreach __wrd,$2,$(call word.pack,expr,$(call expr.const,word,$(__wrd)))),$(foreach __var,$3,$(call word.pack,expr,$(call expr.ref,$(call word.unpack,var,$(__var))))))
-override expr.subst.refs2consts   = $(call expr.subst.exprs2exprs,$1,$(foreach __var,$2,$(call word.pack,expr,$(call expr.ref,$(call word.unpack,var,$(__var))))),$(foreach __wrd,$3,$(call word.pack,expr,$(call expr.const,word,$(__wrd)))))
-override expr.subst.refs2refs     = $(call expr.subst.exprs2exprs,$1,$(foreach __var,$2,$(call word.pack,expr,$(call expr.ref,$(call word.unpack,var,$(__var))))),$(foreach __var,$3,$(call word.pack,expr,$(call expr.ref,$(call word.unpack,var,$(__var))))))
-
-#-----------------------------------------------------------
-# [expr[str]] <-- $(call expr.strip.consts,[expr[str]:in],[list[str]:strip],[list[var]:noescape])
-# [expr[str]] <-- $(call expr.strip.vars,[expr[str]:in],[list[var]:strip],[list[var]:noescape])
-# [expr[str]] <-- $(call expr.cull.consts,[expr[str]:in],[list[str]:strip],[list[var]:noescape])
-# [expr[str]] <-- $(call expr.cull.vars,[expr[str]:in],[list[var]:strip],[list[var]:noescape])
-# [expr[str]] <-- $(call expr.strip.ws,[expr[str]:in],[list[var]:ws])
-#-----------------------------------------------------------
-# [expr]       <-- $(call __expr.is.empty,[expr])
-# [expr[word]] <-- $(call __expr.strip.pre,[expr[str]:in],[list[var]:noescape])
-# [expr[str]]  <-- $(call __expr.strip.post,[expr[word]:in],[list[var]:noescape])
-# [expr[word]] <-- $(call __expr.strip.expr,[expr[word]:in],[expr[word]:strip])
-# [expr[word]] <-- $(call __expr.strip.const,[expr[word]:in],[str:strip],[list[var]:noescape])
-override __expr.is.empty    = $(filter $(xe) $$e $$(e) $${e} $$(empty) $${empty},$1)
-override __expr.strip.pre   = $(call expr.subst.refs2refs,$1,$(filter-out $(subst %,\%,$2),x s t n),$(addprefix x,$(filter-out $(subst %,\%,$2),x s t n)))
-override __expr.strip.post  = $(call expr.subst.refs2refs,$1,$(addprefix x,$(filter-out $(subst %,\%,$2),n t s x)),$(filter-out $(subst %,\%,$2),n t s x))
-override __expr.strip.expr  = $(if $(and $1,$2),$(if $(call __expr.is.empty,$2),$1,$$(subst$s$(xs)$c$2$c$$(strip$s$$(subst$s$2$c$(xs)$c$1)))),$1)
-override __expr.strip.const = $(call __expr.strip.expr,$1,$(call expr.const,word,$(call str.subst.vars2vars,$2,$(filter-out $(subst %,\%,$3),x s t n),$(addprefix x,$(filter-out $(subst %,\%,$3),x s t n)))))
-
-override expr.strip.consts  = $(if $(and $1,$(firstword $2)),$(call __expr.strip.post,$(call list.reduce.1,str,__expr.strip.const,$(call __expr.strip.pre,$1,$3),$2,$3),$3),$1)
-override expr.strip.vars    = $(call expr.strip.consts,$1,$(foreach var,$2,$(call word.pack,str,$($(var)))),$3)
-override expr.cull.consts   = $(if $(and $1,$(firstword $2)),$(call __expr.strip.post,$$(subst $$(xe)$c$c$(call list.reduce.1,str,__expr.strip.const,$$(xe)$(call __expr.strip.pre,$1,$3)$$(xe),$2,$3)),$3),$1)
-override expr.cull.vars     = $(call expr.cull.consts,$1,$(foreach var,$2,$(call word.pack,str,$($(var)))),$3)
-override expr.strip.ws      = $(if $(and $1,$(firstword $2)),$(call __expr.strip.post,$$(strip $(call __expr.strip.pre,$1,$2)),$2),$1)
+#	If [shell] is specified, [command] is run in the alternate [shell]. The original values of
+#	  SHELL, .SHELLFLAGS, and .SHELLSTATUS are restored afterward.
+#-------------------------------------------------------------------------------
+shell.run  = $(if $1,$(if $3,$(call shell.push,$3,$4))$(shell $1)$(call make.exit.if.badshell,,,$1)$(call var.set,,$2,int,$(.SHELLSTATUS))$(if $3,$(call shell.pop)))
+shell.test = $(if $1,$(if $3,$(call shell.push,$3,$4))$(call var.set,,$2,str,$(shell $1))$(call make.exit.if.badshell,,,$1)$(filter 0,$(.SHELLSTATUS))$(if $3,$(call shell.pop)))
 
 
-
+# file.tee      	[str] <-- $(call file.tee,[str:overwrite_or_append],[path],[str])
+file.tee = $(if $2,$(file $(or $1,>) $2,$3))$3
 
 
 #-----------------------------------------------------------
@@ -1368,217 +1447,6 @@ override expr.strip.ws      = $(if $(and $1,$(firstword $2)),$(call __expr.strip
 #-----------------------------------------------------------
 
 override variable.set_with_alternatives = $(eval $(strip $1) $(strip $2) $(if $(or $3,$(strip $4),$5),$$(or $(if $3,$3$c)$(subst $s,$c,$(foreach var,$(strip $4),$$($(var))))$(if $5,$c$5))))
-
-
-#-------------------------------------------------------------------------------
-# $(this.filepath)
-# $(this.filename)
-# $(this.dirpath)
-# $(this.dirname)
-#-------------------------------------------------------------------------------
-# Returns parts of the path to this makefile.
-# Must be expanded BEFORE any "include..." statements!
-# Use Simple (immediate) Expansion ':=' early in the file to ensure correct results.
-# Ex:
-#    filename := $(this.filename)
-#-------------------------------------------------------------------------------
-override this.filepath = $(abspath $(lastword $(MAKEFILE_LIST)))
-override this.filename = $(notdir $(lastword $(MAKEFILE_LIST)))
-override this.dirpath = $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
-override this.dirname = $(notdir $(dir $(abspath $(lastword $(MAKEFILE_LIST)))))
-
-
-
-
-
-#===============================================================================
-# STRING PADDING
-#===============================================================================
-# A [pad] is a string of zero or more '.' characters representing the
-# "column width" of a string.
-# - For strings without tabs or linefeeds, a [pad] is equal in length to the string.
-# - Tabs are replaced with $(pad.tab) during the pad conversion.
-# - Linefeeds are treated as separators; each [line] is padded individually, and
-#   the resulting [pad] is equal in length to the longest [line].
-#
-# Example:
-#   pad := ..............................
-#   line := Some Text
-#   $(info [$(pad)])                                    -->  [..............................]
-#   $(info [$(str)])                                    -->  [Some Text]
-#   $(info [$(call line.justify.r,$(line),$(pad))]) -->  [Some Text                     ]
-#   $(info [$(call line.justify.l,$(line),$(pad))])  -->  [                     Some Text]
-#
-#-------------------------------------------------------------------------------
-#
-# Pad Differences:
-#  [pad]  <-- $(call pad.diff,[pad],[pad])          Returns a [pad] equal to the difference in lengths of the two arguments.
-#
-# Right/Left Justification:
-#  [str]  <-- $(call str.justify.r,[str],[pad],[char])      Right-pads each line of [str] with [char]s up to the length of [pad].
-#  [str]  <-- $(call str.justify.l,[str],[pad],[char])       Left-pads each line of [str]. Similar to a right-justify.
-#                                                             [pad] defaults to a pad the length of the longest line in [str].
-#                                                             [char] defaults to $s.
-#
-#  [line] <-- $(call line.justify.r,[line],[pad],[char])    Same as str.pad, but optimized for various other types.
-#  [line] <-- $(call line.justify.l,[line],[pad],[char])
-#  [line] <-- $(call word.justify.r,[word],[pad],[char])
-#  [line] <-- $(call word.justify.l,[word],[pad],[char])
-#  [line] <-- $(call int.justify.r,[int],[pad],[char])
-#  [line] <-- $(call int.justify.l,[int],[pad],[char])
-#-------------------------------------------------------------------------------
-
-#-------------------------------------------------------------------------------
-# str.to.pad
-#
-#	[pad] <-- $(call str.to.list[pad],[str:lines])              For singular multiline types: Returns a [pad] equal to the length of the longest line in [str].
-#	[pad] <-- $(call {T}.to.pad,[T:val])                  For all other singular types: Returns a [pad] equal to the length of [val].
-#	[pad] <-- $(call list.to.list[pad],[list:vals])             For normal lists:             Returns a [pad] equal to the length of the longest [word] in [list].
-#	[pad] <-- $(call list[{T}].to.pad,[list[T]:vals])     For packed-word lists:        Returns a [pad] equal to the length of the longest {T} value in [list[T]].
-#
-#-------------------------------------------------------------------------------
-
-
-#-------------------------------------------------------------------------------
-# pad.to.str
-#
-#	[str] <-- $(call pad.to.str,[pad],[char])
-#
-#	Returns a sequence of [char] equal in length to [pad].
-#	Uses space ' ' if [char] is omitted.
-#-------------------------------------------------------------------------------
-override pad.to.str = $(subst .,$(or $2,$s),$(strip $1))
-
-
-
-# String Padding ====================== type: [pad]
-override pad.line.indent    = $(call line.to.pad,$(line.indent))
-override pad.tab            = $(pad.line.indent)
-override pad.info.prefix    = $(call line.to.pad,$(info.prefix))
-override pad.warning.prefix = $(call line.to.pad,$(warning.prefix))
-override pad.error.prefix   = $(call line.to.pad,$(error.prefix))
-
-
-# Pad Differences ===================== type: [pad]
-override pad.diff           = $(filter-out $1,$(1:$2%=%))
-
-# Left/Right Justification ============ type: [str]
-override T.justify.r    = $(call pad.to.str,$(call pad.diff,$3,$(call $1.to.pad,$2)),$4)$2
-override T.justify.l    = $2$(call pad.to.str,$(call pad.diff,$3,$(call $1.to.pad,$2)),$4)
-
-override str.justify.r  = $(call pad.to.str,$(call pad.diff,$(or $2,$(call str.to.list[pad],$1)),$(call line.to.pad,$(subst $t,$(pad.tab),$1))),$3)
-#override str.justify.l  =
-override line.justify.r = $(call T.justify.r,line,$1,$2,$3)
-override line.justify.l = $(call T.justify.l,line,$1,$2,$3)
-override word.justify.r = $(call T.justify.r,word,$(strip $1),$2,$3)
-override word.justify.l = $(call T.justify.l,word,$(strip $1),$2,$3)
-override int.justify.r  = $(call T.justify.r,int,$(strip $1),$2,$3)
-override int.justify.l  = $(call T.justify.l,int,$(strip $1),$2,$3)
-override uint.justify.r = $(call T.justify.r,uint,$(strip $1),$2,$3)
-override uint.justify.l = $(call T.justify.l,uint,$(strip $1),$2,$3)
-override idx.justify.r  = $(call T.justify.r,idx,$(strip $1),$2,$3)
-override idx.justify.l  = $(call T.justify.l,idx,$(strip $1),$2,$3)
-#===============================================================================
-
-
-#===============================================================================
-# PRINTING
-#===============================================================================
-# Info
-# $(call print.info,{msg},[indent])
-# $(call print.vars,{vars},[indent],[col])
-# $(call print.list,[list],[indent],[col])
-# $(call print.debug,{msg},[indent])
-# $(call print.trace,{msg},[indent])
-# Warnings
-#-------------------------------------------------------------------------------
-
-
-override print.var =
-# $(call print.var,{var},{indent},{col},{prefix},{suffix})
-override print.var = $(info $2$(call str.justify.l,$1,$3)=$4$(subst $n,$5$n$2$(subst .,$s,$3.)$4,$($1))$5)
-
-
-
-
-override print.vars = $(if $2,$(if $3,$(foreach var,$1,$(call print.var,$(var),$2,$3,[,])),$(call print.vars,$1,$2,$(call print.vars.col,$1))),$(call print.vars,$1,$(line.indent),$3))
-
-# $(call print.vars.col,{vars})
-override print.vars.col = $(lastword $(sort $(call str.subst.list2str,$1,$(var.char.list),.)))
-
-override print.break = $(info )$(call print.vars,$1)$(info )$(error Breakpoint reached. Exiting...)
-
-override print.debug.enable ?= false
-override print.debug = $(if $(findstring $(print.debug.enable),true),$(info DEBUG: $(strip $1)))
-
-override print.trace.enable ?= false
-override print.trace = $(if $(findstring $(print.trace.enable),true),$(info $n======= $(if $(strip $1),$(strip $1),make $@) =======))
-
-# [str]   <-- $(call str.lines.wrap,[str],[str:prefix],[str:suffix])
-override str.lines.wrap = $2$(subst $n,$3$n$2,$1)$3
-
-# [str]   <-- $(call str.info.var,[var],[col])
-override str.info.var = $(if $(strip $1),$(call str.justify.l,$1,$2)=$4$(subst $n,$5$n$(subst .,$s,$2.)$4,$($1))$5)
-
-
-
-
-
-#===============================================================================
-# ERROR HANDLING
-#===============================================================================
-# [str] <-- $(error.prefix)          Error message line prefix
-# [str] <-- $(line.indent)          Error message line indentation
-#
-# Error Message Strings:
-#  [str] <-- $(call str.error.dynamic,[str:dynamic],[str:details])
-#  [str] <-- $(call str.error.expansion,[str:expr],[str:details])
-#  [str] <-- $(call str.error.call,[func],[str:details])
-#  [str] <-- $(call str.error.arg,[func],[idx:argnum],[word:argspec],[str:argval],[str:details])
-#  [str] <-- $(call str.error.arg.empty,[func],[idx:argnum],[word:argspec])
-#  [str] <-- $(call str.error.arg.nowords,[func],[idx:argnum],[word:argspec])
-#  [str] <-- $(call str.error.arg.multiline,[func],[idx:argnum],[word:argspec])
-#
-# Assert:
-#  [empty] <-- $(assert.{N}.is.nonempty)    Throws $(error) if function argument $({N}) is [empty].
-#  [empty] <-- $(assert.{N}.has.words)      Throws $(error) if function argument $({N}) has 0 words.
-#  [empty] <-- $(assert.{N}.is.line)        Throws $(error) if function argument $({N}) contains linefeeds.
-#  [empty] <-- $(assert.{N}.is.word)        Throws $(error) if function argument $({N}) does not have exactly 1 word.
-#
-#-------------------------------------------------------------------------------
-# str.error =========================== type: [str]
-override str.error.dynamic         = Error $(if $1,at $1,{unspecified})$(if $2,:$(subst $n,$n$(error.prefix)$(line.indent),$n$2))$n
-override str.error.expansion       = $(call str.error.dynamic,$$($(or $(strip $1),...)),$2)
-override str.error.call            = $(call str.error.expansion,call$(if $(strip $1),$s$(strip $1)),$2)
-override str.error.arg             = $(call str.error.call,$1,Invalid argument $(if $(strip $2),$(strip $2):$s)$(if $(strip $3),$(strip $3)$s$(if $4,=$s))$(if $4,"$4")$(if $5,$(subst $n,$n$(str.error.INDENT),$n$5)))
-override str.error.arg.empty       = $(call str.error.arg,$1,$2,$3,,Must be nonempty.)
-override str.error.arg.nowords     = $(call str.error.arg,$1,$2,$3,,Must contain at least one word.)
-override str.error.arg.multiline   = $(call str.error.arg,$1,$2,$3,,Must not contain multiple lines.)
-override str.error.arg.multiword   = $(call str.error.arg,$1,$2,$3,,Must contain exactly 1 word.)
-
-# assert ============================== type: [empty]
-override assert.1.is.nonempty      = $(if $1,,$(error $(call str.error.arg.empty,$0,1)))
-override assert.2.is.nonempty      = $(if $2,,$(error $(call str.error.arg.empty,$0,2)))
-override assert.3.is.nonempty      = $(if $3,,$(error $(call str.error.arg.empty,$0,3)))
-override assert.4.is.nonempty      = $(if $4,,$(error $(call str.error.arg.empty,$0,4)))
-
-override assert.1.has.words        = $(if $(strip $1),,$(error $(call str.error.arg.nowords,$0,1)))
-override assert.2.has.words        = $(if $(strip $2),,$(error $(call str.error.arg.nowords,$0,2)))
-override assert.3.has.words        = $(if $(strip $3),,$(error $(call str.error.arg.nowords,$0,3)))
-override assert.4.has.words        = $(if $(strip $4),,$(error $(call str.error.arg.nowords,$0,4)))
-
-override assert.1.is.line          = $(if $(findstring $n,$1),$(error $(call str.error.arg.multiline,$0,1)))
-override assert.2.is.line          = $(if $(findstring $n,$2),$(error $(call str.error.arg.multiline,$0,2)))
-override assert.3.is.line          = $(if $(findstring $n,$3),$(error $(call str.error.arg.multiline,$0,3)))
-override assert.4.is.line          = $(if $(findstring $n,$4),$(error $(call str.error.arg.multiline,$0,4)))
-
-override assert.1.is.word          = $(if $(filter-out 1,$(words $1)),$(error $(call str.error.arg.multiword,$0,1)))
-override assert.2.is.word          = $(if $(filter-out 1,$(words $2)),$(error $(call str.error.arg.multiword,$0,2)))
-override assert.3.is.word          = $(if $(filter-out 1,$(words $3)),$(error $(call str.error.arg.multiword,$0,3)))
-override assert.4.is.word          = $(if $(filter-out 1,$(words $4)),$(error $(call str.error.arg.multiword,$0,4)))
-#===============================================================================
-
-
 
 
 
@@ -1621,68 +1489,4 @@ override FALSE.l := FALSE False false NO No no N n 0
 override is.truthy = $(if $(filter $(TRUE.l),$(strip $1)),$(TRUE.m),$(FALSE.m))
 override is.falsey = $(if $(filter $(FALSE.l),$(or $(strip $1),false)),$(TRUE.m),$(FALSE.m))
 #===============================================================================
-
-
-
-#-------------------------------------------------------------------------------
-# make.exit.if.badshell 	[empty] <-- $(call make.exit.if.badshell,[str:command])
-#-------------------------------------------------------------------------------
-#	Exits Make with an error message if:
-#	- $(MAKE_EXIT_IF_BADSHELL) is [true], and
-#	- The most recent recipe command or $(shell) invocation failed to start due to
-#	  an improperly specified SHELL or .SHELLFLAGS.
-#-------------------------------------------------------------------------------
-make.exit.if.badshell = $(and $(MAKE_EXIT_IF_BADSHELL),$(filter 127,$(.SHELLSTATUS)),$(error Failed to start shell process:$n  SHELL       = [$(SHELL)]$n  .SHELLFLAGS = [$(.SHELLFLAGS)]$n$(if $1,  Command:      [$1])$n$n))
-
-
-#-------------------------------------------------------------------------------
-# shell.push    	[empty] <-- $(call shell.push,[path:shell],[str:flags])
-# shell.pop     	[empty] <-- $(call shell.pop)
-#-------------------------------------------------------------------------------
-#	Push: Stores the current values of SHELL, .SHELLFLAGS, and .SHELLSTATUS,
-#	      then assigns new values to SHELL and/or .SHELLFLAGS.
-#	      No-op if [shell] is omitted.
-#	Pop:  Restores the previous values of SHELL, .SHELLFLAGS, and .SHELLSTATUS.
-#	      No-op if there is no previous value of SHELL.
-#-------------------------------------------------------------------------------
-shell.push = $(if $1,$(call var.push,SHELL,path,$1)$(call var.push,.SHELLFLAGS,str,$2)$(call var.push,.SHELLSTATUS,int,))
-shell.pop  = $(if $(var.SHELL.stack),$(call var.pop,.SHELLSTATUS)$(call var.pop,.SHELLFLAGS)$(call var.pop,SHELL))
-
-
-#-------------------------------------------------------------------------------
-# shell.run     	[str:stdout]   <-- $(call shell.run,[str:command],[var:exitcode],[path:shell],[str:flags])
-# shell.test    	[bool:success] <-- $(call shell.test,[str:command],[var:stdout],[path:shell],[str:flags])
-#-------------------------------------------------------------------------------
-#	Run:  Expands to the stdout of the command.
-#	      Optionally stores the exit code for later use.
-#	Test: Expands to the '0' if the command was successful, or [empty] if the command failed.
-#	      Optionally stores the stdout for later use.
-#
-#	If [shell] is specified, [command] is run in the alternate [shell]. The original values of
-#	  SHELL, .SHELLFLAGS, and .SHELLSTATUS are restored afterward.
-#-------------------------------------------------------------------------------
-shell.run  = $(if $1,$(if $3,$(call shell.push,$3,$4))$(shell $1)$(call make.exit.if.badshell,$1)$(call var.set,,$2,int,$(.SHELLSTATUS))$(if $3,$(call shell.pop)))
-shell.test = $(if $1,$(if $3,$(call shell.push,$3,$4))$(call var.set,,$2,str,$(shell $1))$(call make.exit.if.badshell,$1)$(filter 0,$(.SHELLSTATUS))$(if $3,$(call shell.pop)))
-
-
-
-shell = cmd.exe
-shellflags = /Q /D /E:ON /F:OFF /V:OFF /S /C
-
-SHELL = $(shell)
-.SHELLFLAGS = $(shellflags)
-$(info $e)
-$(info SHELL = $(SHELL))
-$(info .SHELLFLAGS = $(.SHELLFLAGS))
-$(info $e)
-
-# Subshell and `exit` are required to prevent spawning orphan processes in some cases
-shell.prompt = (cmd.exe /Q /D /E:ON /F:OFF /V:ON /S /C "set /p in=&echo$l!in!&exit 0") 2>nul & exit 0
-
-prompt.str = $(if $1,$(info $1))$(call shell.run,$(shell.prompt))
-
-$(info [$(call prompt.str,Enter a string:)])
-
-
-$(error Done.)
 

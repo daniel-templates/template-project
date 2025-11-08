@@ -150,12 +150,6 @@
 				"overrideName": true,
 				"icon": "terminal-bash"
 			},
-			"sh": {
-				"path": "sh",
-				"args": [],
-				"overrideName": true,
-				"icon": "terminal-bash"
-			},
 
 		},
 

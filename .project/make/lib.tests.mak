@@ -304,7 +304,7 @@ $(foreach path,$(paths),\
 	)\
 	$(info $e)\
 	$(foreach func, dir-------- notdir----- parent----- name------- name.base-- name.suffix basename--- suffix-----,\
-	$(info $epatsubst.$(subst -,$s,$(func)) = [$(call word.unpack,[path],$(call list.path.patsubst.$(subst -,,$(func)),$(path),%,<$(call str.to.upper,$(subst -,,$(func)))>))])\
+	$(info $epatsubst.$(subst -,$s,$(func)) = [$(call word.unpack,[path],$(call list.path.patsubst.$(subst -,,$(func)),$(path),%,<$(call str.upper,$(subst -,,$(func)))>))])\
 	)\
 	$(info $e)\
 )
@@ -397,8 +397,7 @@ endif
 
 
 #-------------------------------------------------------------------------------
-# [expr[T]] <-- $(call expr.const,[type:T],[T:val])
-# [expr]    <-- $(call expr.ref,[expr[var]:name],[expr[word.pattern]:find],[expr[str.pattern]:repl])
+# [expr]    <-- $(call expr.var,[expr[var]:name],[expr[word.pattern]:find],[expr[str.pattern]:repl])
 # [expr]    <-- $(call expr.builtin,[expr[builtin]:name],[list[expr]:args])
 # [expr]    <-- $(call expr.call,[expr[func]:name],[list[expr]:args])
 # [expr]    <-- $(call expr.assign,[list[expr]:directives],[expr[var]:name],[expr:assign_operator],[expr:value])
@@ -409,30 +408,30 @@ endif
 #                   [list[expr]:commands]
 #               )
 #-------------------------------------------------------------------------------
-ifneq "$(filter $(tests),expr.const expr.ref expr.builtin expr.call expr.assign expr.target)" ""
+ifneq "$(filter $(tests),expr.var expr.builtin expr.call expr.assign expr.target)" ""
 
 str := //a\very, $$trange//(path)//
 
-expr.const.type   := path
-expr.const.val    := $(str)
+word.pack.type   := path
+word.pack.val    := $(str)
 
-expr.ref.name     := 1
-expr.ref.find     := $(call expr.const,word.pattern,$$%)
-expr.ref.repl     := $(call expr.const,str.pattern,$$<%>)
+expr.var.name     := 1
+expr.var.find     := $(call word.pack,word.pattern,$$%)
+expr.var.repl     := $(call word.pack,str.pattern,$$<%>)
 
 expr.builtin.name := subst
-expr.builtin.args += $(call word.pack,expr,$(call expr.const,str,$c$s))
-expr.builtin.args += $(call word.pack,expr,$(call expr.const,str,$e))
+expr.builtin.args += $(call word.pack,expr,$(call word.pack,str,$c$s))
+expr.builtin.args += $(call word.pack,expr,$(call word.pack,str,$e))
 expr.builtin.args += $(call word.pack,expr,$$1)
 
 expr.call.name    := subst
-expr.call.args    += $(call word.pack,expr,$(call expr.const,str,$c$s))
-expr.call.args    += $(call word.pack,expr,$(call expr.const,str,$e))
+expr.call.args    += $(call word.pack,expr,$(call word.pack,str,$c$s))
+expr.call.args    += $(call word.pack,expr,$(call word.pack,str,$e))
 expr.call.args    += $(call word.pack,expr,$$1)
 
 expr.assign.name  := var
-expr.assign.directives += $(call word.pack,expr,$(call expr.const,str,define))
-expr.assign.directives += $(call word.pack,expr,$(call expr.const,str,override))
+expr.assign.directives += $(call word.pack,expr,$(call word.pack,str,define))
+expr.assign.directives += $(call word.pack,expr,$(call word.pack,str,override))
 expr.assign.operator :=
 expr.assign.value := this is$na multiline$nvalue
 
@@ -445,25 +444,25 @@ expr.target.prereqs_of   += $(call word.pack,path.pattern,parent.tgt)
 expr.target.orderonly_of += $(call word.pack,path.pattern,.PHONY)
 expr.target.assignments  += $(call word.pack,expr,var1 = value1)
 expr.target.assignments  += $(call word.pack,expr,var2 = value2)
-expr.target.commands     += $(call word.pack,expr,$(call expr.builtin,info,$(call word.pack,expr,$(call expr.const,str,Target = )[$(call expr.ref,@)])))
-expr.target.commands     += $(call word.pack,expr,python.exe "$(call expr.ref,^)")
+expr.target.commands     += $(call word.pack,expr,$(call expr.builtin,info,$(call word.pack,expr,$(call word.pack,str,Target = )[$(call expr.var,@)])))
+expr.target.commands     += $(call word.pack,expr,python.exe "$(call expr.var,^)")
 
 $(info $e)
-$(info $e  expr.const)
+$(info $e  word.pack)
 $(info $e==============================================)
-expr := $(call expr.const,$(expr.const.type),$(expr.const.val))
-$(info $e type = [$(expr.const.type)])
-$(info $e val  = [$(expr.const.val)])
+expr := $(call word.pack,$(word.pack.type),$(word.pack.val))
+$(info $e type = [$(word.pack.type)])
+$(info $e val  = [$(word.pack.val)])
 $(info $e expr = [$(expr)])
 $(info $e)
 $(info $e    --> [$(eval func = $(expr))$(call func)])
 $(info $e)
-$(info $e  expr.ref)
+$(info $e  expr.var)
 $(info $e==============================================)
-expr := $(call expr.ref,$(expr.ref.name),$(expr.ref.find),$(expr.ref.repl))
-$(info $e name = [$(expr.ref.name)])
-$(info $e find = [$(expr.ref.find)])
-$(info $e repl = [$(expr.ref.repl)])
+expr := $(call expr.var,$(expr.var.name),$(expr.var.find),$(expr.var.repl))
+$(info $e name = [$(expr.var.name)])
+$(info $e find = [$(expr.var.find)])
+$(info $e repl = [$(expr.var.repl)])
 $(info $e expr = [$(expr)])
 $(info $e)
 $(info $e str  = [$(str)])
@@ -682,6 +681,7 @@ endif
 #-------------------------------------------------------------------------------
 ifneq "$(filter $(tests),shell.push shell.pop)" ""
 
+
 $(info $e)
 $(info $e SHELL       = [$(SHELL)])
 $(info $e.SHELLFLAGS  = [$(.SHELLFLAGS)])
@@ -690,15 +690,20 @@ $(info $e)
 
 $(info $e  shell.push)
 $(info $e======================================================)
-$(call shell.push,$(if $(findstring Windows_NT,$(OS)),python.exe,python),-q -c)
+$(info $e var.SHELL.stack = [$(var.SHELL.stack)])
+$(call shell.push,$(if $(findstring Windows_NT,$(OS)),asdf.exe,python),-q -c)
 $(info $(shell print("If you can read this, Make is using Python as the Shell")))
+$(info $e var.SHELL.stack = [$(var.SHELL.stack)])
 $(info $e SHELL       = [$(SHELL)])
 $(info $e.SHELLFLAGS  = [$(.SHELLFLAGS)])
 $(info $e.SHELLSTATUS = [$(.SHELLSTATUS)])
+$(info $e var.SHELL.stack = [$(var.SHELL.stack)])
 $(info $e)
 $(info $e  shell.pop)
 $(info $e======================================================)
+$(info $e var.SHELL.stack = [$(var.SHELL.stack)])
 $(call shell.pop)
+$(info $e var.SHELL.stack = [$(var.SHELL.stack)])
 $(info $e SHELL       = [$(SHELL)])
 $(info $e.SHELLFLAGS  = [$(.SHELLFLAGS)])
 $(info $e.SHELLSTATUS = [$(.SHELLSTATUS)])
@@ -755,6 +760,27 @@ $(info $e)
 $(info $e SHELL       = [$(SHELL)])
 $(info $e.SHELLFLAGS  = [$(.SHELLFLAGS)])
 $(info $e.SHELLSTATUS = [$(.SHELLSTATUS)])
+$(info $e)
+
+endif
+
+
+
+
+#-------------------------------------------------------------------------------
+# str.error
+#-------------------------------------------------------------------------------
+ifneq "$(filter $(tests),str.error assert)" ""
+
+$(info $e)
+$(info $e  str.error)
+$(info $e====================================)
+$(info $e$(call str.error,$(str.trace),Error Line 1$nError Line 2$nError Line 3))
+$(info $e)
+$(info $e)
+$(info $e  assert)
+$(info $e====================================)
+$(info $e$(call assert,variable,,SHELL,An error has occurred))
 $(info $e)
 
 endif

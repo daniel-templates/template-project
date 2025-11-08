@@ -239,8 +239,8 @@ list.set.last                [list[T]] <-- $(call list.set.last,[type:T],[list[T
 #### Strings: Misc
 
 ```
-str.equ                      [str] <-- $(call str.equ,[str:1],[str:2])
-str.neq                      [str] <-- $(call str.neq,[str:1],[str:2])
+str.equ                      [str] <-- $(call str.equ,[str:1],[str:2],[bool:case_insensitive])
+str.neq                      [str] <-- $(call str.neq,[str:1],[str:2],[bool:case_insensitive])
 
 findstring      (Built-In)   [str] <-- $(findstring [str:find],[str:in])
 
