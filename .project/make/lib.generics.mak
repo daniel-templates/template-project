@@ -21,6 +21,25 @@ endif
 #===============================================================================
 
 
+# Type Definitions ==================== type: list{char}
+override char.{str}      := $(char.lowers) $(char.uppers) $(char.digits) $(char.whitespace) $(char.symbols)
+override char.{line}     := $(char.lowers) $(char.uppers) $(char.digits) $$s $$t            $(char.symbols)
+override char.{list}     := $(char.lowers) $(char.uppers) $(char.digits) $$s                $(char.symbols)
+override char.{word}     := $(char.lowers) $(char.uppers) $(char.digits)                    $(char.symbols)
+override char.{alphanum} := $(char.lowers) $(char.uppers) $(char.digits)
+override char.{alpha}    := $(char.lowers) $(char.uppers)
+override char.{int}      :=                               $(char.digits)                    + -
+override char.{uint}     :=                               $(char.digits)                    +
+override char.{digit}    :=                               $(char.digits)
+override char.{bool}     := t r u e
+override char.{var}      := $(char.lowers) $(char.uppers) $(char.digits) $(char.whitespace) $(filter-out : =,$(char.symbols))
+override char.{path}     := $(char.lowers) $(char.uppers) $(char.digits) $$s                $(filter-out < > | & ",$(char.symbols))
+override char.{char}     := $(char.{str})
+override char.{expr}     := $(char.{str})
+override char.{idx}      := $(char.{uint})
+override char.{origin}   := $(char.{list})
+override char.{flavor}   := $(char.{alpha})
+override char.{type}     := $(char.{word})
 
 
 #-----------------------------------------------------------

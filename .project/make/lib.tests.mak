@@ -784,3 +784,193 @@ $(info $e$(call assert,variable,,SHELL,An error has occurred))
 $(info $e)
 
 endif
+
+
+#-------------------------------------------------------------------------------
+# str.to.block
+# block.to.str
+#-------------------------------------------------------------------------------
+
+ifneq "$(filter $(tests),str.to.block block.to.str)" ""
+
+str1 := $nline1$nline  2$n
+str2 := $n
+str3 :=
+pad := .
+
+$(foreach V,str1 str2 str3,\
+	$(info $e)\
+	$(info str = [$(subst $n,$v$n$s$s$s$s$s$s$u,$($V))])\
+	$(info $e)\
+	$(info <-- = [$(subst $n,$v$n$s$s$s$s$s$s$u,$(call str.to.block,str,$($V),$(pad),left))])\
+	$(info <-- = [$(subst $n,$v$n$s$s$s$s$s$s$u,$(call block.to.str,$(call str.to.block,str,$($V),$(pad),left)))])\
+	$(info $e)\
+	$(info --> = [$(subst $n,$v$n$s$s$s$s$s$s$u,$(call str.to.block,str,$($V),$(pad),right))])\
+	$(info --> = [$(subst $n,$v$n$s$s$s$s$s$s$u,$(call block.to.str,$(call str.to.block,str,$($V),$(pad),right)))])\
+	$(info $e)\
+)
+$(info $e)
+
+endif
+
+
+#-------------------------------------------------------------------------------
+# block.hresize
+# block.vresize
+#-------------------------------------------------------------------------------
+
+ifneq "$(filter $(tests),block.hresize block.vresize)" ""
+
+str1 := 1..$n2.$n3
+str2 := A$nB.
+str3 := $n
+str4 :=
+pad  := .
+blk1 := $(call str.to.block,str,$(str1),$(pad))
+blk2 := $(call str.to.block,str,$(str2),$(pad))
+blk3 := $(call str.to.block,str,$(str3),$(pad))
+blk4 := $(call str.to.block,str,$(str4),$(pad))
+
+$(info $e)
+$(info $eBlocks)
+$(info $e)
+$(info blk1 = [$(subst $n,$v$n$s$s$s$s$s$s$s$u,$(call block.to.str,$(blk1)))])
+$(info $e)
+$(info blk2 = [$(subst $n,$v$n$s$s$s$s$s$s$s$u,$(call block.to.str,$(blk2)))])
+$(info $e)
+$(info blk3 = [$(subst $n,$v$n$s$s$s$s$s$s$s$u,$(call block.to.str,$(blk3)))])
+$(info $e)
+$(info blk4 = [$(subst $n,$v$n$s$s$s$s$s$s$s$u,$(call block.to.str,$(blk4)))])
+$(info $e)
+$(info $eHRESIZE)
+$(info $e)
+$(info w2,1 = [$(subst $n,$v$n$s$s$s$s$s$s$s$u,$(call block.to.str,$(call block.hresize,$(blk2),$(blk1),$(pad),resize)))])
+$(info $e)
+$(info w1,2 = [$(subst $n,$v$n$s$s$s$s$s$s$s$u,$(call block.to.str,$(call block.hresize,$(blk1),$(blk2),$(pad),resize)))])
+$(info $e)
+$(info w1,3 = [$(subst $n,$v$n$s$s$s$s$s$s$s$u,$(call block.to.str,$(call block.hresize,$(blk1),$(blk3),$(pad),resize)))])
+$(info $e)
+$(info w1,4 = [$(subst $n,$v$n$s$s$s$s$s$s$s$u,$(call block.to.str,$(call block.hresize,$(blk1),$(blk4),$(pad),resize)))])
+$(info $e)
+$(info w1,  = [$(subst $n,$v$n$s$s$s$s$s$s$s$u,$(call block.to.str,$(call block.hresize,$(blk1),       ,$(pad),resize)))])
+$(info $e)
+$(info w3,2 = [$(subst $n,$v$n$s$s$s$s$s$s$s$u,$(call block.to.str,$(call block.hresize,$(blk3),$(blk2),$(pad),resize)))])
+$(info $e)
+$(info w3,4 = [$(subst $n,$v$n$s$s$s$s$s$s$s$u,$(call block.to.str,$(call block.hresize,$(blk3),$(blk4),$(pad),resize)))])
+$(info $e)
+$(info w4,2 = [$(subst $n,$v$n$s$s$s$s$s$s$s$u,$(call block.to.str,$(call block.hresize,$(blk4),$(blk2),$(pad),resize)))])
+$(info $e)
+$(info w4,4 = [$(subst $n,$v$n$s$s$s$s$s$s$s$u,$(call block.to.str,$(call block.hresize,$(blk4),$(blk4),$(pad),resize)))])
+$(info $e)
+$(info w4,  = [$(subst $n,$v$n$s$s$s$s$s$s$s$u,$(call block.to.str,$(call block.hresize,$(blk4),       ,$(pad),resize)))])
+$(info $e)
+$(info w ,  = [$(subst $n,$v$n$s$s$s$s$s$s$s$u,$(call block.to.str,$(call block.hresize,       ,       ,$(pad),resize)))])
+$(info $e)
+$(info $eVRESIZE)
+$(info $e)
+$(info h2,1 = [$(subst $n,$v$n$s$s$s$s$s$s$s$u,$(call block.to.str,$(call block.vresize,$(blk2),$(blk1),$(pad),resize)))])
+$(info $e)
+$(info h1,2 = [$(subst $n,$v$n$s$s$s$s$s$s$s$u,$(call block.to.str,$(call block.vresize,$(blk1),$(blk2),$(pad),resize)))])
+$(info $e)
+$(info h1,3 = [$(subst $n,$v$n$s$s$s$s$s$s$s$u,$(call block.to.str,$(call block.vresize,$(blk1),$(blk3),$(pad),resize)))])
+$(info $e)
+$(info h1,4 = [$(subst $n,$v$n$s$s$s$s$s$s$s$u,$(call block.to.str,$(call block.vresize,$(blk1),$(blk4),$(pad),resize)))])
+$(info $e)
+$(info h1,  = [$(subst $n,$v$n$s$s$s$s$s$s$s$u,$(call block.to.str,$(call block.vresize,$(blk1),       ,$(pad),resize)))])
+$(info $e)
+$(info h3,2 = [$(subst $n,$v$n$s$s$s$s$s$s$s$u,$(call block.to.str,$(call block.vresize,$(blk3),$(blk2),$(pad),resize)))])
+$(info $e)
+$(info h3,4 = [$(subst $n,$v$n$s$s$s$s$s$s$s$u,$(call block.to.str,$(call block.vresize,$(blk3),$(blk4),$(pad),resize)))])
+$(info $e)
+$(info h4,2 = [$(subst $n,$v$n$s$s$s$s$s$s$s$u,$(call block.to.str,$(call block.vresize,$(blk4),$(blk2),$(pad),resize)))])
+$(info $e)
+$(info h4,4 = [$(subst $n,$v$n$s$s$s$s$s$s$s$u,$(call block.to.str,$(call block.vresize,$(blk4),$(blk4),$(pad),resize)))])
+$(info $e)
+$(info h4,  = [$(subst $n,$v$n$s$s$s$s$s$s$s$u,$(call block.to.str,$(call block.vresize,$(blk4),       ,$(pad),resize)))])
+$(info $e)
+$(info h ,  = [$(subst $n,$v$n$s$s$s$s$s$s$s$u,$(call block.to.str,$(call block.vresize,       ,       ,$(pad),resize)))])
+$(info $e)
+
+endif
+
+
+
+
+#-------------------------------------------------------------------------------
+# block.hstack
+# block.vstack
+#-------------------------------------------------------------------------------
+
+ifneq "$(filter $(tests),block.hstack block.vstack)" ""
+
+str1 := 1..$n2.$n3
+str2 := A$nB.
+str3 := $n
+str4 :=
+pad  := .
+blk1 := $(call str.to.block,str,$(str1),$(pad))
+blk2 := $(call str.to.block,str,$(str2),$(pad))
+blk3 := $(call str.to.block,str,$(str3),$(pad))
+blk4 := $(call str.to.block,str,$(str4),$(pad))
+
+$(info $e)
+$(info $eBlocks)
+$(info $e)
+$(info blk1 = [$(subst $n,$v$n$s$s$s$s$s$s$s$u,$(call block.to.str,$(blk1)))])
+$(info $e)
+$(info blk2 = [$(subst $n,$v$n$s$s$s$s$s$s$s$u,$(call block.to.str,$(blk2)))])
+$(info $e)
+$(info blk3 = [$(subst $n,$v$n$s$s$s$s$s$s$s$u,$(call block.to.str,$(blk3)))])
+$(info $e)
+$(info blk4 = [$(subst $n,$v$n$s$s$s$s$s$s$s$u,$(call block.to.str,$(blk4)))])
+$(info $e)
+$(info $eHSTACK)
+$(info $e)
+$(info h2,1 = [$(subst $n,$v$n$s$s$s$s$s$s$s$u,$(call block.to.str,$(call block.hstack,$(blk2),$(blk1),$(pad))))])
+$(info $e)
+$(info h1,2 = [$(subst $n,$v$n$s$s$s$s$s$s$s$u,$(call block.to.str,$(call block.hstack,$(blk1),$(blk2),$(pad))))])
+$(info $e)
+$(info h1,3 = [$(subst $n,$v$n$s$s$s$s$s$s$s$u,$(call block.to.str,$(call block.hstack,$(blk1),$(blk3),$(pad))))])
+$(info $e)
+$(info h1,4 = [$(subst $n,$v$n$s$s$s$s$s$s$s$u,$(call block.to.str,$(call block.hstack,$(blk1),$(blk4),$(pad))))])
+$(info $e)
+$(info h1,  = [$(subst $n,$v$n$s$s$s$s$s$s$s$u,$(call block.to.str,$(call block.hstack,$(blk1),       ,$(pad))))])
+$(info $e)
+$(info h3,2 = [$(subst $n,$v$n$s$s$s$s$s$s$s$u,$(call block.to.str,$(call block.hstack,$(blk3),$(blk2),$(pad))))])
+$(info $e)
+$(info h3,4 = [$(subst $n,$v$n$s$s$s$s$s$s$s$u,$(call block.to.str,$(call block.hstack,$(blk3),$(blk4),$(pad))))])
+$(info $e)
+$(info h4,2 = [$(subst $n,$v$n$s$s$s$s$s$s$s$u,$(call block.to.str,$(call block.hstack,$(blk4),$(blk2),$(pad))))])
+$(info $e)
+$(info h4,4 = [$(subst $n,$v$n$s$s$s$s$s$s$s$u,$(call block.to.str,$(call block.hstack,$(blk4),$(blk4),$(pad))))])
+$(info $e)
+$(info h4,  = [$(subst $n,$v$n$s$s$s$s$s$s$s$u,$(call block.to.str,$(call block.hstack,$(blk4),       ,$(pad))))])
+$(info $e)
+$(info h ,  = [$(subst $n,$v$n$s$s$s$s$s$s$s$u,$(call block.to.str,$(call block.hstack,       ,       ,$(pad))))])
+$(info $e)
+$(info $eVSTACK)
+$(info $e)
+$(info v2,1 = [$(subst $n,$v$n$s$s$s$s$s$s$s$u,$(call block.to.str,$(call block.vstack,$(blk2),$(blk1),$(pad))))])
+$(info $e)
+$(info v1,2 = [$(subst $n,$v$n$s$s$s$s$s$s$s$u,$(call block.to.str,$(call block.vstack,$(blk1),$(blk2),$(pad))))])
+$(info $e)
+$(info v1,3 = [$(subst $n,$v$n$s$s$s$s$s$s$s$u,$(call block.to.str,$(call block.vstack,$(blk1),$(blk3),$(pad))))])
+$(info $e)
+$(info v1,4 = [$(subst $n,$v$n$s$s$s$s$s$s$s$u,$(call block.to.str,$(call block.vstack,$(blk1),$(blk4),$(pad))))])
+$(info $e)
+$(info v1,  = [$(subst $n,$v$n$s$s$s$s$s$s$s$u,$(call block.to.str,$(call block.vstack,$(blk1),       ,$(pad))))])
+$(info $e)
+$(info v3,2 = [$(subst $n,$v$n$s$s$s$s$s$s$s$u,$(call block.to.str,$(call block.vstack,$(blk3),$(blk2),$(pad))))])
+$(info $e)
+$(info v3,4 = [$(subst $n,$v$n$s$s$s$s$s$s$s$u,$(call block.to.str,$(call block.vstack,$(blk3),$(blk4),$(pad))))])
+$(info $e)
+$(info v4,2 = [$(subst $n,$v$n$s$s$s$s$s$s$s$u,$(call block.to.str,$(call block.vstack,$(blk4),$(blk2),$(pad))))])
+$(info $e)
+$(info v4,4 = [$(subst $n,$v$n$s$s$s$s$s$s$s$u,$(call block.to.str,$(call block.vstack,$(blk4),$(blk4),$(pad))))])
+$(info $e)
+$(info v4,  = [$(subst $n,$v$n$s$s$s$s$s$s$s$u,$(call block.to.str,$(call block.vstack,$(blk4),       ,$(pad))))])
+$(info $e)
+$(info v ,  = [$(subst $n,$v$n$s$s$s$s$s$s$s$u,$(call block.to.str,$(call block.vstack,       ,       ,$(pad))))])
+$(info $e)
+
+endif
