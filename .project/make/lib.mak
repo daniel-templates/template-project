@@ -355,11 +355,19 @@ override block.to.str = $(call word.unpack,line,$(subst $s,,$(call list.merge,li
 #> block.hresize     	[block] <-- $(call block.hresize,[block],[block:width],[char:pad],[extend|resize],[end|start])
 #> block.vresize     	[block] <-- $(call block.vresize,[block],[block:height],[char:pad],[extend|resize],[end|start])
 #-------------------------------------------------------------------------------
-#                                      1                2           3            4            5              6             7            8
 # [block] <-- $(call __block.resize,[block],{word{char}:pad},[list:width],{extend|resize},{end|start},[list:height],{extend|resize},{end|start})
 override __block.resize = $(if $1,$(foreach line,$(if $6,$(call list.$7.$8,line,$1,$6,$(3:%=$2)),$1),$(call word.pack,line,$(call list.$4.$5,,$(call word.unpack,line,$(line)),$3,$2))),$1)
 override block.hresize  = $(call __block.resize,$(strip $1),$(if $3,$(call word.pack,{char},$3),$$s),$(call word.unpack,line,$(or $(firstword $2),$(firstword $1))),$(or $4,extend),$(or $5,end),,extend,end)
 override block.vresize  = $(call __block.resize,$(strip $1),$(if $3,$(call word.pack,{char},$3),$$s),$(call word.unpack,line,$(firstword $1)),extend,end,$(strip $2),$(or $4,extend),$(or $5,end))
+
+
+
+#-------------------------------------------------------------------------------
+#> block.hreshape   	[block] <-- $(call block.hreshape,[block],[block:width],[char:pad]
+#-------------------------------------------------------------------------------
+# [block] <-- $(call __line.reshape,{list{char}},{word{char}:pad},[list:width],[block:append])
+override __block.hreshape = $(if $1,$(if $3,$(call $0,$(wordlist $(words x $3),$(words $1),$1),$2,$3,$4 $(call word.pack,line,$(call list.extend.end,,$(wordlist 1,$(words $3),$1),$3,$2))),$4),$4)
+override block.hreshape   = $(if $(and $1,$2),$(foreach pad,$(if $3,$(call word.pack,{char},$3),$$s),$(or $(foreach width,$(subst $s,_,$(patsubst %,$$e,$(call word.unpack,line,$(firstword $2)))),$(foreach line,$1,$(call __$0,$(call word.unpack,line,$(line)),$(pad),$(subst _,$s,$(width))))),$1)),$1)
 
 
 

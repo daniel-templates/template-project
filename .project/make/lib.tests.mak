@@ -897,6 +897,65 @@ endif
 
 
 #-------------------------------------------------------------------------------
+# block.hreshape
+#-------------------------------------------------------------------------------
+
+ifneq "$(filter $(tests),block.hreshape)" ""
+
+str1 := 1..$n2.$n3
+str2 := A$nB.
+str3 := $n
+str4 :=
+pad  := .
+blk1 := $(call str.to.block,str,$(str1),$(pad))
+blk2 := $(call str.to.block,str,$(str2),$(pad))
+blk3 := $(call str.to.block,str,$(str3),$(pad))
+blk4 := $(call str.to.block,str,$(str4),$(pad))
+
+$(info $e)
+$(info $eBlocks)
+$(info $e)
+$(info blk1 = [$(subst $n,$v$n$s$s$s$s$s$s$s$u,$(call block.to.str,$(blk1)))])
+$(info $e)
+$(info blk2 = [$(subst $n,$v$n$s$s$s$s$s$s$s$u,$(call block.to.str,$(blk2)))])
+$(info $e)
+$(info blk3 = [$(subst $n,$v$n$s$s$s$s$s$s$s$u,$(call block.to.str,$(blk3)))])
+$(info $e)
+$(info blk4 = [$(subst $n,$v$n$s$s$s$s$s$s$s$u,$(call block.to.str,$(blk4)))])
+$(info $e)
+$(info $eHRESHAPE)
+$(info $e)
+$(info w2,1 = [$(subst $n,$v$n$s$s$s$s$s$s$s$u,$(call block.to.str,$(call block.hreshape,$(blk2),$(blk1),$(pad))))])
+$(info $e)
+$(info w1,2 = [$(subst $n,$v$n$s$s$s$s$s$s$s$u,$(call block.to.str,$(call block.hreshape,$(blk1),$(blk2),$(pad))))])
+$(info $e)
+$(info w1,3 = [$(subst $n,$v$n$s$s$s$s$s$s$s$u,$(call block.to.str,$(call block.hreshape,$(blk1),$(blk3),$(pad))))])
+$(info $e)
+$(info w1,4 = [$(subst $n,$v$n$s$s$s$s$s$s$s$u,$(call block.to.str,$(call block.hreshape,$(blk1),$(blk4),$(pad))))])
+$(info $e)
+$(info w1,  = [$(subst $n,$v$n$s$s$s$s$s$s$s$u,$(call block.to.str,$(call block.hreshape,$(blk1),       ,$(pad))))])
+$(info $e)
+$(info w3,2 = [$(subst $n,$v$n$s$s$s$s$s$s$s$u,$(call block.to.str,$(call block.hreshape,$(blk3),$(blk2),$(pad))))])
+$(info $e)
+$(info w3,4 = [$(subst $n,$v$n$s$s$s$s$s$s$s$u,$(call block.to.str,$(call block.hreshape,$(blk3),$(blk4),$(pad))))])
+$(info $e)
+$(info w4,2 = [$(subst $n,$v$n$s$s$s$s$s$s$s$u,$(call block.to.str,$(call block.hreshape,$(blk4),$(blk2),$(pad))))])
+$(info $e)
+$(info w4,4 = [$(subst $n,$v$n$s$s$s$s$s$s$s$u,$(call block.to.str,$(call block.hreshape,$(blk4),$(blk4),$(pad))))])
+$(info $e)
+$(info w4,  = [$(subst $n,$v$n$s$s$s$s$s$s$s$u,$(call block.to.str,$(call block.hreshape,$(blk4),       ,$(pad))))])
+$(info $e)
+$(info w ,  = [$(subst $n,$v$n$s$s$s$s$s$s$s$u,$(call block.to.str,$(call block.hreshape,       ,       ,$(pad))))])
+$(info $e)
+
+endif
+
+
+
+
+
+
+#-------------------------------------------------------------------------------
 # block.hstack
 # block.vstack
 #-------------------------------------------------------------------------------
