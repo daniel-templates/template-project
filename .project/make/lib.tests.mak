@@ -1033,3 +1033,53 @@ $(info v ,  = [$(subst $n,$v$n$s$s$s$s$s$s$s$u,$(call block.to.str,$(call block.
 $(info $e)
 
 endif
+
+
+
+
+
+#-------------------------------------------------------------------------------
+# int.trim
+# int.abs
+# int.neg
+# int.equ.0
+# int.neq.0
+# int.gtr.0
+# int.geq.0
+# int.leq.0
+# int.lss.0
+# int.add
+# int.sub
+# int.equ
+# int.neq
+# int.gtr
+# int.geq
+# int.leq
+# int.lss
+#-------------------------------------------------------------------------------
+
+ifneq "$(filter $(tests),int.trim int.abs int.neg int.equ.0 int.neq.0 int.gtr.0 int.geq.0 int.leq.0 int.lss.0 int.add int.sub int.equ int.neq int.gtr int.geq int.leq int.lss)" ""
+
+
+ints := $$e 00 -00 01 -01 09 010 -099
+$(foreach i1,$(ints),\
+	$(info $e)\
+	$(foreach func,int.trim int.abs int.neg,\
+		$(info $(func)($(i1:$$e=))$t = [$(call $(func),$(i1:$$e=))])\
+	)\
+	$(foreach func,int.equ.0 int.neq.0 int.gtr.0 int.geq.0 int.leq.0 int.lss.0,\
+		$(info $(func)($(i1:$$e=))$t = [$(if $(call $(func),$(i1:$$e=)),true,false)])\
+	)\
+	$(foreach i2,$(ints),\
+		$(foreach func,int.add int.sub,\
+			$(info $(func)($(i1:$$e=),$(i2:$$e=))$t = [$(call $(func),$(i1:$$e=),$(i2:$$e=))])\
+		)\
+	)\
+	$(foreach i2,$(ints),\
+		$(foreach func,int.equ int.neq int.gtr int.geq int.leq int.lss,\
+			$(info $(func)($(i1:$$e=),$(i2:$$e=))$t = [$(if $(call $(func),$(i1:$$e=),$(i2:$$e=)),true,false)])\
+		)\
+	)\
+)
+
+endif
