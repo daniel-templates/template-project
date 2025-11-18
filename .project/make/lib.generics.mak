@@ -21,73 +21,55 @@ endif
 #===============================================================================
 
 
-# Type Definitions ==================== type: list{char}
-override char.{str}      := $(char.lowers) $(char.uppers) $(char.digits) $(char.whitespace) $(char.symbols)
-override char.{line}     := $(char.lowers) $(char.uppers) $(char.digits) $$s $$t            $(char.symbols)
-override char.{list}     := $(char.lowers) $(char.uppers) $(char.digits) $$s                $(char.symbols)
-override char.{word}     := $(char.lowers) $(char.uppers) $(char.digits)                    $(char.symbols)
-override char.{alphanum} := $(char.lowers) $(char.uppers) $(char.digits)
-override char.{alpha}    := $(char.lowers) $(char.uppers)
-override char.{int}      :=                               $(char.digits)                    + -
-override char.{uint}     :=                               $(char.digits)                    +
-override char.{digit}    :=                               $(char.digits)
-override char.{bool}     := t r u e
-override char.{var}      := $(char.lowers) $(char.uppers) $(char.digits) $(char.whitespace) $(filter-out : =,$(char.symbols))
-override char.{path}     := $(char.lowers) $(char.uppers) $(char.digits) $$s                $(filter-out < > | & ",$(char.symbols))
-override char.{char}     := $(char.{str})
-override char.{expr}     := $(char.{str})
-override char.{idx}      := $(char.{uint})
-override char.{origin}   := $(char.{list})
-override char.{flavor}   := $(char.{alpha})
-override char.{type}     := $(char.{word})
 
 
-#-----------------------------------------------------------
-# [expr[str]([str:in])] <-- $(call expr.subst.expr2expr,[expr[str]([str:in])],[expr[str]:from],[expr[str]:to])
-# [expr[str]([str:in])] <-- $(call expr.subst.expr2str,[expr[str]([str:in])],[expr[str]:from],[str:to])
-# [expr[str]([str:in])] <-- $(call expr.subst.expr2var,[expr[str]([str:in])],[expr[str]:from],[var:to])
-# [expr[str]([str:in])] <-- $(call expr.subst.str2expr,[expr[str]([str:in])],[str:from],[expr[str]:to])
-# [expr[str]([str:in])] <-- $(call expr.subst.str2str,[expr[str]([str:in])],[str:from],[str:to])
-# [expr[str]([str:in])] <-- $(call expr.subst.str2var,[expr[str]([str:in])],[str:from],[var:to])
-# [expr[str]([str:in])] <-- $(call expr.subst.var2expr,[expr[str]([str:in])],[var:from],[expr[str]:to])
-# [expr[str]([str:in])] <-- $(call expr.subst.var2str,[expr[str]([str:in])],[var:from],[str:to])
-# [expr[str]([str:in])] <-- $(call expr.subst.var2var,[expr[str]([str:in])],[var:from],[var:to])
-
-# [expr[str]([str:in])] <-- $(call expr.subst.exprs2expr,[expr[str]([str:in])],[list[expr[str]]:from],[expr[str]:to])
-# [expr[str]([str:in])] <-- $(call expr.subst.exprs2str,[expr[str]([str:in])],[list[expr[str]]:from],[str:to])
-# [expr[str]([str:in])] <-- $(call expr.subst.exprs2var,[expr[str]([str:in])],[list[expr[str]]:from],[var:to])
-# [expr[str]([str:in])] <-- $(call expr.subst.list2expr,[expr[str]([str:in])],[list[str]:from],[expr[str]:to])
-# [expr[str]([str:in])] <-- $(call expr.subst.list2str,[expr[str]([str:in])],[list[str]:from],[str:to])
-# [expr[str]([str:in])] <-- $(call expr.subst.list2var,[expr[str]([str:in])],[list[str]:from],[var:to])
-# [expr[str]([str:in])] <-- $(call expr.subst.vars2expr,[expr[str]([str:in])],[list[var]:from],[expr[str]:to])
-# [expr[str]([str:in])] <-- $(call expr.subst.vars2str,[expr[str]([str:in])],[list[var]:from],[str:to])
-# [expr[str]([str:in])] <-- $(call expr.subst.vars2var,[expr[str]([str:in])],[list[var]:from],[var:to])
-
-# [expr[str]([str:in])] <-- $(call expr.subst.exprs2exprs,[expr[str]([str:in])],[list[expr[str]]:from],[expr[str]:to])
-# [expr[str]([str:in])] <-- $(call expr.subst.exprs2list,[expr[str]([str:in])],[list[expr[str]]:from],[str:to])
-# [expr[str]([str:in])] <-- $(call expr.subst.exprs2vars,[expr[str]([str:in])],[list[expr[str]]:from],[var:to])
-# [expr[str]([str:in])] <-- $(call expr.subst.list2exprs,[expr[str]([str:in])],[list[str]:from],[expr[str]:to])
-# [expr[str]([str:in])] <-- $(call expr.subst.list2list,[expr[str]([str:in])],[list[str]:from],[str:to])
-# [expr[str]([str:in])] <-- $(call expr.subst.list2vars,[expr[str]([str:in])],[list[str]:from],[var:to])
-# [expr[str]([str:in])] <-- $(call expr.subst.vars2exprs,[expr[str]([str:in])],[list[var]:from],[expr[str]:to])
-# [expr[str]([str:in])] <-- $(call expr.subst.vars2list,[expr[str]([str:in])],[list[var]:from],[str:to])
-# [expr[str]([str:in])] <-- $(call expr.subst.vars2vars,[expr[str]([str:in])],[list[var]:from],[var:to])
-#-----------------------------------------------------------
+#===============================================================================
+#>>> EXPRESSIONS
+#===============================================================================
 #
-# Generates an `eval`-uatable expression which performs one or more `subst`-itutions in series.
-# 'expr[str]' is an expression which expands to a [str]. It may contain any combination of the following:
-#             - Variable varerences: '$v', '$(var)', '${var}', '$(var:[word:find]=[str:repl])', etc.
-#               Use `expr.var` to generate a variable varerence.
-#             - Function Calls:      '$({builtin} [arg:1],...)', '$(call {func},[arg:1],...)'
-#               Use `expr.call` to generate a function call.
-#             - Literal Strings: strants embedded in an expression. Must abide by the following rules
-#               to ensure correct parsing:
-#               - Literals may not contain whitespace; use variable varerences '$s', '$t', '$n' instead.
-#               - Literals may not contain unpaired '{', '}', '(', ')'; use '$j', '$k', '$l', '$r' instead.
-#               - Literals may not contain ','; use '$c' instead.
-#               - Literals may not contain '#'; use '$g' instead.
-#               - Literals may not end with '\'; use '$b' instead.
-#-----------------------------------------------------------
+#	Advanced expression generators for use in generic function templates.
+#
+#===============================================================================
+
+
+
+#-------------------------------------------------------------------------------
+#>> Expressions: Substitution
+#-------------------------------------------------------------------------------
+#> expr.subst.expr2expr    	[expr[str]([str:in])] <-- $(call expr.subst.expr2expr,[expr[str]([str:in])],[expr[str]:from],[expr[str]:to])
+#> expr.subst.expr2str     	[expr[str]([str:in])] <-- $(call expr.subst.expr2str,[expr[str]([str:in])],[expr[str]:from],[str:to])
+#> expr.subst.expr2var     	[expr[str]([str:in])] <-- $(call expr.subst.expr2var,[expr[str]([str:in])],[expr[str]:from],[var:to])
+#> expr.subst.str2expr     	[expr[str]([str:in])] <-- $(call expr.subst.str2expr,[expr[str]([str:in])],[str:from],[expr[str]:to])
+#> expr.subst.str2str      	[expr[str]([str:in])] <-- $(call expr.subst.str2str,[expr[str]([str:in])],[str:from],[str:to])
+#> expr.subst.str2var      	[expr[str]([str:in])] <-- $(call expr.subst.str2var,[expr[str]([str:in])],[str:from],[var:to])
+#> expr.subst.var2expr     	[expr[str]([str:in])] <-- $(call expr.subst.var2expr,[expr[str]([str:in])],[var:from],[expr[str]:to])
+#> expr.subst.var2str      	[expr[str]([str:in])] <-- $(call expr.subst.var2str,[expr[str]([str:in])],[var:from],[str:to])
+#> expr.subst.var2var      	[expr[str]([str:in])] <-- $(call expr.subst.var2var,[expr[str]([str:in])],[var:from],[var:to])
+
+#> expr.subst.exprs2expr   	[expr[str]([str:in])] <-- $(call expr.subst.exprs2expr,[expr[str]([str:in])],[list[expr[str]]:from],[expr[str]:to])
+#> expr.subst.exprs2str    	[expr[str]([str:in])] <-- $(call expr.subst.exprs2str,[expr[str]([str:in])],[list[expr[str]]:from],[str:to])
+#> expr.subst.exprs2var    	[expr[str]([str:in])] <-- $(call expr.subst.exprs2var,[expr[str]([str:in])],[list[expr[str]]:from],[var:to])
+#> expr.subst.list2expr    	[expr[str]([str:in])] <-- $(call expr.subst.list2expr,[expr[str]([str:in])],[list[str]:from],[expr[str]:to])
+#> expr.subst.list2str     	[expr[str]([str:in])] <-- $(call expr.subst.list2str,[expr[str]([str:in])],[list[str]:from],[str:to])
+#> expr.subst.list2var     	[expr[str]([str:in])] <-- $(call expr.subst.list2var,[expr[str]([str:in])],[list[str]:from],[var:to])
+#> expr.subst.vars2expr    	[expr[str]([str:in])] <-- $(call expr.subst.vars2expr,[expr[str]([str:in])],[list[var]:from],[expr[str]:to])
+#> expr.subst.vars2str     	[expr[str]([str:in])] <-- $(call expr.subst.vars2str,[expr[str]([str:in])],[list[var]:from],[str:to])
+#> expr.subst.vars2var     	[expr[str]([str:in])] <-- $(call expr.subst.vars2var,[expr[str]([str:in])],[list[var]:from],[var:to])
+
+#> expr.subst.exprs2exprs  	[expr[str]([str:in])] <-- $(call expr.subst.exprs2exprs,[expr[str]([str:in])],[list[expr[str]]:from],[expr[str]:to])
+#> expr.subst.exprs2list   	[expr[str]([str:in])] <-- $(call expr.subst.exprs2list,[expr[str]([str:in])],[list[expr[str]]:from],[str:to])
+#> expr.subst.exprs2vars   	[expr[str]([str:in])] <-- $(call expr.subst.exprs2vars,[expr[str]([str:in])],[list[expr[str]]:from],[var:to])
+#> expr.subst.list2exprs   	[expr[str]([str:in])] <-- $(call expr.subst.list2exprs,[expr[str]([str:in])],[list[str]:from],[expr[str]:to])
+#> expr.subst.list2list    	[expr[str]([str:in])] <-- $(call expr.subst.list2list,[expr[str]([str:in])],[list[str]:from],[str:to])
+#> expr.subst.list2vars    	[expr[str]([str:in])] <-- $(call expr.subst.list2vars,[expr[str]([str:in])],[list[str]:from],[var:to])
+#> expr.subst.vars2exprs   	[expr[str]([str:in])] <-- $(call expr.subst.vars2exprs,[expr[str]([str:in])],[list[var]:from],[expr[str]:to])
+#> expr.subst.vars2list    	[expr[str]([str:in])] <-- $(call expr.subst.vars2list,[expr[str]([str:in])],[list[var]:from],[str:to])
+#> expr.subst.vars2vars    	[expr[str]([str:in])] <-- $(call expr.subst.vars2vars,[expr[str]([str:in])],[list[var]:from],[var:to])
+#-------------------------------------------------------------------------------
+#
+#	Generates an expression which performs one or more substitutions in series.
+#
+#-------------------------------------------------------------------------------
 override expr.subst.expr2expr   = $(if $(subst $$e,,$2),$(call expr.subst,$2,$3,$1),$(call expr.or,$1,$3))
 override expr.subst.expr2str    = $(call expr.subst.expr2expr,$1,$2,$(call expr.str,$3))
 override expr.subst.expr2var    = $(call expr.subst.expr2expr,$1,$2,$(call expr.var,$3))
@@ -119,14 +101,23 @@ override expr.subst.vars2list   = $(call expr.subst.exprs2exprs,$1,$(call expr.v
 override expr.subst.vars2vars   = $(call expr.subst.exprs2exprs,$1,$(call expr.vars,$2),$(call expr.vars,$3))
 
 
-
-#-----------------------------------------------------------
-# [expr[str]] <-- $(call expr.strip.list,[expr[str]:in],[list[str]:strip],[list[var]:noescape])
-# [expr[str]] <-- $(call expr.strip.vars,[expr[str]:in],[list[var]:strip],[list[var]:noescape])
-# [expr[str]] <-- $(call expr.cull.list,[expr[str]:in],[list[str]:cull],[list[var]:noescape])
-# [expr[str]] <-- $(call expr.cull.vars,[expr[str]:in],[list[var]:cull],[list[var]:noescape])
-# [expr[str]] <-- $(call expr.strip.ws,[expr[str]:in],[list[var]:ws])
-#-----------------------------------------------------------
+#-------------------------------------------------------------------------------
+#>> Expressions: Strip, Cull
+#-------------------------------------------------------------------------------
+#> expr.strip.list     	[expr[str]] <-- $(call expr.strip.list,[expr[str]:in],[list[str]:strip],[list[var]:noescape])
+#> expr.strip.vars     	[expr[str]] <-- $(call expr.strip.vars,[expr[str]:in],[list[var]:strip],[list[var]:noescape])
+#> expr.cull.list      	[expr[str]] <-- $(call expr.cull.list,[expr[str]:in],[list[str]:cull],[list[var]:noescape])
+#> expr.cull.vars      	[expr[str]] <-- $(call expr.cull.vars,[expr[str]:in],[list[var]:cull],[list[var]:noescape])
+#> expr.strip.ws       	[expr[str]] <-- $(call expr.strip.ws,[expr[str]:in],[list[var]:ws])
+#-------------------------------------------------------------------------------
+#
+#	expr.strip: Generates an expression which 'strips' one or more substrings;
+#	            Consecutive occurrances are replaced with a single occurrance,
+#	            and all leading and trailing occurrances are removed.
+#	expr.cull:  Generates an expression which 'culls' one or more substrings;
+#	            Consecutive occurrances are replaced with a single occurrance.
+#
+#-------------------------------------------------------------------------------
 # [expr[word]] <-- $(call __expr.strip.pre,[expr[str]:in],[list[var]:noescape])
 # [expr[str]]  <-- $(call __expr.strip.post,[expr[word]:in],[list[var]:noescape])
 # [expr[word]] <-- $(call __expr.strip.expr,[expr[word]:in],[expr[word]:strip])
@@ -135,6 +126,7 @@ override __expr.strip.pre   = $(call expr.subst.vars2vars,$1,$(filter-out $(subs
 override __expr.strip.post  = $(call expr.subst.vars2vars,$1,$(addprefix x,$(filter-out $(subst %,\%,$2),n t s x)),$(filter-out $(subst %,\%,$2),n t s x))
 override __expr.strip.expr  = $(if $(and $1,$2),$(if $(call expr.expand,$2),$$(subst$s$$s$c$2$c$$(strip$s$$(subst$s$2$c$$s$c$1))),$1),$1)
 override __expr.strip.str = $(call __expr.strip.expr,$1,$(call word.pack,word,$(call str.subst.vars2vars,$2,$(filter-out $(subst %,\%,$3),x s t n),$(addprefix x,$(filter-out $(subst %,\%,$3),x s t n)))))
+#-----------------------------------------------------------
 
 override expr.strip.list  = $(if $(and $1,$(firstword $2)),$(call __expr.strip.post,$(call list.reduce.1,str,__expr.strip.str,$(call __expr.strip.pre,$1,$3),$2,$3),$3),$1)
 override expr.strip.vars    = $(call expr.strip.list,$1,$(foreach var,$2,$(call word.pack,expr,$($(var)))),$3)
@@ -145,9 +137,35 @@ override expr.strip.ws      = $(if $(and $1,$(firstword $2)),$(call __expr.strip
 
 
 
+#===============================================================================
+#>>> TYPES
+#===============================================================================
+
+# Type Definitions ==================== type: list{char}
+override char.{str}      := $(char.lowers) $(char.uppers) $(char.digits) $(char.whitespace) $(char.symbols)
+override char.{line}     := $(char.lowers) $(char.uppers) $(char.digits) $$s $$t            $(char.symbols)
+override char.{list}     := $(char.lowers) $(char.uppers) $(char.digits) $$s                $(char.symbols)
+override char.{word}     := $(char.lowers) $(char.uppers) $(char.digits)                    $(char.symbols)
+override char.{alphanum} := $(char.lowers) $(char.uppers) $(char.digits)
+override char.{alpha}    := $(char.lowers) $(char.uppers)
+override char.{int}      :=                               $(char.digits)                    + -
+override char.{uint}     :=                               $(char.digits)                    +
+override char.{digit}    :=                               $(char.digits)
+override char.{bool}     := 1
+override char.{var}      := $(char.lowers) $(char.uppers) $(char.digits) $(char.whitespace) $(filter-out : =,$(char.symbols))
+override char.{path}     := $(char.lowers) $(char.uppers) $(char.digits) $$s                $(filter-out < > | & ",$(char.symbols))
+override char.{char}     := $(char.{str})
+override char.{expr}     := $(char.{str})
+override char.{idx}      := $(char.{uint})
+override char.{origin}   := $(char.{list})
+override char.{flavor}   := $(char.{alpha})
+override char.{type}     := $(char.{word})
+
+
+
 #-------------------------------------------------------------------------------
-# word.pack.<T>         	[word<T>] <-- $(call word.pack.<T>,[T:val])
-# expr.word.pack.<T>    	[expr<word<T>>([T:val])] <-- $(call expr.word.pack.<T>,[type:T],[expr:$1])
+#>> word.pack.<T>           	[word<T>] <-- $(call word.pack.<T>,[T:val])
+#>> expr.word.pack.<T>      	[expr<word<T>>([T:val])] <-- $(call expr.word.pack.<T>,[type:T],[expr:$1])
 #-------------------------------------------------------------------------------
 override expr.word.pack.<T> = $(strip $(foreach T,$1, \
 	$(null Define local variables) \
@@ -187,8 +205,8 @@ override expr.word.pack.{path}   = $(strip \
 
 
 #-------------------------------------------------------------------------------
-# word.unpack.<T>       	[T:val] <-- $(call word.unpack.<T>,[word<T>])
-# expr.word.unpack.<T>  	[expr<T:val>([word<T>])] <-- $(call expr.word.unpack.<T>,{type:T},[expr<word<T>>([word[T]]):$1])
+#>> word.unpack.<T>         	[T:val] <-- $(call word.unpack.<T>,[word<T>])
+#>> expr.word.unpack.<T>    	[expr<T:val>([word<T>])] <-- $(call expr.word.unpack.<T>,{type:T},[expr<word<T>>([word[T]]):$1])
 #-------------------------------------------------------------------------------
 override expr.word.unpack.<T> = $(strip $(foreach T,$1, \
 	$(null Define local variables) \
@@ -217,8 +235,8 @@ override expr.word.unpack.{type}   = $(call $(if $2,expr.call,expr.var),word.unp
 
 
 #-------------------------------------------------------------------------------
-# chars.split.<T>       	[list<char>] <-- $(call chars.split.<T>,[T:val])
-# expr.chars.split.<T>  	[expr<list<char>>([T:val])] <-- $(call expr.chars.split.<T>,{type:T},[expr<T>([T:val]):$1])
+#>> chars.split.<T>         	[list<char>] <-- $(call chars.split.<T>,[T:val])
+#>> expr.chars.split.<T>    	[expr<list<char>>([T:val])] <-- $(call expr.chars.split.<T>,{type:T},[expr<T>([T:val]):$1])
 #-------------------------------------------------------------------------------
 override expr.chars.split.<T> = $(strip $(foreach T,$1, \
 	$(null Define local variables) \
@@ -250,7 +268,7 @@ override expr.chars.split.{type}   = $(call $(if $2,expr.call,expr.var),chars.sp
 
 
 #===============================================================================
-# TARGETS
+#>>> TARGETS
 #===============================================================================
 
 
