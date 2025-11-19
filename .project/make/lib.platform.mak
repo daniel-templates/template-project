@@ -353,7 +353,7 @@ $(eval shell.names.$1.type := $(or $2,$(error Empty shell_type in definition of 
 $(eval shell.names.$1.isactive = $$(if $$(filter $1,$$(shell.name)),$(TRUE.m),$(FALSE.m)))
 $(eval shell.names.$1.print = $$(call print.vars,$(foreach prop,$(shell.names.properties),shell.names.$1.$(prop))))
 $(eval shell.names.$1.activate = $$(if $$(shell.names.$1.isactive),,$$(eval shell.name := $1)$$(eval SHELL := $$(shell.path))$$(eval .SHELLFLAGS := $$(shell.flags))))
-$(foreach prop,$(filter-out type isactive print activate,$(shell.names.properties)),$(call variable.set_with_alternatives,shell.names.$1.$(prop),?=,,  shell.names.$1.$(prop).$$(os.name)  shell.names.$1.$(prop).$$(os.type)  shell.names.$1.$(prop).default  shell.types.$2.$(prop)  ))
+$(foreach prop,$(filter-out type isactive print activate,$(shell.names.properties)),$(call var.set_with_alternatives,shell.names.$1.$(prop),?=,,  shell.names.$1.$(prop).$$(os.name)  shell.names.$1.$(prop).$$(os.type)  shell.names.$1.$(prop).default  shell.types.$2.$(prop)  ))
 endef
 
 
@@ -513,7 +513,7 @@ define shell.types.define
 $(eval shell.types += $1)
 $(eval shell.types.$1.isactive = $$(if $$(filter $1,$$(shell.type)),$(TRUE.m),$(FALSE.m)))
 $(eval shell.types.$1.print = $$(call print.vars,$(foreach prop,$(shell.types.properties),shell.types.$1.$(prop))))
-$(foreach prop,$(filter-out isactive print,$(shell.types.properties)),$(call variable.set_with_alternatives,shell.types.$1.$(prop),?=,,  shell.types.$1.$(prop).$$(os.name)  shell.types.$1.$(prop).$$(os.type)  shell.types.$1.$(prop).default  shell.types.$2.$(prop)  ))
+$(foreach prop,$(filter-out isactive print,$(shell.types.properties)),$(call var.set_with_alternatives,shell.types.$1.$(prop),?=,,  shell.types.$1.$(prop).$$(os.name)  shell.types.$1.$(prop).$$(os.type)  shell.types.$1.$(prop).default  shell.types.$2.$(prop)  ))
 endef
 
 

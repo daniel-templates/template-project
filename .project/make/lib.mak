@@ -45,12 +45,25 @@ bool.falsies  := FALSE False false NO No no N n 0
 #>>> BOOLEANS
 #===============================================================================
 
-# Boolean Constants ==================== type: [bool]
+#-------------------------------------------------------------------------------
+#>> Booleans: Constants
+#-------------------------------------------------------------------------------
 override true  := 1#>  $(true)  --> {true}    (nonempty)
 override false := #>   $(false) --> [false]   (empty)
 
 
 
+#-------------------------------------------------------------------------------
+#>> Booleans: Logic
+#-------------------------------------------------------------------------------
+#> if           	[str]    <-- $(if [bool],[str:if_true],[str:if_false])      	GNU Make
+#> or           	[true:N] <-- $(or [bool:1],[bool:2],...)                    	GNU Make 3.81+
+#> and          	[true:1] <-- $(and [bool:1],[bool:2],...)                   	GNU Make 3.81+
+#-------------------------------------------------------------------------------
+
+
+#-------------------------------------------------------------------------------
+#>> Booleans: User Interaction
 #-------------------------------------------------------------------------------
 #> bool.is.truthy       	[bool] <-- $(call bool.is.truthy,[str])
 #> bool.is.falsey       	[bool] <-- $(call bool.is.falsey,[str])
@@ -219,16 +232,15 @@ override chars.split.{word} = $(strip $(subst ~,~$s,$(subst |,|$s,$(subst z,z$s,
 
 
 #-------------------------------------------------------------------------------
-#> str.equ          	[bool] <-- $(call str.equ,[str:1],[str:2],[bool:case_insensitive])
-#> str.neq          	[bool] <-- $(call str.neq,[str:1],[str:2],[bool:case_insensitive])
+#> str.lower      	[lower] <-- $(call str.lower,[str])
+#> str.upper      	[upper] <-- $(call str.upper,[str])
 #-------------------------------------------------------------------------------
 #
-#	Returns {true} (nonempty) if the strings are equal (or notequal).
-#	Case-sensitive by default.
+#	Returns [lower]-case or [upper]-case of [str].
 #
 #-------------------------------------------------------------------------------
-override str.equ = $(if $3,$(call $0,$(call str.lower,$1),$(call str.lower,$2)),$(if $(subst x$1,,x$2)$(subst x$2,,x$1),$(false),$(true)))
-override str.neq = $(if $3,$(call $0,$(call str.lower,$1),$(call str.lower,$2)),$(if $(subst x$1,,x$2)$(subst x$2,,x$1),$(true),$(false)))
+override str.lower = $(call str.subst.list2list,$1,$(char.uppers),$(char.lowers))
+override str.upper = $(call str.subst.list2list,$1,$(char.lowers),$(char.uppers))
 
 
 
@@ -258,6 +270,28 @@ override str.cnt = $(if $1,$(call $0,,$(call word.pack,$1,$2),$(call word.pack,$
 
 
 #-------------------------------------------------------------------------------
+#>> Strings: Tests
+#-------------------------------------------------------------------------------
+#> findstring       	[bool] <-- $(findstring [str:find],[str:in])            	GNU Make
+#-------------------------------------------------------------------------------
+
+#-------------------------------------------------------------------------------
+#> str.equ          	[bool] <-- $(call str.equ,[str:1],[str:2],[bool:case_insensitive])
+#> str.neq          	[bool] <-- $(call str.neq,[str:1],[str:2],[bool:case_insensitive])
+#-------------------------------------------------------------------------------
+#
+#	Returns {true} (nonempty) if the strings are equal (or notequal).
+#	Case-sensitive by default.
+#
+#-------------------------------------------------------------------------------
+override str.equ = $(if $3,$(call $0,$(call str.lower,$1),$(call str.lower,$2)),$(if $(subst x$1,,x$2)$(subst x$2,,x$1),$(false),$(true)))
+override str.neq = $(if $3,$(call $0,$(call str.lower,$1),$(call str.lower,$2)),$(if $(subst x$1,,x$2)$(subst x$2,,x$1),$(true),$(false)))
+
+
+
+#-------------------------------------------------------------------------------
+#>> Strings: Concatenation
+#-------------------------------------------------------------------------------
 #> str.concat.pair     	[str]     <-- $(call str.concat.pair,[str:sep],[str:1],[str:2])
 #> str.concat          	[str]     <-- $(call str.concat,[str:sep],[str:1],[str:2],...,[str:8])
 #> word.concat.pair    	[word[T]] <-- $(call word.concat.pair,[type:T],[word[T]:sep],[word[T]:1],[word[T]:2])
@@ -274,21 +308,7 @@ override word.concat.pair = $(call word.pack,$1,$(call str.concat.pair,$2,$(call
 
 
 #-------------------------------------------------------------------------------
-#> str.lower      	[lower] <-- $(call str.lower,[str])
-#> str.upper      	[upper] <-- $(call str.upper,[str])
-#-------------------------------------------------------------------------------
-#
-#	Returns [lower]-case or [upper]-case of [str].
-#
-#-------------------------------------------------------------------------------
-override str.lower = $(call str.subst.list2list,$1,$(char.uppers),$(char.lowers))
-override str.upper = $(call str.subst.list2list,$1,$(char.lowers),$(char.uppers))
-
-
-
-
-
-
+#>> Strings: Iteration
 #-------------------------------------------------------------------------------
 #> str.map           	[str] <-- $(call str.map.{N},[type:T],\
 #> str.map.1         	              [func[T]([T:1],...,[T:N],[str:const1],...)],\
@@ -320,6 +340,11 @@ override str.map.4 = $(call list.merge,$1,$(call list.map.4,$1,$2,$(call str.spl
 
 #-------------------------------------------------------------------------------
 #>> Strings: Single Match, Single Replace
+#-------------------------------------------------------------------------------
+#> strip                	[str] <-- $(strip [str])                            	GNU Make
+#> subst                	[str] <-- $(subst [str:find],[str:repl],[str:in])   	GNU Make
+#-------------------------------------------------------------------------------
+
 #-------------------------------------------------------------------------------
 #> str.subst.str2str    	[str] <-- $(call str.subst.str2str,[str:in],[str:find],[str:repl])
 #> str.subst.str2var    	[str] <-- $(call str.subst.str2var,[str:in],[str:find],[var:repl])
@@ -465,15 +490,27 @@ override str.treesubst.vars2vars = $(call word.unpack,str,$(call __str.treesubst
 
 
 
+
+
 #===============================================================================
 #>>> VARIABLES
 #===============================================================================
+
+
+
+#-------------------------------------------------------------------------------
+#> value     	[str] <-- $(value [var:simple])                                 	GNU Make
+#> call      	[str] <-- $(call [var:recursive],[str:1],[str:2],...)           	GNU Make
+#> let       	[str] <-- $(let [list[var]],[list:vals],[expr])                 	GNU Make 4.4+
+#-------------------------------------------------------------------------------
+
+
 
 #-------------------------------------------------------------------------------
 #> var.is.shortname      	[bool:var] <-- $(call var.is.shortname,[var])
 #-------------------------------------------------------------------------------
 #
-#	Returns [var] if [var] is a single-character variable name.
+#	var.is.shortname: Returns [var] if [var] is a single-character variable name.
 #
 #-------------------------------------------------------------------------------
 override var.is.shortname   = $(filter $(filter-out $$%,$(char.{var}:\%=\%)),$1)
@@ -481,12 +518,19 @@ override var.is.shortname   = $(filter $(filter-out $$%,$(char.{var}:\%=\%)),$1)
 
 
 #-------------------------------------------------------------------------------
-#> var.is.defined      	[bool:var] <-- $(call var.is.defined,[var])
-#> var.is.undefined    	[bool:var] <-- $(call var.is.undefined,[var])
-#> var.is.environment  	[bool:var] <-- $(call var.is.environment,[var])
-#> var.is.commandline  	[bool:var] <-- $(call var.is.commandline,[var])
-#> var.is.makefile     	[bool:var] <-- $(call var.is.makefile,[var])
-#> var.is.internal     	[bool:var] <-- $(call var.is.internal,[var])
+#>> Variables: Origin and Flavor
+#-------------------------------------------------------------------------------
+#> origin    	{origin} <-- $(origin [var])                                    	GNU Make
+#> flavor    	{flavor} <-- $(flavor [var])                                    	GNU Make
+#-------------------------------------------------------------------------------
+
+#-------------------------------------------------------------------------------
+#> var.is.defined       	[bool:var] <-- $(call var.is.defined,[var])
+#> var.is.undefined     	[bool:var] <-- $(call var.is.undefined,[var])
+#> var.is.environment   	[bool:var] <-- $(call var.is.environment,[var])
+#> var.is.commandline   	[bool:var] <-- $(call var.is.commandline,[var])
+#> var.is.makefile      	[bool:var] <-- $(call var.is.makefile,[var])
+#> var.is.internal      	[bool:var] <-- $(call var.is.internal,[var])
 #-------------------------------------------------------------------------------
 #
 #	Returns [var] if the condition is true according to the variable's origin/flavor.
@@ -502,11 +546,13 @@ override var.is.internal    = $(if $(filter default automatic,$(origin $1)),$1)
 
 
 #-------------------------------------------------------------------------------
-#> var.is.ws           	[bool:var] <-- $(call var.is.ws,[var])
-#> var.is.nonws        	[bool:var] <-- $(call var.is.nonws,[var])
-#> var.is.empty        	[bool:var] <-- $(call var.is.empty,[var])
-#> var.is.def.empty    	[bool:var] <-- $(call var.is.def.empty,[var])
-#> var.is.nonempty     	[bool:var] <-- $(call var.is.nonempty,[var])
+#>> Variables: Value Tests
+#-------------------------------------------------------------------------------
+#> var.is.ws            	[bool:var] <-- $(call var.is.ws,[var])
+#> var.is.nonws         	[bool:var] <-- $(call var.is.nonws,[var])
+#> var.is.empty         	[bool:var] <-- $(call var.is.empty,[var])
+#> var.is.def.empty     	[bool:var] <-- $(call var.is.def.empty,[var])
+#> var.is.nonempty      	[bool:var] <-- $(call var.is.nonempty,[var])
 #-------------------------------------------------------------------------------
 #
 #	Returns [var] if the condition is true according to the variable's contents.
@@ -538,7 +584,7 @@ var.append = $(if $2,$(eval $(call expr.assign,$1,$2,+=,$(call word.pack,$3,$4))
 
 
 #-----------------------------------------------------------
-#> variable.set_with_alternatives      	$(call variable.set_with_alternatives,{variable},{assignment_operator},[initial_value],[list of alternatives],[value_if_still_empty])
+#> var.set_with_alternatives      	$(call var.set_with_alternatives,{variable},{assignment_operator},[initial_value],[list of alternatives],[value_if_still_empty])
 #-----------------------------------------------------------
 #
 # Sets a variable to the value of the first variable in the list.
@@ -555,7 +601,7 @@ var.append = $(if $2,$(eval $(call expr.assign,$1,$2,+=,$(call word.pack,$3,$4))
 #                                $$(error ...)
 #
 #-----------------------------------------------------------
-override variable.set_with_alternatives = $(eval $(strip $1) $(strip $2) $(if $(or $3,$(strip $4),$5),$$(or $(if $3,$3$c)$(subst $s,$c,$(foreach var,$(strip $4),$$($(var))))$(if $5,$c$5))))
+override var.set_with_alternatives = $(eval $(strip $1) $(strip $2) $(if $(or $3,$(strip $4),$5),$$(or $(if $3,$3$c)$(subst $s,$c,$(foreach var,$(strip $4),$$($(var))))$(if $5,$c$5))))
 
 
 
@@ -577,6 +623,8 @@ override variable.set_with_alternatives = $(eval $(strip $1) $(strip $2) $(if $(
 #-------------------------------------------------------------------------------
 var.push = $(if $1,$(eval var.$1.stack += $(subst $x,$$x,$(call word.pack,expr,$1$(if $(filter recursive,$(flavor $1)),=,:=)$(value $1)))$n$1$(if $2,:=$(call word.pack,$2,$3),=$3)))
 var.pop  = $(if $1,$(eval $(call word.unpack,expr,$(lastword $(var.$1.stack)))$nvar.$1.stack := $$(wordlist 2,$$(words $$(var.$1.stack)),x $$(var.$1.stack))))
+
+
 
 
 
@@ -612,6 +660,7 @@ var.pop  = $(if $1,$(eval $(call word.unpack,expr,$(lastword $(var.$1.stack)))$n
 
 
 
+
 #-------------------------------------------------------------------------------
 #> list.format      	[list[T]] <-- $(call list.format,[type:T],\
 #>                  	                  item 1    $n\
@@ -630,7 +679,10 @@ override list.format = $(foreach line,$(call word.pack,{line},$(subst $n$s,$n,$n
 
 
 #-------------------------------------------------------------------------------
-#> list.reverse      	[list[T]] <-- $(call list.reverse,[list[T]])
+#>> Lists: Ordering
+#-------------------------------------------------------------------------------
+#> sort         	[list[T]] <-- $(sort [list[T]])                             	GNU Make
+#> list.reverse 	[list[T]] <-- $(call list.reverse,[list[T]])
 #-------------------------------------------------------------------------------
 #
 #	Reverses the order of words in a list.
@@ -736,7 +788,7 @@ override list.repack = $(foreach word,$2,$(call word.pack,$1,$(call word.unpack,
 
 
 #-------------------------------------------------------------------------------
-#>> Lists: Type Conversions
+#>> Lists: String Split and Merge
 #-------------------------------------------------------------------------------
 #> str.split         	[list[T]] <-- $(call str.split,[type:T],[T:str],[T:sep])
 #> list.merge        	[str]     <-- $(call list.merge,[type:T],[list[T]],[T:sep])
@@ -769,7 +821,23 @@ override list.merge = $(call word.unpack,$1,$(subst $s,$(call word.pack,$1,$3),$
 
 
 #-------------------------------------------------------------------------------
+#>> Lists: Match, Replace
+#-------------------------------------------------------------------------------
+#> Subst-Expand 	[list] <-- $([var[list]]:{word:pattern}=[str:repl])        (Pattern Match/Replace)  	GNU Make
+#> Subst-Expand 	[list] <-- $([var[list]]:[word:suffix]=[str:repl])         (Suffix Match/Replace)   	GNU Make
+#> patsubst     	[list] <-- $(patsubst {word:pattern},[str:repl],[list:in]) (Pattern Match/Replace)  	GNU Make
+#> patsubst     	[list] <-- $(patsubst [list:match],[str:repl],[list:in])   (Sublist Match/Replace)  	GNU Make
+#-------------------------------------------------------------------------------
+
+
+
+#-------------------------------------------------------------------------------
 #>> Lists: Filtering
+#-------------------------------------------------------------------------------
+#> filter       	[list] <-- $(filter [list:keep_patterns],[list:in])         	GNU Make
+#> filter-out   	[list] <-- $(filter-out [list:remove_patterns],[list:in])   	GNU Make
+#-------------------------------------------------------------------------------
+
 #-------------------------------------------------------------------------------
 #> list.filter           	[list[T]] <-- $(call list.filter,[type:T],[list[T]],[T:val])
 #> list.filter-out       	[list[T]] <-- $(call list.filter-out,[type:T],[list[T]],[T:val])
@@ -813,6 +881,11 @@ override list.resize.end   = $(if $5,$(wordlist             1,$(words $3   ),   
 
 #-------------------------------------------------------------------------------
 #>> Lists: Iteration
+#-------------------------------------------------------------------------------
+#> join         	[list[T]] <-- $(join [list[T]:1],[list[T]:2])               	GNU Make
+#> foreach      	[list[T]] <-- $(foreach [var],[list[T]],[expr[T]([var])])   	GNU Make
+#-------------------------------------------------------------------------------
+
 #-------------------------------------------------------------------------------
 #> list.map      	[list[T]] <-- $(call list.map.{N},[type:T],const1],...)
 #> list.map.1    	                              [func[T]([T:1],...,[T:N],[str:const1],...)],
@@ -866,7 +939,11 @@ override list.reduce.4 = $(if $(firstword $4$5$6$7),$(call $0,$1,$2,$(call $2,$3
 
 
 #-------------------------------------------------------------------------------
-#>> Lists: Numeric Indexes
+#>> Lists: Indexing
+#-------------------------------------------------------------------------------
+#> words        	{uint} <-- $(words [list])                                  	GNU Make
+#-------------------------------------------------------------------------------
+
 #-------------------------------------------------------------------------------
 #> list.idx          	[idx] <-- $(call list.idx,[list[T]],[int:idx])
 #> list.idx.prev     	[idx] <-- $(call list.idx.prev,[list[T]],[int:idx])
@@ -886,6 +963,7 @@ override list.idx.prev  = $(filter-out 0 $(words $1 +1),$(call __list.idx.dec,$1
 override list.idx.next  = $(filter-out   $(words $1 +1),$(call __list.idx.inc,$1   ,$2))
 override list.idx.first = $(if $(firstword $1),1)
 override list.idx.last  = $(filter-out 0,$(words $1))
+
 
 
 #-------------------------------------------------------------------------------
@@ -927,6 +1005,13 @@ override list.remove.last  = $(wordlist 2,$(words $1),x $1)
 
 #-------------------------------------------------------------------------------
 #>> Lists: Get Items
+#-------------------------------------------------------------------------------
+#> word         	[word] <-- $(word {idx},[list])                             	GNU Make
+#> wordlist     	[list] <-- $(wordlist {idx:m},{uint:n},[list])              	GNU Make
+#> firstword    	[word] <-- $(firstword [list])                              	GNU Make 3.81+
+#> lastword     	[word] <-- $(lastword [list])                               	GNU Make 3.81+
+#-------------------------------------------------------------------------------
+
 #-------------------------------------------------------------------------------
 #> list.get          	[T] <-- $(call list.get,[type:T],[list[T]],[idx])
 #> list.get.first    	[T] <-- $(call list.get.first,[type:T],list[T]])
@@ -990,6 +1075,7 @@ override list.join.4 = $(strip $(if $(firstword $1$2$3$4),$(call word.pack,{str}
 
 
 
+
 #===============================================================================
 #>>> PATHS
 #===============================================================================
@@ -1017,6 +1103,20 @@ override multipath.create = $(call word.unpack,{path},$(call list.format,{path},
 #-------------------------------------------------------------------------------
 #>> Path: Components
 #-------------------------------------------------------------------------------
+#> abspath               	[list] <-- $(abspath [list])                        	GNU Make
+#> realpath              	[list] <-- $(realpath [list])                       	GNU Make
+#> dir                   	[list] <-- $(dir [list])                            	GNU Make
+#> notdir                	[list] <-- $(notdir [list])                         	GNU Make
+#> basename              	[list] <-- $(basename [list])                       	GNU Make
+#> suffix                	[list] <-- $(suffix [list])                         	GNU Make
+#-------------------------------------------------------------------------------
+#
+#	Returns a path component from each word in the input list.
+#	These built-in functions only return correct results for paths without spaces.
+#
+#-------------------------------------------------------------------------------
+
+#-------------------------------------------------------------------------------
 #> path.abspath          	[path]       <-- $(call path.abspath,[path])
 #> path.realpath         	[path]       <-- $(call path.realpath,[path])
 #> path.dir              	[path]       <-- $(call path.dir,[path])
@@ -1038,6 +1138,7 @@ override multipath.create = $(call word.unpack,{path},$(call list.format,{path},
 #-------------------------------------------------------------------------------
 #
 #	Returns a path component from the input [path], or from each path in a [list[path]].
+#	Unlike the built-in path functions, these correctly handle paths containing spaces.
 #
 #	Path Components:
 #
@@ -1079,6 +1180,16 @@ override list.path.suffix      = $(foreach __path,$1,$(or $(suffix $(__path)),$$
 
 #-------------------------------------------------------------------------------
 #>> Path: Prefix/Suffix
+#-------------------------------------------------------------------------------
+#> addprefix    	[list] <-- $(addprefix [str:prefix],[list])                 	GNU Make
+#> addsuffix    	[list] <-- $(addsuffix [str:suffix],[list])                 	GNU Make
+#-------------------------------------------------------------------------------
+#
+#	Adds a prefix or suffix to each word in the input [list].
+#	Does not return correct results for paths containing spaces.
+#
+#-------------------------------------------------------------------------------
+
 #-------------------------------------------------------------------------------
 #> path.addprefix        	[path]       <-- $(call path.addprefix,[path],[path:prefix])
 #> path.addsuffix        	[path]       <-- $(call path.addsuffix,[path],[path:suffix])
@@ -1166,14 +1277,55 @@ override list.path.patsubst.suffix      = $(foreach __find,$(call word.pack,[pat
 #-------------------------------------------------------------------------------
 #>> Path: Search
 #-------------------------------------------------------------------------------
-#> path.wildcard     	[list[path]] <-- $(call path.wildcard,[path:find])
-#> list.path.wildcard	[list[path]] <-- $(call list.path.wildcard,[list[path]:find])
+#> wildcard             	[list] <-- $(wildcard [multipath:patterns])         	GNU Make
 #-------------------------------------------------------------------------------
 #
-#	Returns a list of word-packed paths which match the wildcard pattern(s).
+#	Returns a list of all paths which match at least one of the input patterns.
+#	Returns incorrect/incomplete results if $(wildcard) matches any paths
+#	containing spaces; see below.
+#
+#	Separators:
+#	- Input patterns should use '/' as a cross-platform separator.
+#	- Backslash separator only works on Windows, and should be escaped as '\\'.
+#	- Output paths use same separator as input.
+#
+#	Wildcards:
+#	- Input patterns may contain zero or more of wildcard characters:
+#	    '*'     matches zero or more characters within a file/directory name
+#	    '?'     matches exactly 1 character within a file/directory name
+#	    '[...]' matches 1 character from the list
+#	- Use '\?' '\[' '\]' to match these characters literally.
+#
+#	Files/Directories:
+#	- Returns only directory matches if input pattern ends with a path separator ('/' or '\\').
+#	- Otherwise, both file and directories are returned.
+#
+#	Hidden Files:
+#	- Wildcards at the beginning of a filename skip filenames starting with '.'.
+#	- These files can be explicitly included by using '.*' instead of '*', but
+#	  in some cases this may also match undesirable relative paths, such as
+#	  the current directory '.' and parent directory '..'.
+#
+#	Spaces in Paths:
+#	- Within each input pattern, spaces can be escaped as '\ '.
+#	- Within each output path, spaces are NOT escaped; therefore, incorrect
+#	  results are returned if $(wildcard) matches any paths containing spaces.
+#	  In this case, additional logic is necessary to differentiate the spaces
+#	  separating paths and the spaces within paths.
+#
+#-------------------------------------------------------------------------------
+
+
+
+#-------------------------------------------------------------------------------
+#> path.wildcard        	[list[path]] <-- $(call path.wildcard,[path:pattern])
+#> list.path.wildcard   	[list[path]] <-- $(call list.path.wildcard,[list[path]:patterns])
+#-------------------------------------------------------------------------------
+#
+#	Returns a list of word-packed paths which match the wildcard [pattern(s)].
 #	- Unlike built-in $(wildcard), these functions fully support spaces in both
 #	  the input and output paths.
-#	- Matches only directories if [find] ends with '/' AND contains a wildcard;
+#	- Matches only directories if [find] ends with '/';
 #	  otherwise both files and directories are returned.
 #	Returns [empty] if there are no paths matching [find].
 #
@@ -1260,6 +1412,8 @@ override int.trim  = $(and $(subst 0,,$(subst -,,$1)),$(findstring -,$1),-)$(or 
 
 
 #-------------------------------------------------------------------------------
+#>> Integer: Arithmetic
+#-------------------------------------------------------------------------------
 #> digits.add       	{list{digit|-}} = $(call digits.add,[list{digit|-}:A],[list{digit|-}:B])
 #> digits.sub       	{list{digit|-}} = $(call digits.sub,[list{digit|-}:A],[list{digit|-}:B])
 #------------------------------------------------------------------------------------------------#
@@ -1294,10 +1448,6 @@ override digits.add = $(if $(filter -,$1),$(if $(filter -,$2),- $(call digits.ad
 #                                                            | (-)-(-) = |B|-|A|                  | (-)-(+) = -(|A|+|B|)                                  | (+)-(-) = |A|+|B|                | (+)-(+) = ...             sub each pair of digits, starting with the rightmost digit, until empty or only leading 0s remain                  extract carry                 | result: strip carry              | if leftmost carry=1, then |A|<|B|, so redo calculation as -(|B|-|A|)
 override digits.sub = $(if $(filter -,$1),$(if $(filter -,$2),$(call digits.sub,$(2:-=),$(1:-=)),- $(call digits.add,$(1:-=),$(2:-=))),$(if $(filter -,$2),$(call digits.add,$(1:-=),$(2:-=)),$(if $(filter-out 0,$1 $2),$(call $0,$(call list.remove.last,$1),$(call list.remove.last,$2),$(call __digit.sub,$(lastword $1),$(lastword $2),$(notdir $(firstword $3))) $3),$(patsubst %/0,%,$(patsubst %/1,%,$(if $(filter %/1,$(firstword $3)),- $(call $0,1 $(3:%=0),$(patsubst %/0,%,$(3:%/1=%))),$(or $(call list.filter-out.start,$3,0/%),0)))))))
 
-
-
-#-------------------------------------------------------------------------------
-#>> Integer: Arithmetic
 #-------------------------------------------------------------------------------
 #> int.abs          	{int} <-- $(call int.abs,[int])
 #> int.neg          	{int} <-- $(call int.neg,[int])
@@ -1322,6 +1472,12 @@ override int.min   = $(or $(if $(call int.lss,$1,$2),$1,$2),0)
 
 #-------------------------------------------------------------------------------
 #>> Integer: Comparisons
+#-------------------------------------------------------------------------------
+#> intcmp   	[str] <-- $(intcmp {int:1},{int:2},[str:if_lss],[str:if_equ],[str:if_gtr])  	GNU Make 4.4+
+#-------------------------------------------------------------------------------
+
+
+
 #-------------------------------------------------------------------------------
 #> int.equ.0        	[bool:A] <-- $(call int.equ.0,[int:A])
 #> int.neq.0        	[bool:A] <-- $(call int.neq.0,[int:A])
@@ -1401,9 +1557,14 @@ override int.lss   = $(if $(filter       -%,$(call int.sub,$1,$2)),$(call int.tr
 #===============================================================================
 
 
+#-------------------------------------------------------------------------------
+#> eval         	[empty] <-- $(eval [expr])                                  	GNU Make 3.80+
+#> value        	[expr]  <-- $(value [var:recursive])                        	GNU Make
+#-------------------------------------------------------------------------------
+
 
 #-------------------------------------------------------------------------------
-#> expr.expand     	[str] <-- $(call expr.expand,[expr[str]])
+#> expr.expand      	[str] <-- $(call expr.expand,[expr[str]])
 #-------------------------------------------------------------------------------
 #
 #	Expands (evaluates) an expression in-line, returning its value.
@@ -1446,14 +1607,14 @@ override expr.vars = $(strip $(foreach word,$1,$(call word.pack,expr,$(call expr
 #-------------------------------------------------------------------------------
 #>> Expressions: Built-In Functions
 #-------------------------------------------------------------------------------
-#> expr.builtin    	[expr[str]] <-- $(call expr.builtin,{expr[builtin]:name},[expr:1],[expr:2],...)
-#> expr.call       	[expr[str]] <-- $(call expr.call,{expr[func]:name},[expr:1],[expr:2],...)
-#> expr.if         	[expr[str]] <-- $(call expr.if,[expr:cond],[expr:ifnonempty],[expr:ifempty])
-#> expr.or         	[expr[str]] <-- $(call expr.or,[expr:1],[expr:2],...)
-#> expr.and        	[expr[str]] <-- $(call expr.and,[expr:1],[expr:2],...)
-#> expr.foreach    	[expr[str]] <-- $(call expr.foreach,[expr[var]],[expr[list]:in],[expr[str](var)])
-#> expr.subst      	[expr[str]] <-- $(call expr.subst,[expr:from],[expr:to],[expr([str:in])])
-#> expr.strip      	[expr[str]] <-- $(call expr.strip,[expr([str:in])])
+#> expr.builtin     	[expr[str]] <-- $(call expr.builtin,{expr[builtin]:name},[expr:1],[expr:2],...)
+#> expr.call        	[expr[str]] <-- $(call expr.call,{expr[func]:name},[expr:1],[expr:2],...)
+#> expr.if          	[expr[str]] <-- $(call expr.if,[expr:cond],[expr:ifnonempty],[expr:ifempty])
+#> expr.or          	[expr[str]] <-- $(call expr.or,[expr:1],[expr:2],...)
+#> expr.and         	[expr[str]] <-- $(call expr.and,[expr:1],[expr:2],...)
+#> expr.foreach     	[expr[str]] <-- $(call expr.foreach,[expr[var]],[expr[list]:in],[expr[str](var)])
+#> expr.subst       	[expr[str]] <-- $(call expr.subst,[expr:from],[expr:to],[expr([str:in])])
+#> expr.strip       	[expr[str]] <-- $(call expr.strip,[expr([str:in])])
 #-------------------------------------------------------------------------------
 #
 #	Generates an expression which calls a Make built-in function and expands to
@@ -1533,15 +1694,21 @@ endef
 #>>> SHELL
 #===============================================================================
 
+
+#-------------------------------------------------------------------------------
+#> shell        	[str] <-- $(shell [str:command])                            	GNU Make
+#-------------------------------------------------------------------------------
+
+
 #-------------------------------------------------------------------------------
 #> shell.push    	[empty] <-- $(call shell.push,[path:shell],[str:flags])
 #> shell.pop     	[empty] <-- $(call shell.pop)
 #-------------------------------------------------------------------------------
 #
-#	Push: Stores the current values of SHELL, .SHELLFLAGS, and .SHELLSTATUS,
+#	Push: Stores the current values of SHELL, .SHELLFLAGS, and .SHELLSTATUS (GNU Make 4.2+),
 #	      then assigns new values to SHELL and/or .SHELLFLAGS.
 #	      No-op if [shell] is omitted.
-#	Pop:  Restores the previous values of SHELL, .SHELLFLAGS, and .SHELLSTATUS.
+#	Pop:  Restores the previous values of SHELL, .SHELLFLAGS, and .SHELLSTATUS (GNU Make 4.2+).
 #	      No-op if there is no previous value of SHELL.
 #
 #-------------------------------------------------------------------------------
@@ -1561,7 +1728,7 @@ shell.pop  = $(if $(var.SHELL.stack),$(call var.pop,.SHELLSTATUS)$(call var.pop,
 #	      Optionally stores the stdout for later use.
 #
 #	If [shell] is specified, [command] is run in the alternate [shell]. The original values of
-#	  SHELL, .SHELLFLAGS, and .SHELLSTATUS are restored afterward.
+#	  SHELL, .SHELLFLAGS, and .SHELLSTATUS (GNU Make 4.2+) are restored afterward.
 #
 #-------------------------------------------------------------------------------
 shell.run  = $(if $1,$(if $3,$(call shell.push,$3,$4))$(shell $1)$(call make.exit.if.badshell,,,$1)$(call var.set,,$2,int,$(.SHELLSTATUS))$(if $3,$(call shell.pop)))
@@ -1569,6 +1736,22 @@ shell.test = $(if $1,$(if $3,$(call shell.push,$3,$4))$(call var.set,,$2,str,$(s
 
 
 
+#===============================================================================
+#>>> FILES
+#===============================================================================
+
+
+#-------------------------------------------------------------------------------
+#> file (Read)   	[str]   <-- $(file < [path])                                	GNU Make 4.2+
+#> file (Write)  	[empty] <-- $(file > [path],[str:write])                    	GNU Make 4.0+
+#> file (Append) 	[empty] <-- $(file >> [path],[str:append])                  	GNU Make 4.0+
+#-------------------------------------------------------------------------------
+
+
+#-------------------------------------------------------------------------------
+#> file.tee      	[str] <-- $(call file.tee,[>>|>],[path],[str])
+#-------------------------------------------------------------------------------
+override file.tee = $(if $2,$(file $(or $1,>>) $2,$3))$3
 
 
 
@@ -1577,7 +1760,15 @@ shell.test = $(if $1,$(if $3,$(call shell.push,$3,$4))$(call var.set,,$2,str,$(s
 #===============================================================================
 
 
+#-------------------------------------------------------------------------------
+#> info      	[empty] <-- $(info [str:message])                               	GNU Make
+#> warning   	[empty] <-- $(warning [str:message])                            	GNU Make
+#> error     	[empty] <-- $(error [str:message])                              	GNU Make
+#-------------------------------------------------------------------------------
 
+
+#-------------------------------------------------------------------------------
+#>> Printing: Indentation
 #-------------------------------------------------------------------------------
 #> str.indent.add    	[str] <-- $(call str.indent.add,[str:multiline],[str:indent])
 #> str.indent.set    	[str] <-- $(call str.indent.set,[str:multiline],[str:indent])
@@ -1591,6 +1782,8 @@ override str.indent.set = $(call str.indent.add,$(call str.map,line,str.strip.st
 
 
 
+#-------------------------------------------------------------------------------
+#>> Printing: Block Formatting
 #-------------------------------------------------------------------------------
 #> str.to.block         	{block} <-- $(call str.to.block,[type:T],[T:str],[T:pad],[left|right])
 #> block.to.str         	[str]   <-- $(call block.to.str,[block])
@@ -1693,8 +1886,6 @@ $(info $(call str.format))
 $(info $e)
 $(error )
 
-# file.tee      	[str] <-- $(call file.tee,[>>|>],[path],[str])
-override file.tee = $(if $2,$(file $(or $1,>>) $2,$3))$3
 
 
 COLOR_GREEN=\033[0;32m
