@@ -13,6 +13,7 @@
 # original encoding! UTF-8, LF line endings.
 # AND BY GOD don't let your IDE substitute TAB with SPACE!
 #===============================================================================
+.PHONY: lib.mak
 
 
 #===============================================================================
@@ -662,7 +663,7 @@ override var.pop  = $(if $1,$(eval $(call word.unpack,expr,$(lastword $(var.$1.s
 
 
 #-------------------------------------------------------------------------------
-#> list.format      	[list[T]] <-- $(call list.format,[type:T],\
+#> list.create      	[list[T]] <-- $(call list.create,[type:T],\
 #>                  	                  item 1    $n\
 #>                  	                  item 2    $n\
 #>                  	              )
@@ -674,7 +675,7 @@ override var.pop  = $(if $1,$(eval $(call word.unpack,expr,$(lastword $(var.$1.s
 #	- Leading and trailing whitespace are stripped.
 #
 #-------------------------------------------------------------------------------
-override list.format = $(foreach line,$(call word.pack,{line},$(subst $n$s,$n,$n$2)),$(call word.pack,$1,$(call word.unpack,{line},$(subst $s,,$(call filter-out.end,$$s $$t,$(subst $$t,$s$$t,$(subst $$s,$s$$s,$(line))))))))
+override list.create = $(foreach line,$(call word.pack,{line},$(subst $n$s,$n,$n$2)),$(call word.pack,$1,$(call word.unpack,{line},$(subst $s,,$(call filter-out.end,$$s $$t,$(subst $$t,$s$$t,$(subst $$s,$s$$s,$(line))))))))
 
 
 
@@ -1096,7 +1097,7 @@ override list.join.4 = $(strip $(if $(firstword $1$2$3$4),$(call word.pack,{str}
 #	- Leading whitespace is removed. Trailing {space} is kept. Trailing {tab} and {lf} are removed.
 #
 #-------------------------------------------------------------------------------
-override multipath.create = $(call word.unpack,{path},$(call list.format,{path},$1))
+override multipath.create = $(call word.unpack,{path},$(call list.create,{path},$1))
 
 
 
@@ -1186,7 +1187,7 @@ override list.path.suffix      = $(foreach __path,$1,$(or $(suffix $(__path)),$$
 #-------------------------------------------------------------------------------
 #
 #	Adds a prefix or suffix to each word in the input [list].
-#	Does not return correct results for paths containing spaces.
+#	Returns incorrect results for paths containing spaces.
 #
 #-------------------------------------------------------------------------------
 
@@ -1664,9 +1665,9 @@ override expr.assign  = $(if $2,$(call str.concat.pair,$n,$(call str.concat,$s,$
 #>                 	                          /prereqs/of$n\
 #>                 	                      ),$(call multipath.create,$n\
 #>                 	                          /orderonly/of$n\
-#>                 	                      ),$(call list.format,expr,$n\
+#>                 	                      ),$(call list.create,expr,$n\
 #>                 	                          localvar := value$n\
-#>                 	                      ),$(call list.format,expr,$n\
+#>                 	                      ),$(call list.create,expr,$n\
 #>                 	                          commands$n\
 #>                 	                      )\
 #>                 	                  )
@@ -1875,23 +1876,13 @@ override block.vstack = $(strip $(call block.hresize,$1,$2,$3) $(call block.hres
 
 
 
-str := this is$na multiline$nstring
-
-# print.tee     	[str] <-- $(call print.tee,type,)
-override print.val = $(call )
-
-
-$(info $e)
-$(info $(call str.format))
-$(info $e)
-$(error )
 
 
 
-COLOR_GREEN=\033[0;32m
-COLOR_RED=\033[0;31m
-COLOR_BLUE=\033[0;34m
-COLOR_END=\033[0m
+override COLOR_GREEN=\033[0;32m
+override COLOR_RED=\033[0;31m
+override COLOR_BLUE=\033[0;34m
+override COLOR_END=\033[0m
 
 override print.var =
 # $(call print.var,{var},{indent},{col},{prefix},{suffix})
@@ -1980,3 +1971,10 @@ override assert.var.is.word        = $(if $(filter-out 1,$(words $1)),$(error $(
 override assert.shell.success = $(if $(filter       0,$(.SHELLSTATUS)),,$(throw Failed to start shell process:$n  SHELL       = [$(or $1,$(SHELL))]$n  .SHELLFLAGS = [$(or $2,$(.SHELLFLAGS))]$(if $3,$n  Command:      [$3])$n$n))
 override assert.shell.started = $(if $(filter-out 127,$(.SHELLSTATUS)),,$(error Failed to start shell process:$n  SHELL       = [$(or $1,$(SHELL))]$n  .SHELLFLAGS = [$(or $2,$(.SHELLFLAGS))]$(if $3,$n  Command:      [$3])$n$n))
 override assert.shell.started = $(and $1,$(call str.neq,$(basename $(SHELL)),$(basename $1),/i))
+
+
+
+
+
+
+$(info )

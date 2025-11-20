@@ -5,6 +5,7 @@
 # by adding additional makefiles to the MAKE_DIR
 #
 #===============================================================================
+.PHONY: makefile
 
 # Import paths
 MAKE_DIR = .project/make
@@ -12,8 +13,8 @@ MAKE_TARGETS_DIR = $(MAKE_DIR)/targets
 
 # Libraries
 include $(MAKE_DIR)/lib.mak
-include $(MAKE_DIR)/lib.help.mak
-include $(MAKE_DIR)/lib.platform.mak
+#include $(MAKE_DIR)/lib.help.mak
+#include $(MAKE_DIR)/lib.platform.mak
 
 # Project-specific configuration
 include $(MAKE_DIR)/config.mak
@@ -25,4 +26,3 @@ endif
 
 # Target definitions
 include $(sort $(wildcard $(MAKE_TARGETS_DIR)/*.mak))
-

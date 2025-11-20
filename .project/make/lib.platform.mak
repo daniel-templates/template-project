@@ -13,6 +13,7 @@
 #		include .project/make/lib.platform.mak
 #
 #===============================================================================
+.PHONY: lib.platform.mak
 $(if $(filter lib.mak,$(notdir $(MAKEFILE_LIST))),,$(error Makefile $(lastword $(notdir $(MAKEFILE_LIST))) is missing dependencies))
 #===============================================================================
 

@@ -15,6 +15,7 @@
 # 	make -f .project/make/lib.generics.mak generics
 #
 #===============================================================================
+.PHONY: lib.generics.mak
 ifeq "$(filter lib.mak,$(notdir $(MAKEFILE_LIST)))" ""
 include $(or $(lib.path),$(dir $(lastword $(MAKEFILE_LIST)))/lib.mak)
 endif
@@ -142,25 +143,43 @@ override expr.strip.ws      = $(if $(and $1,$(firstword $2)),$(call __expr.strip
 #===============================================================================
 
 # Type Definitions ==================== type: list{char}
-override char.{str}      := $(char.lowers) $(char.uppers) $(char.digits) $(char.whitespace) $(char.symbols)
-override char.{line}     := $(char.lowers) $(char.uppers) $(char.digits) $$s $$t            $(char.symbols)
-override char.{list}     := $(char.lowers) $(char.uppers) $(char.digits) $$s                $(char.symbols)
-override char.{word}     := $(char.lowers) $(char.uppers) $(char.digits)                    $(char.symbols)
-override char.{alphanum} := $(char.lowers) $(char.uppers) $(char.digits)
-override char.{alpha}    := $(char.lowers) $(char.uppers)
-override char.{int}      :=                               $(char.digits)                    + -
-override char.{uint}     :=                               $(char.digits)                    +
-override char.{digit}    :=                               $(char.digits)
-override char.{bool}     := 1
-override char.{var}      := $(char.lowers) $(char.uppers) $(char.digits) $(char.whitespace) $(filter-out : =,$(char.symbols))
-override char.{path}     := $(char.lowers) $(char.uppers) $(char.digits) $$s                $(filter-out < > | & ",$(char.symbols))
-override char.{char}     := $(char.{str})
-override char.{expr}     := $(char.{str})
-override char.{idx}      := $(char.{uint})
-override char.{origin}   := $(char.{list})
-override char.{flavor}   := $(char.{alpha})
-override char.{type}     := $(char.{word})
+override char.{str}       := $(char.lowers) $(char.uppers) $(char.digits) $(char.whitespace) $(char.symbols)
+override char.{line}      := $(char.lowers) $(char.uppers) $(char.digits) $$s $$t            $(char.symbols)
+override char.{list}      := $(char.lowers) $(char.uppers) $(char.digits) $$s                $(char.symbols)
+override char.{word}      := $(char.lowers) $(char.uppers) $(char.digits)                    $(char.symbols)
+override char.{alphanum}  := $(char.lowers) $(char.uppers) $(char.digits)
+override char.{alpha}     := $(char.lowers) $(char.uppers)
+override char.{int}       :=                               $(char.digits)                    + -
+override char.{uint}      :=                               $(char.digits)                    +
+override char.{digit}     :=                               $(char.digits)
+override char.{var}       := $(char.lowers) $(char.uppers) $(char.digits) $(char.whitespace) $(filter-out : =,$(char.symbols))
+override char.{path}      := $(char.lowers) $(char.uppers) $(char.digits) $$s                $(filter-out < > | & ",$(char.symbols))
+override char.{multipath} := $(char.lowers) $(char.uppers) $(char.digits) $$s                $(filter-out < > | & ",$(char.symbols))
+override char.{char}      := $(char.{str})
+override char.{expr}      := $(char.{str})
+override char.{bool}      := $(char.{str})
+override char.{idx}       := $(char.{uint})
+override char.{origin}    := $(char.{list})
+override char.{flavor}    := $(char.{alpha})
+override char.{type}      := $(char.{word})
 
+
+
+# path:
+#
+#
+#
+# xpath:
+#
+#
+#
+#
+# vpath:
+#   dir1:path/to/dir2:
+#
+#
+#
+#
 
 
 #-------------------------------------------------------------------------------
@@ -188,6 +207,7 @@ override expr.word.pack.{uint}   = $(call $(if $2,expr.call,expr.var),word.pack.
 override expr.word.pack.{idx}    = $(call $(if $2,expr.call,expr.var),word.pack.{int},$2)
 override expr.word.pack.{char}   = $(call $(if $2,expr.call,expr.var),word.pack.{str},$2)
 override expr.word.pack.{expr}   = $(call $(if $2,expr.call,expr.var),word.pack.{str},$2)
+override expr.word.pack.{bool}   = $(call $(if $2,expr.call,expr.var),word.pack.{str},$2)
 override expr.word.pack.{origin} = $(call $(if $2,expr.call,expr.var),word.pack.{list},$2)
 override expr.word.pack.{flavor} = $(call $(if $2,expr.call,expr.var),word.pack.{alpha},$2)
 override expr.word.pack.{type}   = $(call $(if $2,expr.call,expr.var),word.pack.{word},$2)
@@ -226,6 +246,7 @@ override expr.word.unpack.<T> = $(strip $(foreach T,$1, \
 # Type-Specific Overrides ------------------------------------------------------
 override expr.word.unpack.{char}   = $(call $(if $2,expr.call,expr.var),word.unpack.{str},$2)
 override expr.word.unpack.{expr}   = $(call $(if $2,expr.call,expr.var),word.unpack.{str},$2)
+override expr.word.unpack.{bool}   = $(call $(if $2,expr.call,expr.var),word.unpack.{str},$2)
 override expr.word.unpack.{idx}    = $(call $(if $2,expr.call,expr.var),word.unpack.{int},$2)
 override expr.word.unpack.{origin} = $(call $(if $2,expr.call,expr.var),word.unpack.{list},$2)
 override expr.word.unpack.{flavor} = $(call $(if $2,expr.call,expr.var),word.unpack.{alpha},$2)
@@ -257,6 +278,7 @@ override expr.chars.split.<T> = $(strip $(foreach T,$1, \
 override expr.chars.split.{digit}  = $(or $2,$$1)
 override expr.chars.split.{char}   = $(or $2,$$1)
 override expr.chars.split.{expr}   = $(call $(if $2,expr.call,expr.var),chars.split.{str},$2)
+override expr.chars.split.{bool}   = $(call $(if $2,expr.call,expr.var),chars.split.{str},$2)
 override expr.chars.split.{idx}    = $(call $(if $2,expr.call,expr.var),chars.split.{int},$2)
 override expr.chars.split.{origin} = $(call $(if $2,expr.call,expr.var),chars.split.{list},$2)
 override expr.chars.split.{flavor} = $(call $(if $2,expr.call,expr.var),chars.split.{alpha},$2)

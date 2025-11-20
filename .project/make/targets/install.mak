@@ -21,6 +21,7 @@
 #   Targets should be .PHONY if they do not produce an actual file on the system.
 #
 #===============================================================================
+.PHONY: install.mak
 
 
 #-----------------------------------------------------------
