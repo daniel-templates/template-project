@@ -372,8 +372,8 @@ override str.map.4 = $(call list.merge,$1,$(call list.map.4,$1,$2,$(call str.spl
 # [word[str]] <-- $(call __str.strip.one.start,[word[str]:in],[word[str]:strip])
 # [word[str]] <-- $(call __str.strip.one.end  ,[word[str]:in],[word[str]:strip])
 override __str.strip.one        = $(subst $s,$2,$(strip $(subst $2,$s,$1)))
-override __str.strip.one.start  = $(subst $s,,$(call list.filter-out.start,$(subst $2,$s$2$s,$1),$2))
-override __str.strip.one.end    = $(subst $s,,$(call list.filter-out.end,$(subst $2,$s$2$s,$1),$2))
+override __str.strip.one.start  = $(subst $s,,$(call filter-out.start,$2,$(subst $2,$s$2$s,$1)))
+override __str.strip.one.end    = $(subst $s,,$(call filter-out.end,$2,$(subst $2,$s$2$s,$1)))
 override str.subst.str2str   = $(if         $2     ,$(subst $2,$3,$1),$1)
 override str.subst.str2var   = $(if $(and   $2 ,$3),$(subst $2,$($3),$1),$1)
 override str.subst.var2str   = $(if       $($2)    ,$(subst $($2),$3,$1),$(if $1,$1,$(if $2,$3)))
@@ -409,8 +409,8 @@ override str.strip.var.end   = $(call word.unpack,[str],$(call __str.strip.one.e
 #-------------------------------------------------------------------------------
 # [word[str]] <-- $(call __str.strip.many.start,[word[str]:in],[list[str]:strip])
 # [word[str]] <-- $(call __str.strip.many.end  ,[word[str]:in],[list[str]:strip])
-override __str.strip.many.start = $(subst $s,,$(call list.filter-out.start,$(subst $$e,$s,$(call __str.treesubst.many2many,$1,$2,$(foreach word,$2,$$e$(word)$$e))),$2))
-override __str.strip.many.end   = $(subst $s,,$(call list.filter-out.end,$(subst $$e,$s,$(call __str.treesubst.many2many,$1,$2,$(foreach word,$2,$$e$(word)$$e))),$2))
+override __str.strip.many.start = $(subst $s,,$(call filter-out.start,$2,$(subst $$e,$s,$(call __str.treesubst.many2many,$1,$2,$(foreach word,$2,$$e$(word)$$e)))))
+override __str.strip.many.end   = $(subst $s,,$(call filter-out.end,$2,$(subst $$e,$s,$(call __str.treesubst.many2many,$1,$2,$(foreach word,$2,$$e$(word)$$e)))))
 override str.subst.list2str     = $(call list.reduce.1,,str.subst.str2str,$1,$2,$3)
 override str.subst.list2var     = $(call list.reduce.1,,str.subst.str2var,$1,$2,$3)
 override str.subst.vars2str     = $(call list.reduce.1,,str.subst.var2str,$1,$2,$3)
@@ -578,8 +578,8 @@ override var.is.nonempty    = $(if $($1),$1)
 #	- If [type:T] is omitted, [val] must be a valid expression, and is assigned "recursively" with '=' or '+='.
 #
 #-------------------------------------------------------------------------------
-var.set    = $(if $2,$(eval $(call expr.assign,$1,$2,$(if $3,:=,=),$(call word.pack,$3,$4))))
-var.append = $(if $2,$(eval $(call expr.assign,$1,$2,+=,$(call word.pack,$3,$4))))
+override var.set    = $(if $2,$(eval $(call expr.assign,$1,$2,$(if $3,:=,=),$(call word.pack,$3,$4))))
+override var.append = $(if $2,$(eval $(call expr.assign,$1,$2,+=,$(call word.pack,$3,$4))))
 
 
 
@@ -621,8 +621,8 @@ override var.set_with_alternatives = $(eval $(strip $1) $(strip $2) $(if $(or $3
 #	The internal stack can be accessed via $(var.{var}.stack)
 #
 #-------------------------------------------------------------------------------
-var.push = $(if $1,$(eval var.$1.stack += $(subst $x,$$x,$(call word.pack,expr,$1$(if $(filter recursive,$(flavor $1)),=,:=)$(value $1)))$n$1$(if $2,:=$(call word.pack,$2,$3),=$3)))
-var.pop  = $(if $1,$(eval $(call word.unpack,expr,$(lastword $(var.$1.stack)))$nvar.$1.stack := $$(wordlist 2,$$(words $$(var.$1.stack)),x $$(var.$1.stack))))
+override var.push = $(if $1,$(eval var.$1.stack += $(subst $x,$$x,$(call word.pack,expr,$1$(if $(filter recursive,$(flavor $1)),=,:=)$(value $1)))$n$1$(if $2,:=$(call word.pack,$2,$3),=$3)))
+override var.pop  = $(if $1,$(eval $(call word.unpack,expr,$(lastword $(var.$1.stack)))$nvar.$1.stack := $$(wordlist 2,$$(words $$(var.$1.stack)),x $$(var.$1.stack))))
 
 
 
@@ -674,7 +674,7 @@ var.pop  = $(if $1,$(eval $(call word.unpack,expr,$(lastword $(var.$1.stack)))$n
 #	- Leading and trailing whitespace are stripped.
 #
 #-------------------------------------------------------------------------------
-override list.format = $(foreach line,$(call word.pack,{line},$(subst $n$s,$n,$n$2)),$(call word.pack,$1,$(call word.unpack,{line},$(subst $s,,$(call list.filter-out.end,$(subst $$t,$s$$t,$(subst $$s,$s$$s,$(line))),$$s $$t)))))
+override list.format = $(foreach line,$(call word.pack,{line},$(subst $n$s,$n,$n$2)),$(call word.pack,$1,$(call word.unpack,{line},$(subst $s,,$(call filter-out.end,$$s $$t,$(subst $$t,$s$$t,$(subst $$s,$s$$s,$(line))))))))
 
 
 
@@ -834,25 +834,25 @@ override list.merge = $(call word.unpack,$1,$(subst $s,$(call word.pack,$1,$3),$
 #-------------------------------------------------------------------------------
 #>> Lists: Filtering
 #-------------------------------------------------------------------------------
-#> filter       	[list] <-- $(filter [list:keep_patterns],[list:in])         	GNU Make
-#> filter-out   	[list] <-- $(filter-out [list:remove_patterns],[list:in])   	GNU Make
+#> filter       	[list] <-- $(filter [list:keep_patterns],[list])            	GNU Make
+#> filter-out   	[list] <-- $(filter-out [list:remove_patterns],[list])      	GNU Make
 #-------------------------------------------------------------------------------
 
 #-------------------------------------------------------------------------------
-#> list.filter           	[list[T]] <-- $(call list.filter,[type:T],[list[T]],[T:val])
-#> list.filter-out       	[list[T]] <-- $(call list.filter-out,[type:T],[list[T]],[T:val])
-#> list.filter-out.start 	[list]    <-- $(call list.filter-out.start,[list:in],[list:filter-out])
-#> list.filter-out.end   	[list]    <-- $(call list.filter-out.end,[list:in],[list:filter-out])
+#> filter.start     	[list] <-- $(call filter.start,[list:keep_patterns],[list])
+#> filter.end       	[list] <-- $(call filter.end,[list:remove_patterns],[list])
+#> filter-out.start 	[list] <-- $(call filter-out.start,[list:keep_patterns],[list])
+#> filter-out.end   	[list] <-- $(call filter-out.end,[list:remove_patterns],[list])
 #-------------------------------------------------------------------------------
 #
-#	list.filter, list.filter-out:
-#		Returns a [list] of words equal (or not-equal) to [val].
+#	Filters/filters-out words from the start/end of a list, until the first
+#	non-matching word is found.
 #
 #-------------------------------------------------------------------------------
-override list.filter           = $(filter $(call word.pack,$1,$3),$2)
-override list.filter-out       = $(filter-out $(call word.pack,$1,$3),$2)
-override list.filter-out.start = $(if $(filter $2,$(firstword $1)),$(call $0,$(wordlist 2,$(words $1),$1),$2),$1)
-override list.filter-out.end   = $(if $(filter $2,$(lastword $1)),$(call $0,$(wordlist 2,$(words $1),x $1),$2),$1)
+override filter.start     = $(if $(filter $1,$(firstword $2)),$(call $0,$1,$(wordlist 2,$(words $2),$2),$3 $(firstword $2)),$(strip $3))
+override filter.end       = $(if $(filter $1,$(lastword $2)),$(call $0,$1,$(wordlist 2,$(words $2),x $2),$(lastword $2) $3),$(strip $3))
+override filter-out.start = $(if $(filter $1,$(firstword $2)),$(call $0,$1,$(wordlist 2,$(words $2),$2)),$2)
+override filter-out.end   = $(if $(filter $1,$(lastword $2)),$(call $0,$1,$(wordlist 2,$(words $2),x $2)),$2)
 
 
 
@@ -1360,17 +1360,17 @@ override list.path.wildcard = $(if $1,$(call str.split,{path},$(subst <MARK>/..,
 #	Functions which accept [list[path]] set each nonexistant path to packed-[empty].
 #
 #-------------------------------------------------------------------------------
-# [word[path]] <-- $(call __list.filter.*,[word[path]],[list[path]])
-override __list.filter.path = $(if $(filter $1,$2),$1,$$e)
-override __list.filter.dir  = $(if $(filter $(1:%/=%)/,$2),$1,$$e)
-override __list.filter.file = $(if $(and $(if $(filter $(1:%/=%)/,$2),,T),$(filter $1,$2)),$1,$$e)
+# [word[path]] <-- $(call __filter.*,[word[path]],[list[path]])
+override __filter.path = $(if $(filter $1,$2),$1,$$e)
+override __filter.dir  = $(if $(filter $(1:%/=%)/,$2),$1,$$e)
+override __filter.file = $(if $(and $(if $(filter $(1:%/=%)/,$2),,T),$(filter $1,$2)),$1,$$e)
 #-------------------------------------------------------------------------------
 override path.exists = $(__list.path.op)
 override dir.exists  = $(__list.path.op)
 override file.exists = $(__list.path.op)
-override list.path.exists = $(call list.map.1,,__list.filter.path,$(call list.repack,[path],$1),$(call list.path.wildcard,$(foreach __path,$(call list.repack,[path],$1),$(if $(filter-out $$e,$(__path)),$(__path:%/=%)$s$(__path:%/=%)/))))
-override list.dir.exists  = $(call list.map.1,,__list.filter.dir,$(call list.repack,[path],$1),$(call list.path.wildcard,$(foreach __path,$(call list.repack,[path],$1),$(if $(filter-out $$e,$(__path)),$(__path:%/=%)$s$(__path:%/=%)/))))
-override list.file.exists = $(call list.map.1,,__list.filter.file,$(call list.repack,[path],$1),$(call list.path.wildcard,$(foreach __path,$(call list.repack,[path],$1),$(if $(filter-out $$e,$(__path)),$(__path:%/=%)$s$(__path:%/=%)/))))
+override list.path.exists = $(call list.map.1,,__filter.path,$(call list.repack,[path],$1),$(call list.path.wildcard,$(foreach __path,$(call list.repack,[path],$1),$(if $(filter-out $$e,$(__path)),$(__path:%/=%)$s$(__path:%/=%)/))))
+override list.dir.exists  = $(call list.map.1,,__filter.dir,$(call list.repack,[path],$1),$(call list.path.wildcard,$(foreach __path,$(call list.repack,[path],$1),$(if $(filter-out $$e,$(__path)),$(__path:%/=%)$s$(__path:%/=%)/))))
+override list.file.exists = $(call list.map.1,,__filter.file,$(call list.repack,[path],$1),$(call list.path.wildcard,$(foreach __path,$(call list.repack,[path],$1),$(if $(filter-out $$e,$(__path)),$(__path:%/=%)$s$(__path:%/=%)/))))
 
 
 
@@ -1407,7 +1407,7 @@ override list.file.exists = $(call list.map.1,,__list.filter.file,$(call list.re
 #	Returns '0' if [int] is [empty].
 #
 #-------------------------------------------------------------------------------
-override int.trim  = $(and $(subst 0,,$(subst -,,$1)),$(findstring -,$1),-)$(or $(subst $s,,$(call list.filter-out.start,$(subst 0,0$s,$(subst -,,$1)),0)),0)
+override int.trim  = $(and $(subst 0,,$(subst -,,$1)),$(findstring -,$1),-)$(or $(subst $s,,$(call filter-out.start,0,$(subst 0,0$s,$(subst -,,$1)))),0)
 
 
 
@@ -1446,7 +1446,9 @@ override __digit.sub = $(word 1$(or $2,0),x x x x x x x x x $(wordlist $(word 1$
 #                                                            | (-)+(-) = -(|A|+|B|)               | (-)+(+) = |B|-|A|                                     | (+)+(-) = |A|-|B|                | (+)+(+) = ...             add each pair of digits, starting with the rightmost digit, until empty or only leading 0s remain                  extract carry                 | result: strip carry              | if leftmost carry=1, carry the 1.
 override digits.add = $(if $(filter -,$1),$(if $(filter -,$2),- $(call digits.add,$(1:-=),$(2:-=)),$(call digits.sub,$(2:-=),$(1:-=))),$(if $(filter -,$2),$(call digits.sub,$(1:-=),$(2:-=)),$(if $(filter-out 0,$1 $2),$(call $0,$(call list.remove.last,$1),$(call list.remove.last,$2),$(call __digit.add,$(lastword $1),$(lastword $2),$(notdir $(firstword $3))) $3),$(patsubst %/0,%,$(patsubst %/1,%,$(if $(filter %/1,$(firstword $3)),1 $3,$(or $3,0)))))))
 #                                                            | (-)-(-) = |B|-|A|                  | (-)-(+) = -(|A|+|B|)                                  | (+)-(-) = |A|+|B|                | (+)-(+) = ...             sub each pair of digits, starting with the rightmost digit, until empty or only leading 0s remain                  extract carry                 | result: strip carry              | if leftmost carry=1, then |A|<|B|, so redo calculation as -(|B|-|A|)
-override digits.sub = $(if $(filter -,$1),$(if $(filter -,$2),$(call digits.sub,$(2:-=),$(1:-=)),- $(call digits.add,$(1:-=),$(2:-=))),$(if $(filter -,$2),$(call digits.add,$(1:-=),$(2:-=)),$(if $(filter-out 0,$1 $2),$(call $0,$(call list.remove.last,$1),$(call list.remove.last,$2),$(call __digit.sub,$(lastword $1),$(lastword $2),$(notdir $(firstword $3))) $3),$(patsubst %/0,%,$(patsubst %/1,%,$(if $(filter %/1,$(firstword $3)),- $(call $0,1 $(3:%=0),$(patsubst %/0,%,$(3:%/1=%))),$(or $(call list.filter-out.start,$3,0/%),0)))))))
+override digits.sub = $(if $(filter -,$1),$(if $(filter -,$2),$(call digits.sub,$(2:-=),$(1:-=)),- $(call digits.add,$(1:-=),$(2:-=))),$(if $(filter -,$2),$(call digits.add,$(1:-=),$(2:-=)),$(if $(filter-out 0,$1 $2),$(call $0,$(call list.remove.last,$1),$(call list.remove.last,$2),$(call __digit.sub,$(lastword $1),$(lastword $2),$(notdir $(firstword $3))) $3),$(patsubst %/0,%,$(patsubst %/1,%,$(if $(filter %/1,$(firstword $3)),- $(call $0,1 $(3:%=0),$(patsubst %/0,%,$(3:%/1=%))),$(or $(call filter-out.start,0/%,$3),0)))))))
+
+
 
 #-------------------------------------------------------------------------------
 #> int.abs          	{int} <-- $(call int.abs,[int])
@@ -1473,24 +1475,22 @@ override int.min   = $(or $(if $(call int.lss,$1,$2),$1,$2),0)
 #-------------------------------------------------------------------------------
 #>> Integer: Comparisons
 #-------------------------------------------------------------------------------
-#> intcmp   	[str] <-- $(intcmp {int:1},{int:2},[str:if_lss],[str:if_equ],[str:if_gtr])  	GNU Make 4.4+
+#> intcmp       	[str] <-- $(intcmp {int:1},{int:2},[str:if_lss],[str:if_equ],[str:if_gtr])  	GNU Make 4.4+
 #-------------------------------------------------------------------------------
 
-
-
 #-------------------------------------------------------------------------------
-#> int.equ.0        	[bool:A] <-- $(call int.equ.0,[int:A])
-#> int.neq.0        	[bool:A] <-- $(call int.neq.0,[int:A])
-#> int.gtr.0        	[bool:A] <-- $(call int.gtr.0,[int:A])
-#> int.geq.0        	[bool:A] <-- $(call int.geq.0,[int:A])
-#> int.leq.0        	[bool:A] <-- $(call int.leq.0,[int:A])
-#> int.lss.0        	[bool:A] <-- $(call int.lss.0,[int:A])
-#> int.equ          	[bool:A] <-- $(call int.equ,[int:A],[int:B])
-#> int.neq          	[bool:A] <-- $(call int.neq,[int:A],[int:B])
-#> int.gtr          	[bool:A] <-- $(call int.gtr,[int:A],[int:B])
-#> int.geq          	[bool:A] <-- $(call int.geq,[int:A],[int:B])
-#> int.leq          	[bool:A] <-- $(call int.leq,[int:A],[int:B])
-#> int.lss          	[bool:A] <-- $(call int.lss,[int:A],[int:B])
+#> int.equ.0    	[bool:A] <-- $(call int.equ.0,[int:A])
+#> int.neq.0    	[bool:A] <-- $(call int.neq.0,[int:A])
+#> int.gtr.0    	[bool:A] <-- $(call int.gtr.0,[int:A])
+#> int.geq.0    	[bool:A] <-- $(call int.geq.0,[int:A])
+#> int.leq.0    	[bool:A] <-- $(call int.leq.0,[int:A])
+#> int.lss.0    	[bool:A] <-- $(call int.lss.0,[int:A])
+#> int.equ      	[bool:A] <-- $(call int.equ,[int:A],[int:B])
+#> int.neq      	[bool:A] <-- $(call int.neq,[int:A],[int:B])
+#> int.gtr      	[bool:A] <-- $(call int.gtr,[int:A],[int:B])
+#> int.geq      	[bool:A] <-- $(call int.geq,[int:A],[int:B])
+#> int.leq      	[bool:A] <-- $(call int.leq,[int:A],[int:B])
+#> int.lss      	[bool:A] <-- $(call int.lss,[int:A],[int:B])
 #-------------------------------------------------------------------------------
 #
 #	Compares a pair of integer values.
