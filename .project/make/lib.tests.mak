@@ -8,7 +8,7 @@
 # 	make -f .project/make/lib.tests.mak ["tests=..."]
 #
 #===============================================================================
-.PHONY: lib.tests.mak
+.PHONY: $(notdir $(lastword $(MAKEFILE_LIST)))
 ifeq "$(filter lib.mak,$(notdir $(MAKEFILE_LIST)))" ""
 include $(or $(lib.path),$(dir $(lastword $(MAKEFILE_LIST)))/lib.mak)
 endif

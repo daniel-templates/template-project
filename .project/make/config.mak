@@ -4,6 +4,7 @@
 # Project configuration variables
 #
 #===============================================================================
+.PHONY: $(notdir $(lastword $(MAKEFILE_LIST)))
 
 
 #===============================================================================
@@ -51,7 +52,7 @@ install.prereqs.normal =
 install.prereqs.orderonly = help.install
 
 # Consumed by: makefile (project root)
-DEFAULT_TARGET = help
+.DEFAULT_GOAL = help
 
 
 #===============================================================================

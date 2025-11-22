@@ -5,7 +5,7 @@
 # by adding additional makefiles to the MAKE_DIR
 #
 #===============================================================================
-.PHONY: makefile
+.PHONY: $(notdir $(lastword $(MAKEFILE_LIST)))
 
 # Import paths
 MAKE_DIR = .project/make
@@ -19,10 +19,6 @@ include $(MAKE_DIR)/lib.mak
 # Project-specific configuration
 include $(MAKE_DIR)/config.mak
 
-# Set default target (override value in config.mak, not here)
-ifdef DEFAULT_TARGET
-$(DEFAULT_TARGET):
-endif
 
 # Target definitions
 include $(sort $(wildcard $(MAKE_TARGETS_DIR)/*.mak))

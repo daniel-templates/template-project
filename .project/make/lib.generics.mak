@@ -15,7 +15,7 @@
 # 	make -f .project/make/lib.generics.mak generics
 #
 #===============================================================================
-.PHONY: lib.generics.mak
+.PHONY: $(notdir $(lastword $(MAKEFILE_LIST)))
 ifeq "$(filter lib.mak,$(notdir $(MAKEFILE_LIST)))" ""
 include $(or $(lib.path),$(dir $(lastword $(MAKEFILE_LIST)))/lib.mak)
 endif
@@ -138,50 +138,6 @@ override expr.strip.ws      = $(if $(and $1,$(firstword $2)),$(call __expr.strip
 
 
 
-#===============================================================================
-#>>> TYPES
-#===============================================================================
-
-# Type Definitions ==================== type: list{char}
-override char.{str}       := $(char.lowers) $(char.uppers) $(char.digits) $(char.whitespace) $(char.symbols)
-override char.{line}      := $(char.lowers) $(char.uppers) $(char.digits) $$s $$t            $(char.symbols)
-override char.{list}      := $(char.lowers) $(char.uppers) $(char.digits) $$s                $(char.symbols)
-override char.{word}      := $(char.lowers) $(char.uppers) $(char.digits)                    $(char.symbols)
-override char.{alphanum}  := $(char.lowers) $(char.uppers) $(char.digits)
-override char.{alpha}     := $(char.lowers) $(char.uppers)
-override char.{int}       :=                               $(char.digits)                    + -
-override char.{uint}      :=                               $(char.digits)                    +
-override char.{digit}     :=                               $(char.digits)
-override char.{var}       := $(char.lowers) $(char.uppers) $(char.digits) $(char.whitespace) $(filter-out : =,$(char.symbols))
-override char.{path}      := $(char.lowers) $(char.uppers) $(char.digits) $$s                $(filter-out < > | & ",$(char.symbols))
-override char.{multipath} := $(char.lowers) $(char.uppers) $(char.digits) $$s                $(filter-out < > | & ",$(char.symbols))
-override char.{char}      := $(char.{str})
-override char.{expr}      := $(char.{str})
-override char.{bool}      := $(char.{str})
-override char.{idx}       := $(char.{uint})
-override char.{origin}    := $(char.{list})
-override char.{flavor}    := $(char.{alpha})
-override char.{type}      := $(char.{word})
-
-
-
-# path:
-#
-#
-#
-# xpath:
-#
-#
-#
-#
-# vpath:
-#   dir1:path/to/dir2:
-#
-#
-#
-#
-
-
 #-------------------------------------------------------------------------------
 #>> word.pack.<T>           	[word<T>] <-- $(call word.pack.<T>,[T:val])
 #>> expr.word.pack.<T>      	[expr<word<T>>([T:val])] <-- $(call expr.word.pack.<T>,[type:T],[expr:$1])
@@ -200,27 +156,6 @@ override expr.word.pack.<T> = $(strip $(foreach T,$1, \
 	$(null Cleanup local variables) \
 	$(foreach var,$($0.locals),$(call var.set,override,$(var),{str},$e)) \
 ))
-
-# Type-Specific Overrides ------------------------------------------------------
-override expr.word.pack.{int}    = $(call expr.subst,+,,$(call expr.word.pack.<T>,$1,$2))
-override expr.word.pack.{uint}   = $(call $(if $2,expr.call,expr.var),word.pack.{int},$2)
-override expr.word.pack.{idx}    = $(call $(if $2,expr.call,expr.var),word.pack.{int},$2)
-override expr.word.pack.{char}   = $(call $(if $2,expr.call,expr.var),word.pack.{str},$2)
-override expr.word.pack.{expr}   = $(call $(if $2,expr.call,expr.var),word.pack.{str},$2)
-override expr.word.pack.{bool}   = $(call $(if $2,expr.call,expr.var),word.pack.{str},$2)
-override expr.word.pack.{origin} = $(call $(if $2,expr.call,expr.var),word.pack.{list},$2)
-override expr.word.pack.{flavor} = $(call $(if $2,expr.call,expr.var),word.pack.{alpha},$2)
-override expr.word.pack.{type}   = $(call $(if $2,expr.call,expr.var),word.pack.{word},$2)
-override expr.word.pack.{path}   = $(strip \
-	$(call expr.subst.list2list,$(call expr.strip,$(call expr.subst.list2list,$(call expr.word.pack.<T>,$1,$2),\
-		$$b      \\    \[   \]   \$$s    $$s  \   $$t   $$n    / 	,\
-		  \  $$b$$b  $$b[ $$b] $$b$$s $$b$$s  /  $$xt  $$xn  $$s 	 \
-	)), \
-		$$s  $$xn  $$xt 	,\
-		  /   $$n   $$t 	\
-	) \
-)
-
 
 
 
@@ -243,16 +178,6 @@ override expr.word.unpack.<T> = $(strip $(foreach T,$1, \
 	$(foreach var,$($0.locals),$(call var.set,override,$(var),{str},$e)) \
 ))
 
-# Type-Specific Overrides ------------------------------------------------------
-override expr.word.unpack.{char}   = $(call $(if $2,expr.call,expr.var),word.unpack.{str},$2)
-override expr.word.unpack.{expr}   = $(call $(if $2,expr.call,expr.var),word.unpack.{str},$2)
-override expr.word.unpack.{bool}   = $(call $(if $2,expr.call,expr.var),word.unpack.{str},$2)
-override expr.word.unpack.{idx}    = $(call $(if $2,expr.call,expr.var),word.unpack.{int},$2)
-override expr.word.unpack.{origin} = $(call $(if $2,expr.call,expr.var),word.unpack.{list},$2)
-override expr.word.unpack.{flavor} = $(call $(if $2,expr.call,expr.var),word.unpack.{alpha},$2)
-override expr.word.unpack.{type}   = $(call $(if $2,expr.call,expr.var),word.unpack.{word},$2)
-
-
 
 
 #-------------------------------------------------------------------------------
@@ -274,17 +199,132 @@ override expr.chars.split.<T> = $(strip $(foreach T,$1, \
 	$(foreach var,$($0.locals),$(call var.set,override,$(var),{str},$e)) \
 ))
 
-# Type-Specific Overrides ------------------------------------------------------
-override expr.chars.split.{digit}  = $(or $2,$$1)
-override expr.chars.split.{char}   = $(or $2,$$1)
-override expr.chars.split.{expr}   = $(call $(if $2,expr.call,expr.var),chars.split.{str},$2)
-override expr.chars.split.{bool}   = $(call $(if $2,expr.call,expr.var),chars.split.{str},$2)
-override expr.chars.split.{idx}    = $(call $(if $2,expr.call,expr.var),chars.split.{int},$2)
-override expr.chars.split.{origin} = $(call $(if $2,expr.call,expr.var),chars.split.{list},$2)
-override expr.chars.split.{flavor} = $(call $(if $2,expr.call,expr.var),chars.split.{alpha},$2)
-override expr.chars.split.{type}   = $(call $(if $2,expr.call,expr.var),chars.split.{word},$2)
 
 
+
+#===============================================================================
+#>>> TYPES
+#===============================================================================
+
+# Type Definitions ==================== type: list{char}
+override char.{str}     := $(char.lowers) $(char.uppers) $(char.digits) $(char.whitespace) $(char.symbols)
+override char.{bool}    := $(char.{str})
+override char.{char}    := $(char.{str})
+override char.{expr}    := $(char.{str})
+override char.{line}    := $(char.lowers) $(char.uppers) $(char.digits) $$s $$t            $(char.symbols)
+override char.{origin}  := $(char.{line})
+override char.{word}    := $(char.lowers) $(char.uppers) $(char.digits)                    $(char.symbols)
+override char.{feature} := $(char.{word})
+override char.{flavor}  := $(char.{word})
+override char.{type}    := $(char.{word})
+override char.{var}     := $(char.lowers) $(char.uppers) $(char.digits) $(char.whitespace) $(filter-out : =,$(char.symbols))
+override char.{int}     :=                               $(char.digits)                    -
+override char.{uint}    :=                               $(char.digits)
+override char.{idx}     := $(char.{uint})
+override char.{digit}   := $(char.{uint})
+override char.{path}    := $(char.lowers) $(char.uppers) $(char.digits) $$s                $(filter-out < > | & ",$(char.symbols))
+override char.{xpath}   := $(char.lowers) $(char.uppers) $(char.digits) $$s                $(filter-out < > | & ",$(char.symbols))
+override char.{wpath}   := $(char.lowers) $(char.uppers) $(char.digits)                    $(filter-out < > | & ",$(char.symbols))
+
+# Generic Overrides
+override expr.word.pack.{bool}      = $(call $(if $2,expr.call,expr.var),word.pack.{str},$2)
+override expr.word.unpack.{bool}    = $(call $(if $2,expr.call,expr.var),word.unpack.{str},$2)
+override expr.chars.split.{bool}    = $(call $(if $2,expr.call,expr.var),chars.split.{str},$2)
+
+override expr.word.pack.{char}      = $(call $(if $2,expr.call,expr.var),word.pack.{str},$2)
+override expr.word.unpack.{char}    = $(call $(if $2,expr.call,expr.var),word.unpack.{str},$2)
+override expr.chars.split.{char}    = $(call expr.strip,$(or $2,$$1))
+
+override expr.word.pack.{expr}      = $(call $(if $2,expr.call,expr.var),word.pack.{str},$2)
+override expr.word.unpack.{expr}    = $(call $(if $2,expr.call,expr.var),word.unpack.{str},$2)
+override expr.chars.split.{expr}    = $(call $(if $2,expr.call,expr.var),chars.split.{str},$2)
+
+override expr.word.pack.{origin}    = $(call $(if $2,expr.call,expr.var),word.pack.{line},$2)
+override expr.word.unpack.{origin}  = $(call $(if $2,expr.call,expr.var),word.unpack.{line},$2)
+override expr.chars.split.{origin}  = $(call $(if $2,expr.call,expr.var),chars.split.{line},$2)
+
+override expr.word.pack.{feature}   = $(call $(if $2,expr.call,expr.var),word.pack.{word},$2)
+override expr.word.unpack.{feature} = $(call $(if $2,expr.call,expr.var),word.unpack.{word},$2)
+override expr.chars.split.{feature} = $(call $(if $2,expr.call,expr.var),chars.split.{word},$2)
+
+override expr.word.pack.{flavor}    = $(call $(if $2,expr.call,expr.var),word.pack.{word},$2)
+override expr.word.unpack.{flavor}  = $(call $(if $2,expr.call,expr.var),word.unpack.{word},$2)
+override expr.chars.split.{flavor}  = $(call $(if $2,expr.call,expr.var),chars.split.{word},$2)
+
+override expr.word.pack.{type}      = $(call $(if $2,expr.call,expr.var),word.pack.{word},$2)
+override expr.word.unpack.{type}    = $(call $(if $2,expr.call,expr.var),word.unpack.{word},$2)
+override expr.chars.split.{type}    = $(call $(if $2,expr.call,expr.var),chars.split.{word},$2)
+
+override expr.word.pack.{idx}       = $(call $(if $2,expr.call,expr.var),word.pack.{uint},$2)
+override expr.word.unpack.{idx}     = $(call $(if $2,expr.call,expr.var),word.unpack.{uint},$2)
+override expr.chars.split.{idx}     = $(call $(if $2,expr.call,expr.var),chars.split.{uint},$2)
+
+override expr.word.pack.{digit}     = $(call $(if $2,expr.call,expr.var),word.pack.{uint},$2)
+override expr.word.unpack.{digit}   = $(call $(if $2,expr.call,expr.var),word.unpack.{uint},$2)
+override expr.chars.split.{digit}   = $(call expr.strip,$(or $2,$$1))
+
+#-------------------------------------------------------------------------------
+#	{path}      	Path
+#	{xpath}     	Escaped Path
+#	{wpath}     	Single-Word Path
+#-------------------------------------------------------------------------------
+#	A string containing a single file or directory path.
+#	Types differ in how filename spaces ' ' may be represented:
+#
+#	 {path} 	Allows spaces in filenames as either ' ' or '\ '.
+#	 {xpath}	Spaces in filenames must be escaped as '\ '.
+#	 {wpath}	Spaces in filenames are not allowed.
+#
+#	Paths may include pattern (%) or path (*?[]) wildcards.
+#	Wildcards can be escaped using '\'.
+#
+#	Since Make prefers the path separator '/' for most use cases (regardless of
+#	platform), all '\' are replaced with '/' except for '\' which are part of an
+#	escape sequence.
+#
+#	Packing Procedure:
+#	1. Standard substitutions, determined by what characters are available.
+#	-----------------	{path} 	{xpath}	{wpath}
+#	 '$'   --> '$x'  	   +   	   +   	   +
+#	 ' '   --> '$s'  	   +   	   +   	   -
+#	 '%'   --> '$p'  	   +   	   +   	   +
+#	 '\'   --> '$b'  	   +   	   +   	   +
+#	 ...
+#
+#	2. Replace '\' with '/', except for '\' which are part of an escape sequence
+#	-----------------	{path} 	{xpath}	{wpath}
+#	 '$b'  --> '\'   	   +   	   +   	   +
+#	 '$s'  --> ' '   	   +   	   +   	   -
+#	-----------------	{path} 	{xpath}	{wpath}
+#	 '\\'  --> '/'   	   +   	   +   	   +
+#	 '\ '  --> '$b$s'	   +   	   +   	   -
+#	 '\$p' --> '$b$p'	   +   	   +   	   +
+#	 '\['  --> '$b[' 	   +   	   +   	   +
+#	 '\]'  --> '$b]' 	   +   	   +   	   +
+#	 '\?'  --> '$b?' 	   +   	   +   	   +
+#	-----------------	{path} 	{xpath}	{wpath}
+#	 ' '   --> '$s'  	   +   	   -   	   -
+#	 '\'   --> '/'   	   +   	   +   	   +
+#
+#	3. Cull path separators (Replace each sequence of '/' with a single '/')
+#	-----------------	{path} 	{xpath}	{wpath}	   /PART//PART///
+#	 '/'  --> '$e/$e'	   +   	   +   	   +   	   $e/$ePART$e/$e$e/$ePART$e/$e$e/$e$e/$e
+#	 '$e$e' --> ''   	   +   	   +   	   +   	   $e/$ePART$e//$ePART$e///$e
+#	 '/'    --> ''   	   +   	   +   	   +   	   $e$ePART$e$ePART$e$e
+#	 '$e$e' --> '/'  	   +   	   +   	   +   	   /PART/PART/
+#-------------------------------------------------------------------------------
+override expr.word.pack.{path}  = $(subst $$1,$(call expr.word.pack.<T>,$1,$2),$(subst $$x,$$$$,$(call expr.subst.list2list,$$1,\
+	$$xb	$$xs	$$b$$b	$$b$$s  	$$b$$xp 	$$b[ 	$$b] 	$$b? 	$$s 	$$b 	/        	$$xe$$xe	/   	$$xe$$xe,\
+	$$b 	$$s 	/     	$$xb$$xs	$$xb$$xp	$$xb[	$$xb]	$$xb?	$$xs	/   	$$xe/$$xe	$$e     	$$e 	/        \
+)))
+override expr.word.pack.{xpath} = $(subst $$1,$(call expr.word.pack.<T>,$1,$2),$(subst $$x,$$$$,$(call expr.subst.list2list,$$1,\
+	$$xb	$$xs	$$b$$b	$$b$$s  	$$b$$xp 	$$b[ 	$$b] 	$$b? 	    	$$b 	/        	$$xe$$xe	/   	$$xe$$xe,\
+	$$b 	$$s 	/     	$$xb$$xs	$$xb$$xp	$$xb[	$$xb]	$$xb?	    	/   	$$xe/$$xe	$$e     	$$e 	/        \
+)))
+override expr.word.pack.{wpath} = $(subst $$1,$(call expr.word.pack.<T>,$1,$2),$(subst $$x,$$$$,$(call expr.subst.list2list,$$1,\
+	$$xb	    	$$b$$b	        	$$b$$xp 	$$b[ 	$$b] 	$$b? 	    	$$b 	/        	$$xe$$xe	/   	$$xe$$xe,\
+	$$b 	    	/     	        	$$xb$$xp	$$xb[	$$xb]	$$xb?	    	/   	$$xe/$$xe	$$e     	$$e 	/        \
+)))
 
 
 

@@ -28,7 +28,7 @@
 #		make help.target
 #
 #===============================================================================
-.PHONY: lib.help.mak
+.PHONY: $(notdir $(lastword $(MAKEFILE_LIST)))
 $(if $(filter lib.mak,$(notdir $(MAKEFILE_LIST))),,$(error Makefile $(lastword $(notdir $(MAKEFILE_LIST))) is missing dependencies))
 #===============================================================================
 

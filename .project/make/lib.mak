@@ -13,8 +13,102 @@
 # original encoding! UTF-8, LF line endings.
 # AND BY GOD don't let your IDE substitute TAB with SPACE!
 #===============================================================================
-.PHONY: lib.mak
+.PHONY: $(notdir $(lastword $(MAKEFILE_LIST)))
 
+#-------------------------------------------------------------------------------
+#>> Automatic Variables
+#-------------------------------------------------------------------------------
+#  [path]    $@       $(@D)       $(@F)       Target File Path
+#  [path]    $%       $(%D)       $(%F)       Archive-Target Member
+#  [path]    $<       $(<D)       $(<F)       First Prereq
+#  [paths]   $+       $(+D)       $(+F)       All Normal Prereqs
+#  [paths]   $^       $(^D)       $(^F)       All Normal Prereqs (No Duplicates)
+#  [paths]   $?       $(?D)       $(?F)       All Normal Prereqs Newer Than Target
+#  [paths]   $|                               All Order-Only Prereqs
+#  [path]    $*       $(*D)       $(*F)       Stem of implicit/static-pattern match
+#-------------------------------------------------------------------------------
+
+#-------------------------------------------------------------------------------
+#>> Default Variables
+#-------------------------------------------------------------------------------
+#> MAKEFILE_LIST    []
+# 	Read-only
+# 	Contains the name of each makefile that is parsed by make, in the order in which it was parsed.
+#
+#> .DEFAULT_GOAL    [target]
+# 	Read, Write
+#
+#> MAKE_RESTARTS    [idx]
+# 	Read-only
+#
+#> MAKE_TERMOUT     [bool]
+#> MAKE_TERMERR     [bool]
+# 	Read, Write
+#
+# 	Returns {true} (nonempty) if Make outputs to a terminal; [false] (empty) otherwise.
+#
+#> .RECIPEPREFIX    [char]
+# 	Read, Write
+#
+# 	The first character of the value of this variable is used as the character make assumes is introducing a recipe line.
+# 	If the variable is empty (as it is by default) that character is the standard tab character.
+#
+#> .VARIABLES
+# 	Read-only
+#
+# 	Expands to a list of the names of all global variables defined so far.
+#
+#> .FEATURES
+# 	Read-only
+#
+# 	Expands to a list of special features supported by this version of make.
+#
+# 	'archives'         Supports ar (archive) files using special file name syntax.
+# 	'check-symlink'    Supports the -L (--check-symlink-times) flag.
+# 	'else-if'          Supports “else if” non-nested conditionals.
+# 	'extra-prereqs'    Supports the .EXTRA_PREREQS special target.
+# 	'grouped-target'   Supports grouped target syntax for explicit rules.
+# 	'guile'            Has GNU Guile available as an embedded extension language.
+# 	'jobserver'        Supports "job server" enhanced parallel builds.
+# 	'jobserver-fifo'   Supports "job server" enhanced parallel builds using named pipes.
+# 	'load'             Supports dynamically loadable objects for creating custom extensions.
+# 	'notintermediate'  Supports the .NOTINTERMEDIATE special target.
+# 	'oneshell'         Supports the .ONESHELL special target.
+# 	'order-only'       Supports order-only prerequisites.
+# 	'output-sync'      Supports the --output-sync command line option.
+# 	'second-expansion' Supports secondary expansion of prerequisite lists.
+# 	'shell-export'     Supports exporting make variables to shell functions.
+# 	'shortest-stem'    Uses the "shortest stem" method of choosing which pattern, of multiple applicable options, will be used.
+# 	'target-specific'  Supports target-specific and pattern-specific variable assignments.
+# 	'undefine'         Supports the undefine directive.
+#
+#> .INCLUDE_DIRS
+# 	Read-only
+#
+# 	Expands to a list of directories that make searches for included makefiles.
+#
+#> .EXTRA_PREREQS
+# 	Read, Write
+#
+# 	List of prereqs added to each target for which it is set.
+# 	These prereqs are not visible to the target (not included in $%, $<, etc.),
+# 	but updates to any of these prereqs will cause the target to rebuild, as normal.
+# 	This allows prerequisites to be defined which do not impact the recipe.
+#
+#
+#> SHELL
+#> MAKESHELL
+#> .SHELLFLAGS
+#> .SHELLSTATUS
+#
+#> MAKE
+#> MAKEFLAGS
+#> GNUMAKEFLAGS
+#> MFLAGS
+#> MAKEOVERRIDES
+#> MAKECMDGOALS
+#
+#> VPATH
 
 #===============================================================================
 # USER CONFIGURABLE VALUES
@@ -200,24 +294,24 @@ override char.whitespace := $$s $$t $$n
 override chars.split = $(if $1,$(call chars.split.{$(patsubst [%],%,$(1:{%}=%))},$2),$2)
 
 # <lib.generics.mak>
-override chars.split.{alphanum} = $(strip $(subst z,z$s,$(subst y,y$s,$(subst x,x$s,$(subst w,w$s,$(subst v,v$s,$(subst u,u$s,$(subst t,t$s,$(subst s,s$s,$(subst r,r$s,$(subst q,q$s,$(subst p,p$s,$(subst o,o$s,$(subst n,n$s,$(subst m,m$s,$(subst l,l$s,$(subst k,k$s,$(subst j,j$s,$(subst i,i$s,$(subst h,h$s,$(subst g,g$s,$(subst f,f$s,$(subst e,e$s,$(subst d,d$s,$(subst c,c$s,$(subst b,b$s,$(subst a,a$s,$(subst Z,Z$s,$(subst Y,Y$s,$(subst X,X$s,$(subst W,W$s,$(subst V,V$s,$(subst U,U$s,$(subst T,T$s,$(subst S,S$s,$(subst R,R$s,$(subst Q,Q$s,$(subst P,P$s,$(subst O,O$s,$(subst N,N$s,$(subst M,M$s,$(subst L,L$s,$(subst K,K$s,$(subst J,J$s,$(subst I,I$s,$(subst H,H$s,$(subst G,G$s,$(subst F,F$s,$(subst E,E$s,$(subst D,D$s,$(subst C,C$s,$(subst B,B$s,$(subst A,A$s,$(subst 9,9$s,$(subst 8,8$s,$(subst 7,7$s,$(subst 6,6$s,$(subst 5,5$s,$(subst 4,4$s,$(subst 3,3$s,$(subst 2,2$s,$(subst 1,1$s,$(subst 0,0$s,$(call word.pack.{alphanum},$1))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))
-override chars.split.{alpha} = $(strip $(subst z,z$s,$(subst y,y$s,$(subst x,x$s,$(subst w,w$s,$(subst v,v$s,$(subst u,u$s,$(subst t,t$s,$(subst s,s$s,$(subst r,r$s,$(subst q,q$s,$(subst p,p$s,$(subst o,o$s,$(subst n,n$s,$(subst m,m$s,$(subst l,l$s,$(subst k,k$s,$(subst j,j$s,$(subst i,i$s,$(subst h,h$s,$(subst g,g$s,$(subst f,f$s,$(subst e,e$s,$(subst d,d$s,$(subst c,c$s,$(subst b,b$s,$(subst a,a$s,$(subst Z,Z$s,$(subst Y,Y$s,$(subst X,X$s,$(subst W,W$s,$(subst V,V$s,$(subst U,U$s,$(subst T,T$s,$(subst S,S$s,$(subst R,R$s,$(subst Q,Q$s,$(subst P,P$s,$(subst O,O$s,$(subst N,N$s,$(subst M,M$s,$(subst L,L$s,$(subst K,K$s,$(subst J,J$s,$(subst I,I$s,$(subst H,H$s,$(subst G,G$s,$(subst F,F$s,$(subst E,E$s,$(subst D,D$s,$(subst C,C$s,$(subst B,B$s,$(subst A,A$s,$(call word.pack.{alpha},$1))))))))))))))))))))))))))))))))))))))))))))))))))))))
-override chars.split.{bool} = $(strip $(subst u,u$s,$(subst t,t$s,$(subst r,r$s,$(subst e,e$s,$(call word.pack.{bool},$1))))))
-override chars.split.{char} = $1
-override chars.split.{digit} = $1
+override chars.split.{bool} = $(chars.split.{str})
+override chars.split.{char} = $(strip $1)
+override chars.split.{digit} = $(strip $1)
 override chars.split.{expr} = $(chars.split.{str})
-override chars.split.{flavor} = $(chars.split.{alpha})
-override chars.split.{idx} = $(chars.split.{int})
-override chars.split.{int} = $(strip $(subst 9,9$s,$(subst 8,8$s,$(subst 7,7$s,$(subst 6,6$s,$(subst 5,5$s,$(subst 4,4$s,$(subst 3,3$s,$(subst 2,2$s,$(subst 1,1$s,$(subst 0,0$s,$(subst -,-$s,$(subst +,+$s,$(call word.pack.{int},$1))))))))))))))
+override chars.split.{feature} = $(chars.split.{word})
+override chars.split.{flavor} = $(chars.split.{word})
+override chars.split.{idx} = $(chars.split.{uint})
+override chars.split.{int} = $(strip $(subst 9,9$s,$(subst 8,8$s,$(subst 7,7$s,$(subst 6,6$s,$(subst 5,5$s,$(subst 4,4$s,$(subst 3,3$s,$(subst 2,2$s,$(subst 1,1$s,$(subst 0,0$s,$(subst -,-$s,$(call word.pack.{int},$1)))))))))))))
 override chars.split.{line} = $(strip $(subst ~,~$s,$(subst |,|$s,$(subst z,z$s,$(subst y,y$s,$(subst x,x$s,$(subst w,w$s,$(subst v,v$s,$(subst u,u$s,$(subst t,t$s,$(subst s,s$s,$(subst r,r$s,$(subst q,q$s,$(subst p,p$s,$(subst o,o$s,$(subst n,n$s,$(subst m,m$s,$(subst l,l$s,$(subst k,k$s,$(subst j,j$s,$(subst i,i$s,$(subst h,h$s,$(subst g,g$s,$(subst f,f$s,$(subst e,e$s,$(subst d,d$s,$(subst c,c$s,$(subst b,b$s,$(subst a,a$s,$(subst `,`$s,$(subst _,_$s,$(subst ^,^$s,$(subst ],]$s,$(subst [,[$s,$(subst Z,Z$s,$(subst Y,Y$s,$(subst X,X$s,$(subst W,W$s,$(subst V,V$s,$(subst U,U$s,$(subst T,T$s,$(subst S,S$s,$(subst R,R$s,$(subst Q,Q$s,$(subst P,P$s,$(subst O,O$s,$(subst N,N$s,$(subst M,M$s,$(subst L,L$s,$(subst K,K$s,$(subst J,J$s,$(subst I,I$s,$(subst H,H$s,$(subst G,G$s,$(subst F,F$s,$(subst E,E$s,$(subst D,D$s,$(subst C,C$s,$(subst B,B$s,$(subst A,A$s,$(subst @,@$s,$(subst ?,?$s,$(subst >,>$s,$(subst =,=$s,$(subst <,<$s,$(subst ;,;$s,$(subst :,:$s,$(subst 9,9$s,$(subst 8,8$s,$(subst 7,7$s,$(subst 6,6$s,$(subst 5,5$s,$(subst 4,4$s,$(subst 3,3$s,$(subst 2,2$s,$(subst 1,1$s,$(subst 0,0$s,$(subst /,/$s,$(subst .,.$s,$(subst -,-$s,$(subst +,+$s,$(subst *,*$s,$(subst ','$s,$(subst &,&$s,$(subst ","$s,$(subst !,!$s,$(subst $$t,$$t$s,$(subst $$s,$$s$s,$(subst $$r,$$r$s,$(subst $$p,$$p$s,$(subst $$l,$$l$s,$(subst $$k,$$k$s,$(subst $$j,$$j$s,$(subst $$g,$$g$s,$(subst $$c,$$c$s,$(subst $$b,$$b$s,$(subst $$x,$$x$s,$(call word.pack.{line},$1))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))
-override chars.split.{list} = $(strip $(subst ~,~$s,$(subst |,|$s,$(subst z,z$s,$(subst y,y$s,$(subst x,x$s,$(subst w,w$s,$(subst v,v$s,$(subst u,u$s,$(subst t,t$s,$(subst s,s$s,$(subst r,r$s,$(subst q,q$s,$(subst p,p$s,$(subst o,o$s,$(subst n,n$s,$(subst m,m$s,$(subst l,l$s,$(subst k,k$s,$(subst j,j$s,$(subst i,i$s,$(subst h,h$s,$(subst g,g$s,$(subst f,f$s,$(subst e,e$s,$(subst d,d$s,$(subst c,c$s,$(subst b,b$s,$(subst a,a$s,$(subst `,`$s,$(subst _,_$s,$(subst ^,^$s,$(subst ],]$s,$(subst [,[$s,$(subst Z,Z$s,$(subst Y,Y$s,$(subst X,X$s,$(subst W,W$s,$(subst V,V$s,$(subst U,U$s,$(subst T,T$s,$(subst S,S$s,$(subst R,R$s,$(subst Q,Q$s,$(subst P,P$s,$(subst O,O$s,$(subst N,N$s,$(subst M,M$s,$(subst L,L$s,$(subst K,K$s,$(subst J,J$s,$(subst I,I$s,$(subst H,H$s,$(subst G,G$s,$(subst F,F$s,$(subst E,E$s,$(subst D,D$s,$(subst C,C$s,$(subst B,B$s,$(subst A,A$s,$(subst @,@$s,$(subst ?,?$s,$(subst >,>$s,$(subst =,=$s,$(subst <,<$s,$(subst ;,;$s,$(subst :,:$s,$(subst 9,9$s,$(subst 8,8$s,$(subst 7,7$s,$(subst 6,6$s,$(subst 5,5$s,$(subst 4,4$s,$(subst 3,3$s,$(subst 2,2$s,$(subst 1,1$s,$(subst 0,0$s,$(subst /,/$s,$(subst .,.$s,$(subst -,-$s,$(subst +,+$s,$(subst *,*$s,$(subst ','$s,$(subst &,&$s,$(subst ","$s,$(subst !,!$s,$(subst $$s,$$s$s,$(subst $$r,$$r$s,$(subst $$p,$$p$s,$(subst $$l,$$l$s,$(subst $$k,$$k$s,$(subst $$j,$$j$s,$(subst $$g,$$g$s,$(subst $$c,$$c$s,$(subst $$b,$$b$s,$(subst $$x,$$x$s,$(call word.pack.{list},$1)))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))
-override chars.split.{origin} = $(chars.split.{list})
+override chars.split.{origin} = $(chars.split.{line})
 override chars.split.{path} = $(strip $(subst ~,~$s,$(subst z,z$s,$(subst y,y$s,$(subst x,x$s,$(subst w,w$s,$(subst v,v$s,$(subst u,u$s,$(subst t,t$s,$(subst s,s$s,$(subst r,r$s,$(subst q,q$s,$(subst p,p$s,$(subst o,o$s,$(subst n,n$s,$(subst m,m$s,$(subst l,l$s,$(subst k,k$s,$(subst j,j$s,$(subst i,i$s,$(subst h,h$s,$(subst g,g$s,$(subst f,f$s,$(subst e,e$s,$(subst d,d$s,$(subst c,c$s,$(subst b,b$s,$(subst a,a$s,$(subst `,`$s,$(subst _,_$s,$(subst ^,^$s,$(subst ],]$s,$(subst [,[$s,$(subst Z,Z$s,$(subst Y,Y$s,$(subst X,X$s,$(subst W,W$s,$(subst V,V$s,$(subst U,U$s,$(subst T,T$s,$(subst S,S$s,$(subst R,R$s,$(subst Q,Q$s,$(subst P,P$s,$(subst O,O$s,$(subst N,N$s,$(subst M,M$s,$(subst L,L$s,$(subst K,K$s,$(subst J,J$s,$(subst I,I$s,$(subst H,H$s,$(subst G,G$s,$(subst F,F$s,$(subst E,E$s,$(subst D,D$s,$(subst C,C$s,$(subst B,B$s,$(subst A,A$s,$(subst @,@$s,$(subst ?,?$s,$(subst =,=$s,$(subst ;,;$s,$(subst :,:$s,$(subst 9,9$s,$(subst 8,8$s,$(subst 7,7$s,$(subst 6,6$s,$(subst 5,5$s,$(subst 4,4$s,$(subst 3,3$s,$(subst 2,2$s,$(subst 1,1$s,$(subst 0,0$s,$(subst /,/$s,$(subst .,.$s,$(subst -,-$s,$(subst +,+$s,$(subst *,*$s,$(subst ','$s,$(subst !,!$s,$(subst $$s,$$s$s,$(subst $$r,$$r$s,$(subst $$p,$$p$s,$(subst $$l,$$l$s,$(subst $$k,$$k$s,$(subst $$j,$$j$s,$(subst $$g,$$g$s,$(subst $$c,$$c$s,$(subst $$b,$$b$s,$(subst $$x,$$x$s,$(call word.pack.{path},$1))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))
 override chars.split.{str} = $(strip $(subst ~,~$s,$(subst |,|$s,$(subst z,z$s,$(subst y,y$s,$(subst x,x$s,$(subst w,w$s,$(subst v,v$s,$(subst u,u$s,$(subst t,t$s,$(subst s,s$s,$(subst r,r$s,$(subst q,q$s,$(subst p,p$s,$(subst o,o$s,$(subst n,n$s,$(subst m,m$s,$(subst l,l$s,$(subst k,k$s,$(subst j,j$s,$(subst i,i$s,$(subst h,h$s,$(subst g,g$s,$(subst f,f$s,$(subst e,e$s,$(subst d,d$s,$(subst c,c$s,$(subst b,b$s,$(subst a,a$s,$(subst `,`$s,$(subst _,_$s,$(subst ^,^$s,$(subst ],]$s,$(subst [,[$s,$(subst Z,Z$s,$(subst Y,Y$s,$(subst X,X$s,$(subst W,W$s,$(subst V,V$s,$(subst U,U$s,$(subst T,T$s,$(subst S,S$s,$(subst R,R$s,$(subst Q,Q$s,$(subst P,P$s,$(subst O,O$s,$(subst N,N$s,$(subst M,M$s,$(subst L,L$s,$(subst K,K$s,$(subst J,J$s,$(subst I,I$s,$(subst H,H$s,$(subst G,G$s,$(subst F,F$s,$(subst E,E$s,$(subst D,D$s,$(subst C,C$s,$(subst B,B$s,$(subst A,A$s,$(subst @,@$s,$(subst ?,?$s,$(subst >,>$s,$(subst =,=$s,$(subst <,<$s,$(subst ;,;$s,$(subst :,:$s,$(subst 9,9$s,$(subst 8,8$s,$(subst 7,7$s,$(subst 6,6$s,$(subst 5,5$s,$(subst 4,4$s,$(subst 3,3$s,$(subst 2,2$s,$(subst 1,1$s,$(subst 0,0$s,$(subst /,/$s,$(subst .,.$s,$(subst -,-$s,$(subst +,+$s,$(subst *,*$s,$(subst ','$s,$(subst &,&$s,$(subst ","$s,$(subst !,!$s,$(subst $$t,$$t$s,$(subst $$s,$$s$s,$(subst $$r,$$r$s,$(subst $$p,$$p$s,$(subst $$n,$$n$s,$(subst $$l,$$l$s,$(subst $$k,$$k$s,$(subst $$j,$$j$s,$(subst $$g,$$g$s,$(subst $$c,$$c$s,$(subst $$b,$$b$s,$(subst $$x,$$x$s,$(call word.pack.{str},$1)))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))
 override chars.split.{type} = $(chars.split.{word})
-override chars.split.{uint} = $(strip $(subst 9,9$s,$(subst 8,8$s,$(subst 7,7$s,$(subst 6,6$s,$(subst 5,5$s,$(subst 4,4$s,$(subst 3,3$s,$(subst 2,2$s,$(subst 1,1$s,$(subst 0,0$s,$(subst +,+$s,$(call word.pack.{uint},$1)))))))))))))
+override chars.split.{uint} = $(strip $(subst 9,9$s,$(subst 8,8$s,$(subst 7,7$s,$(subst 6,6$s,$(subst 5,5$s,$(subst 4,4$s,$(subst 3,3$s,$(subst 2,2$s,$(subst 1,1$s,$(subst 0,0$s,$(call word.pack.{uint},$1))))))))))))
 override chars.split.{var} = $(strip $(subst ~,~$s,$(subst |,|$s,$(subst z,z$s,$(subst y,y$s,$(subst x,x$s,$(subst w,w$s,$(subst v,v$s,$(subst u,u$s,$(subst t,t$s,$(subst s,s$s,$(subst r,r$s,$(subst q,q$s,$(subst p,p$s,$(subst o,o$s,$(subst n,n$s,$(subst m,m$s,$(subst l,l$s,$(subst k,k$s,$(subst j,j$s,$(subst i,i$s,$(subst h,h$s,$(subst g,g$s,$(subst f,f$s,$(subst e,e$s,$(subst d,d$s,$(subst c,c$s,$(subst b,b$s,$(subst a,a$s,$(subst `,`$s,$(subst _,_$s,$(subst ^,^$s,$(subst ],]$s,$(subst [,[$s,$(subst Z,Z$s,$(subst Y,Y$s,$(subst X,X$s,$(subst W,W$s,$(subst V,V$s,$(subst U,U$s,$(subst T,T$s,$(subst S,S$s,$(subst R,R$s,$(subst Q,Q$s,$(subst P,P$s,$(subst O,O$s,$(subst N,N$s,$(subst M,M$s,$(subst L,L$s,$(subst K,K$s,$(subst J,J$s,$(subst I,I$s,$(subst H,H$s,$(subst G,G$s,$(subst F,F$s,$(subst E,E$s,$(subst D,D$s,$(subst C,C$s,$(subst B,B$s,$(subst A,A$s,$(subst @,@$s,$(subst ?,?$s,$(subst >,>$s,$(subst <,<$s,$(subst ;,;$s,$(subst 9,9$s,$(subst 8,8$s,$(subst 7,7$s,$(subst 6,6$s,$(subst 5,5$s,$(subst 4,4$s,$(subst 3,3$s,$(subst 2,2$s,$(subst 1,1$s,$(subst 0,0$s,$(subst /,/$s,$(subst .,.$s,$(subst -,-$s,$(subst +,+$s,$(subst *,*$s,$(subst ','$s,$(subst &,&$s,$(subst ","$s,$(subst !,!$s,$(subst $$t,$$t$s,$(subst $$s,$$s$s,$(subst $$r,$$r$s,$(subst $$p,$$p$s,$(subst $$n,$$n$s,$(subst $$l,$$l$s,$(subst $$k,$$k$s,$(subst $$j,$$j$s,$(subst $$g,$$g$s,$(subst $$c,$$c$s,$(subst $$b,$$b$s,$(subst $$x,$$x$s,$(call word.pack.{var},$1)))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))
 override chars.split.{word} = $(strip $(subst ~,~$s,$(subst |,|$s,$(subst z,z$s,$(subst y,y$s,$(subst x,x$s,$(subst w,w$s,$(subst v,v$s,$(subst u,u$s,$(subst t,t$s,$(subst s,s$s,$(subst r,r$s,$(subst q,q$s,$(subst p,p$s,$(subst o,o$s,$(subst n,n$s,$(subst m,m$s,$(subst l,l$s,$(subst k,k$s,$(subst j,j$s,$(subst i,i$s,$(subst h,h$s,$(subst g,g$s,$(subst f,f$s,$(subst e,e$s,$(subst d,d$s,$(subst c,c$s,$(subst b,b$s,$(subst a,a$s,$(subst `,`$s,$(subst _,_$s,$(subst ^,^$s,$(subst ],]$s,$(subst [,[$s,$(subst Z,Z$s,$(subst Y,Y$s,$(subst X,X$s,$(subst W,W$s,$(subst V,V$s,$(subst U,U$s,$(subst T,T$s,$(subst S,S$s,$(subst R,R$s,$(subst Q,Q$s,$(subst P,P$s,$(subst O,O$s,$(subst N,N$s,$(subst M,M$s,$(subst L,L$s,$(subst K,K$s,$(subst J,J$s,$(subst I,I$s,$(subst H,H$s,$(subst G,G$s,$(subst F,F$s,$(subst E,E$s,$(subst D,D$s,$(subst C,C$s,$(subst B,B$s,$(subst A,A$s,$(subst @,@$s,$(subst ?,?$s,$(subst >,>$s,$(subst =,=$s,$(subst <,<$s,$(subst ;,;$s,$(subst :,:$s,$(subst 9,9$s,$(subst 8,8$s,$(subst 7,7$s,$(subst 6,6$s,$(subst 5,5$s,$(subst 4,4$s,$(subst 3,3$s,$(subst 2,2$s,$(subst 1,1$s,$(subst 0,0$s,$(subst /,/$s,$(subst .,.$s,$(subst -,-$s,$(subst +,+$s,$(subst *,*$s,$(subst ','$s,$(subst &,&$s,$(subst ","$s,$(subst !,!$s,$(subst $$r,$$r$s,$(subst $$p,$$p$s,$(subst $$l,$$l$s,$(subst $$k,$$k$s,$(subst $$j,$$j$s,$(subst $$g,$$g$s,$(subst $$c,$$c$s,$(subst $$b,$$b$s,$(subst $$x,$$x$s,$(call word.pack.{word},$1))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))
+override chars.split.{wpath} = $(strip $(subst ~,~$s,$(subst z,z$s,$(subst y,y$s,$(subst x,x$s,$(subst w,w$s,$(subst v,v$s,$(subst u,u$s,$(subst t,t$s,$(subst s,s$s,$(subst r,r$s,$(subst q,q$s,$(subst p,p$s,$(subst o,o$s,$(subst n,n$s,$(subst m,m$s,$(subst l,l$s,$(subst k,k$s,$(subst j,j$s,$(subst i,i$s,$(subst h,h$s,$(subst g,g$s,$(subst f,f$s,$(subst e,e$s,$(subst d,d$s,$(subst c,c$s,$(subst b,b$s,$(subst a,a$s,$(subst `,`$s,$(subst _,_$s,$(subst ^,^$s,$(subst ],]$s,$(subst [,[$s,$(subst Z,Z$s,$(subst Y,Y$s,$(subst X,X$s,$(subst W,W$s,$(subst V,V$s,$(subst U,U$s,$(subst T,T$s,$(subst S,S$s,$(subst R,R$s,$(subst Q,Q$s,$(subst P,P$s,$(subst O,O$s,$(subst N,N$s,$(subst M,M$s,$(subst L,L$s,$(subst K,K$s,$(subst J,J$s,$(subst I,I$s,$(subst H,H$s,$(subst G,G$s,$(subst F,F$s,$(subst E,E$s,$(subst D,D$s,$(subst C,C$s,$(subst B,B$s,$(subst A,A$s,$(subst @,@$s,$(subst ?,?$s,$(subst =,=$s,$(subst ;,;$s,$(subst :,:$s,$(subst 9,9$s,$(subst 8,8$s,$(subst 7,7$s,$(subst 6,6$s,$(subst 5,5$s,$(subst 4,4$s,$(subst 3,3$s,$(subst 2,2$s,$(subst 1,1$s,$(subst 0,0$s,$(subst /,/$s,$(subst .,.$s,$(subst -,-$s,$(subst +,+$s,$(subst *,*$s,$(subst ','$s,$(subst !,!$s,$(subst $$r,$$r$s,$(subst $$p,$$p$s,$(subst $$l,$$l$s,$(subst $$k,$$k$s,$(subst $$j,$$j$s,$(subst $$g,$$g$s,$(subst $$c,$$c$s,$(subst $$b,$$b$s,$(subst $$x,$$x$s,$(call word.pack.{wpath},$1)))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))
+override chars.split.{xpath} = $(strip $(subst ~,~$s,$(subst z,z$s,$(subst y,y$s,$(subst x,x$s,$(subst w,w$s,$(subst v,v$s,$(subst u,u$s,$(subst t,t$s,$(subst s,s$s,$(subst r,r$s,$(subst q,q$s,$(subst p,p$s,$(subst o,o$s,$(subst n,n$s,$(subst m,m$s,$(subst l,l$s,$(subst k,k$s,$(subst j,j$s,$(subst i,i$s,$(subst h,h$s,$(subst g,g$s,$(subst f,f$s,$(subst e,e$s,$(subst d,d$s,$(subst c,c$s,$(subst b,b$s,$(subst a,a$s,$(subst `,`$s,$(subst _,_$s,$(subst ^,^$s,$(subst ],]$s,$(subst [,[$s,$(subst Z,Z$s,$(subst Y,Y$s,$(subst X,X$s,$(subst W,W$s,$(subst V,V$s,$(subst U,U$s,$(subst T,T$s,$(subst S,S$s,$(subst R,R$s,$(subst Q,Q$s,$(subst P,P$s,$(subst O,O$s,$(subst N,N$s,$(subst M,M$s,$(subst L,L$s,$(subst K,K$s,$(subst J,J$s,$(subst I,I$s,$(subst H,H$s,$(subst G,G$s,$(subst F,F$s,$(subst E,E$s,$(subst D,D$s,$(subst C,C$s,$(subst B,B$s,$(subst A,A$s,$(subst @,@$s,$(subst ?,?$s,$(subst =,=$s,$(subst ;,;$s,$(subst :,:$s,$(subst 9,9$s,$(subst 8,8$s,$(subst 7,7$s,$(subst 6,6$s,$(subst 5,5$s,$(subst 4,4$s,$(subst 3,3$s,$(subst 2,2$s,$(subst 1,1$s,$(subst 0,0$s,$(subst /,/$s,$(subst .,.$s,$(subst -,-$s,$(subst +,+$s,$(subst *,*$s,$(subst ','$s,$(subst !,!$s,$(subst $$s,$$s$s,$(subst $$r,$$r$s,$(subst $$p,$$p$s,$(subst $$l,$$l$s,$(subst $$k,$$k$s,$(subst $$j,$$j$s,$(subst $$g,$$g$s,$(subst $$c,$$c$s,$(subst $$b,$$b$s,$(subst $$x,$$x$s,$(call word.pack.{xpath},$1))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))
 # <\lib.generics.mak>
 
 
@@ -727,43 +821,43 @@ override word.pack   = $(if $1,$(or $(call word.pack.{$(patsubst [%],%,$(1:{%}=%
 override word.unpack = $(if $1,$(call word.unpack.{$(patsubst [%],%,$(1:{%}=%))},$(subst $(if $(1:{%}=),$$e),,$2)),$2)
 
 # <lib.generics.mak>
-override word.pack.{alphanum} = $1
-override word.pack.{alpha} = $1
-override word.pack.{bool} = $1
+override word.pack.{bool} = $(word.pack.{str})
 override word.pack.{char} = $(word.pack.{str})
-override word.pack.{digit} = $1
+override word.pack.{digit} = $(word.pack.{uint})
 override word.pack.{expr} = $(word.pack.{str})
-override word.pack.{flavor} = $(word.pack.{alpha})
-override word.pack.{idx} = $(word.pack.{int})
-override word.pack.{int} = $(subst +,,$1)
+override word.pack.{feature} = $(word.pack.{word})
+override word.pack.{flavor} = $(word.pack.{word})
+override word.pack.{idx} = $(word.pack.{uint})
+override word.pack.{int} = $1
 override word.pack.{line} = $(subst $t,$$t,$(subst $s,$$s,$(subst $r,$$r,$(subst $$p,$$p,$(subst $l,$$l,$(subst $k,$$k,$(subst $j,$$j,$(subst $g,$$g,$(subst $c,$$c,$(subst $b,$$b,$(subst $$,$$x,$1)))))))))))
-override word.pack.{list} = $(subst $s,$$s,$(subst $r,$$r,$(subst $$p,$$p,$(subst $l,$$l,$(subst $k,$$k,$(subst $j,$$j,$(subst $g,$$g,$(subst $c,$$c,$(subst $b,$$b,$(subst $$,$$x,$1))))))))))
-override word.pack.{origin} = $(word.pack.{list})
-override word.pack.{path} = $(subst $xt,$t,$(subst $xn,$n,$(subst $s,/,$(strip $(subst /,$s,$(subst $n,$xn,$(subst $t,$xt,$(subst $b,/,$(subst $s,$b$s,$(subst $b$s,$b$s,$(subst $b],$b],$(subst $b[,$b[,$(subst $b$b,$b$b,$(subst $b,$b,$(subst $s,$$s,$(subst $r,$$r,$(subst $$p,$$p,$(subst $l,$$l,$(subst $k,$$k,$(subst $j,$$j,$(subst $g,$$g,$(subst $c,$$c,$(subst $b,$$b,$(subst $$,$$x,$1))))))))))))))))))))))))
+override word.pack.{origin} = $(word.pack.{line})
+override word.pack.{path} = $(subst $$e$$e,/,$(subst /,,$(subst $$e$$e,,$(subst /,$$e/$$e,$(subst $b,/,$(subst $s,$$s,$(subst $b?,$$b?,$(subst $b],$$b],$(subst $b[,$$b[,$(subst $b$$p,$$b$$p,$(subst $b$s,$$b$$s,$(subst $b$b,/,$(subst $$s,$s,$(subst $$b,$b,$(subst $s,$$s,$(subst $r,$$r,$(subst $$p,$$p,$(subst $l,$$l,$(subst $k,$$k,$(subst $j,$$j,$(subst $g,$$g,$(subst $c,$$c,$(subst $b,$$b,$(subst $$,$$x,$1))))))))))))))))))))))))
 override word.pack.{str} = $(subst $t,$$t,$(subst $s,$$s,$(subst $r,$$r,$(subst $$p,$$p,$(subst $n,$$n,$(subst $l,$$l,$(subst $k,$$k,$(subst $j,$$j,$(subst $g,$$g,$(subst $c,$$c,$(subst $b,$$b,$(subst $$,$$x,$1))))))))))))
 override word.pack.{type} = $(word.pack.{word})
-override word.pack.{uint} = $(word.pack.{int})
+override word.pack.{uint} = $1
 override word.pack.{var} = $(subst $t,$$t,$(subst $s,$$s,$(subst $r,$$r,$(subst $$p,$$p,$(subst $n,$$n,$(subst $l,$$l,$(subst $k,$$k,$(subst $j,$$j,$(subst $g,$$g,$(subst $c,$$c,$(subst $b,$$b,$(subst $$,$$x,$1))))))))))))
 override word.pack.{word} = $(subst $r,$$r,$(subst $$p,$$p,$(subst $l,$$l,$(subst $k,$$k,$(subst $j,$$j,$(subst $g,$$g,$(subst $c,$$c,$(subst $b,$$b,$(subst $$,$$x,$1)))))))))
+override word.pack.{wpath} = $(subst $$e$$e,/,$(subst /,,$(subst $$e$$e,,$(subst /,$$e/$$e,$(subst $b,/,$(subst $b?,$$b?,$(subst $b],$$b],$(subst $b[,$$b[,$(subst $b$$p,$$b$$p,$(subst $b$b,/,$(subst $$b,$b,$(subst $r,$$r,$(subst $$p,$$p,$(subst $l,$$l,$(subst $k,$$k,$(subst $j,$$j,$(subst $g,$$g,$(subst $c,$$c,$(subst $b,$$b,$(subst $$,$$x,$1))))))))))))))))))))
+override word.pack.{xpath} = $(subst $$e$$e,/,$(subst /,,$(subst $$e$$e,,$(subst /,$$e/$$e,$(subst $b,/,$(subst $b?,$$b?,$(subst $b],$$b],$(subst $b[,$$b[,$(subst $b$$p,$$b$$p,$(subst $b$s,$$b$$s,$(subst $b$b,/,$(subst $$s,$s,$(subst $$b,$b,$(subst $s,$$s,$(subst $r,$$r,$(subst $$p,$$p,$(subst $l,$$l,$(subst $k,$$k,$(subst $j,$$j,$(subst $g,$$g,$(subst $c,$$c,$(subst $b,$$b,$(subst $$,$$x,$1)))))))))))))))))))))))
 
-override word.unpack.{alphanum} = $1
-override word.unpack.{alpha} = $1
-override word.unpack.{bool} = $1
+override word.unpack.{bool} = $(word.unpack.{str})
 override word.unpack.{char} = $(word.unpack.{str})
-override word.unpack.{digit} = $1
+override word.unpack.{digit} = $(word.unpack.{uint})
 override word.unpack.{expr} = $(word.unpack.{str})
-override word.unpack.{flavor} = $(word.unpack.{alpha})
-override word.unpack.{idx} = $(word.unpack.{int})
+override word.unpack.{feature} = $(word.unpack.{word})
+override word.unpack.{flavor} = $(word.unpack.{word})
+override word.unpack.{idx} = $(word.unpack.{uint})
 override word.unpack.{int} = $1
 override word.unpack.{line} = $(subst $$x,$$,$(subst $$b,$b,$(subst $$c,$c,$(subst $$g,$g,$(subst $$j,$j,$(subst $$k,$k,$(subst $$l,$l,$(subst $$p,$$p,$(subst $$r,$r,$(subst $$s,$s,$(subst $$t,$t,$1)))))))))))
-override word.unpack.{list} = $(subst $$x,$$,$(subst $$b,$b,$(subst $$c,$c,$(subst $$g,$g,$(subst $$j,$j,$(subst $$k,$k,$(subst $$l,$l,$(subst $$p,$$p,$(subst $$r,$r,$(subst $$s,$s,$1))))))))))
-override word.unpack.{origin} = $(word.unpack.{list})
+override word.unpack.{origin} = $(word.unpack.{line})
 override word.unpack.{path} = $(subst $$x,$$,$(subst $$b,$b,$(subst $$c,$c,$(subst $$g,$g,$(subst $$j,$j,$(subst $$k,$k,$(subst $$l,$l,$(subst $$p,$$p,$(subst $$r,$r,$(subst $$s,$s,$1))))))))))
 override word.unpack.{str} = $(subst $$x,$$,$(subst $$b,$b,$(subst $$c,$c,$(subst $$g,$g,$(subst $$j,$j,$(subst $$k,$k,$(subst $$l,$l,$(subst $$n,$n,$(subst $$p,$$p,$(subst $$r,$r,$(subst $$s,$s,$(subst $$t,$t,$1))))))))))))
 override word.unpack.{type} = $(word.unpack.{word})
 override word.unpack.{uint} = $1
 override word.unpack.{var} = $(subst $$x,$$,$(subst $$b,$b,$(subst $$c,$c,$(subst $$g,$g,$(subst $$j,$j,$(subst $$k,$k,$(subst $$l,$l,$(subst $$n,$n,$(subst $$p,$$p,$(subst $$r,$r,$(subst $$s,$s,$(subst $$t,$t,$1))))))))))))
 override word.unpack.{word} = $(subst $$x,$$,$(subst $$b,$b,$(subst $$c,$c,$(subst $$g,$g,$(subst $$j,$j,$(subst $$k,$k,$(subst $$l,$l,$(subst $$p,$$p,$(subst $$r,$r,$1)))))))))
+override word.unpack.{wpath} = $(subst $$x,$$,$(subst $$b,$b,$(subst $$c,$c,$(subst $$g,$g,$(subst $$j,$j,$(subst $$k,$k,$(subst $$l,$l,$(subst $$p,$$p,$(subst $$r,$r,$1)))))))))
+override word.unpack.{xpath} = $(subst $$x,$$,$(subst $$b,$b,$(subst $$c,$c,$(subst $$g,$g,$(subst $$j,$j,$(subst $$k,$k,$(subst $$l,$l,$(subst $$p,$$p,$(subst $$r,$r,$(subst $$s,$s,$1))))))))))
 # <\lib.generics.mak>
 
 
@@ -1104,12 +1198,12 @@ override multipath.create = $(call word.unpack,{path},$(call list.create,{path},
 #-------------------------------------------------------------------------------
 #>> Path: Components
 #-------------------------------------------------------------------------------
-#> abspath               	[list] <-- $(abspath [list])                        	GNU Make
-#> realpath              	[list] <-- $(realpath [list])                       	GNU Make
-#> dir                   	[list] <-- $(dir [list])                            	GNU Make
-#> notdir                	[list] <-- $(notdir [list])                         	GNU Make
-#> basename              	[list] <-- $(basename [list])                       	GNU Make
-#> suffix                	[list] <-- $(suffix [list])                         	GNU Make
+#> abspath               	[list<wpath>] <-- $(abspath [list<wpath>])          	GNU Make
+#> realpath              	[list<wpath>] <-- $(realpath [list<wpath>])         	GNU Make
+#> dir                   	[list<wpath>] <-- $(dir [list<wpath>])              	GNU Make
+#> notdir                	[list<wpath>] <-- $(notdir [list<wpath>])           	GNU Make
+#> basename              	[list<wpath>] <-- $(basename [list<wpath>])         	GNU Make
+#> suffix                	[list<wpath>] <-- $(suffix [list<wpath>])           	GNU Make
 #-------------------------------------------------------------------------------
 #
 #	Returns a path component from each word in the input list.
@@ -1182,8 +1276,8 @@ override list.path.suffix      = $(foreach __path,$1,$(or $(suffix $(__path)),$$
 #-------------------------------------------------------------------------------
 #>> Path: Prefix/Suffix
 #-------------------------------------------------------------------------------
-#> addprefix    	[list] <-- $(addprefix [str:prefix],[list])                 	GNU Make
-#> addsuffix    	[list] <-- $(addsuffix [str:suffix],[list])                 	GNU Make
+#> addprefix    	[list<wpath>] <-- $(addprefix [str:prefix],[list<wpath>])   	GNU Make
+#> addsuffix    	[list<wpath>] <-- $(addsuffix [str:suffix],[list<wpath>])   	GNU Make
 #-------------------------------------------------------------------------------
 #
 #	Adds a prefix or suffix to each word in the input [list].
@@ -1278,7 +1372,7 @@ override list.path.patsubst.suffix      = $(foreach __find,$(call word.pack,[pat
 #-------------------------------------------------------------------------------
 #>> Path: Search
 #-------------------------------------------------------------------------------
-#> wildcard             	[list] <-- $(wildcard [multipath:patterns])         	GNU Make
+#> wildcard         	[list<path>] = $(wildcard list<xpath>:patterns)         	GNU Make
 #-------------------------------------------------------------------------------
 #
 #	Returns a list of all paths which match at least one of the input patterns.
@@ -1976,5 +2070,3 @@ override assert.shell.started = $(and $1,$(call str.neq,$(basename $(SHELL)),$(b
 
 
 
-
-$(info )
