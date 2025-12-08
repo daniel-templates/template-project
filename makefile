@@ -12,7 +12,7 @@ MAKE_DIR = .project/make
 MAKE_TARGETS_DIR = $(MAKE_DIR)/targets
 
 # Libraries
-include $(MAKE_DIR)/lib.mak
+include $(MAKE_DIR)/lib.common.mak
 #include $(MAKE_DIR)/lib.help.mak
 #include $(MAKE_DIR)/lib.platform.mak
 

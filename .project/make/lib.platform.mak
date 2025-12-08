@@ -9,12 +9,12 @@
 #
 #	Include in makefile:
 #
-#		include .project/make/lib.mak
+#		include .project/make/lib.common.mak
 #		include .project/make/lib.platform.mak
 #
 #===============================================================================
 .PHONY: $(notdir $(lastword $(MAKEFILE_LIST)))
-$(if $(filter lib.mak,$(notdir $(MAKEFILE_LIST))),,$(error Makefile $(lastword $(notdir $(MAKEFILE_LIST))) is missing dependencies))
+$(if $(filter lib.common.mak,$(notdir $(MAKEFILE_LIST))),,$(error Makefile $(lastword $(notdir $(MAKEFILE_LIST))) is missing dependencies))
 #===============================================================================
 
 

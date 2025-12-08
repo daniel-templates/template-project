@@ -1,5 +1,5 @@
 #===============================================================================
-# lib.mak
+# lib.common.mak
 #
 # Common library of types, constants, and callable functions for use.
 #
@@ -7,7 +7,7 @@
 #
 #  Include in makefile:
 #
-#     include path/to/lib.mak
+#     include path/to/lib.common.mak
 #
 # WARNING: This file (and all makefiles) must maintain its
 # original encoding! UTF-8, LF line endings.
@@ -1174,6 +1174,26 @@ override list.join.4 = $(strip $(if $(firstword $1$2$3$4),$(call word.pack,{str}
 #===============================================================================
 #>>> PATHS
 #===============================================================================
+#
+#	{path}              	Path
+#	|--> {xpath}        	Escaped Path
+#	|    |--> {wpath}   	Single-Word Path
+#
+#	A string containing a single file or directory path.
+#	Types differ in how filename spaces ' ' may be represented:
+#
+#	 {path} 	Allows spaces in filenames as either ' ' or '\ '.
+#	 {xpath}	Spaces in filenames must be escaped as '\ '.
+#	 {wpath}	Spaces in filenames are not allowed.
+#
+#	Paths may include pattern (%) or path (*?[]) wildcards.
+#	Wildcards can be escaped using '\'.
+#
+#	Since Make prefers the path separator '/' for most use cases (regardless of
+#	platform), all '\' are replaced with '/' except for '\' which are part of an
+#	escape sequence.
+#
+#===============================================================================
 
 
 
@@ -1515,7 +1535,7 @@ override int.trim  = $(and $(subst 0,,$(subst -,,$1)),$(findstring -,$1),-)$(or 
 #
 #	Performs long addition/subtraction between two lists of digits.
 #	Inputs may include a leading negative sign '-' character.
-#	Returns a the sum/difference as a list with leading 0s removed.
+#	Returns the sum/difference as a list with leading 0s removed.
 #
 #------------------------------------------------------------------------------------------------#
 # {digit/carry} <-- $(call __digit.add,[digit:A],[digit:A],[0|1:C])
@@ -1837,9 +1857,9 @@ shell.test = $(if $1,$(if $3,$(call shell.push,$3,$4))$(call var.set,,$2,str,$(s
 
 
 #-------------------------------------------------------------------------------
-#> file (Read)   	[str]   <-- $(file < [path])                                	GNU Make 4.2+
-#> file (Write)  	[empty] <-- $(file > [path],[str:write])                    	GNU Make 4.0+
-#> file (Append) 	[empty] <-- $(file >> [path],[str:append])                  	GNU Make 4.0+
+#> file (Read)   	[str]   <-- $(file < [wpath])                               	GNU Make 4.2+
+#> file (Write)  	[empty] <-- $(file > [wpath],[str:write])                   	GNU Make 4.0+
+#> file (Append) 	[empty] <-- $(file >> [wpath],[str:append])                 	GNU Make 4.0+
 #-------------------------------------------------------------------------------
 
 
@@ -2065,8 +2085,4 @@ override assert.var.is.word        = $(if $(filter-out 1,$(words $1)),$(error $(
 override assert.shell.success = $(if $(filter       0,$(.SHELLSTATUS)),,$(throw Failed to start shell process:$n  SHELL       = [$(or $1,$(SHELL))]$n  .SHELLFLAGS = [$(or $2,$(.SHELLFLAGS))]$(if $3,$n  Command:      [$3])$n$n))
 override assert.shell.started = $(if $(filter-out 127,$(.SHELLSTATUS)),,$(error Failed to start shell process:$n  SHELL       = [$(or $1,$(SHELL))]$n  .SHELLFLAGS = [$(or $2,$(.SHELLFLAGS))]$(if $3,$n  Command:      [$3])$n$n))
 override assert.shell.started = $(and $1,$(call str.neq,$(basename $(SHELL)),$(basename $1),/i))
-
-
-
-
 

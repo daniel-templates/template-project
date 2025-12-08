@@ -1,7 +1,7 @@
 #===============================================================================
 # lib.tests.mak
 #
-# Tests function definitions in 'lib.mak'.
+# Tests function definitions in 'lib.common.mak'.
 #
 # Usage:
 #
@@ -9,8 +9,8 @@
 #
 #===============================================================================
 .PHONY: $(notdir $(lastword $(MAKEFILE_LIST)))
-ifeq "$(filter lib.mak,$(notdir $(MAKEFILE_LIST)))" ""
-include $(or $(lib.path),$(dir $(lastword $(MAKEFILE_LIST)))/lib.mak)
+ifeq "$(filter lib.common.mak,$(notdir $(MAKEFILE_LIST)))" ""
+include $(or $(lib.path),$(dir $(lastword $(MAKEFILE_LIST)))/lib.common.mak)
 endif
 #===============================================================================
 

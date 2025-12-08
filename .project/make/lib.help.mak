@@ -8,7 +8,7 @@
 #
 #	Include in makefile:
 #
-#		include path/to/lib.mak
+#		include path/to/lib.common.mak
 #		include path/to/lib.help.mak
 #
 #	Define help text for a target:
@@ -29,7 +29,7 @@
 #
 #===============================================================================
 .PHONY: $(notdir $(lastword $(MAKEFILE_LIST)))
-$(if $(filter lib.mak,$(notdir $(MAKEFILE_LIST))),,$(error Makefile $(lastword $(notdir $(MAKEFILE_LIST))) is missing dependencies))
+$(if $(filter lib.common.mak,$(notdir $(MAKEFILE_LIST))),,$(error Makefile $(lastword $(notdir $(MAKEFILE_LIST))) is missing dependencies))
 #===============================================================================
 
 

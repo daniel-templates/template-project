@@ -16,8 +16,8 @@
 #
 #===============================================================================
 .PHONY: $(notdir $(lastword $(MAKEFILE_LIST)))
-ifeq "$(filter lib.mak,$(notdir $(MAKEFILE_LIST)))" ""
-include $(or $(lib.path),$(dir $(lastword $(MAKEFILE_LIST)))/lib.mak)
+ifeq "$(filter lib.common.mak,$(notdir $(MAKEFILE_LIST)))" ""
+include $(or $(lib.path),$(dir $(lastword $(MAKEFILE_LIST)))/lib.common.mak)
 endif
 #===============================================================================
 
