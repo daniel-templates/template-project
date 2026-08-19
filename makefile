@@ -17,8 +17,9 @@ include $(MAKE_DIR)/lib.common.mak
 #include $(MAKE_DIR)/lib.platform.mak
 
 # Project-specific configuration
-include $(MAKE_DIR)/config.mak
+# include $(MAKE_DIR)/config.mak
 
 
 # Target definitions
-include $(sort $(wildcard $(MAKE_TARGETS_DIR)/*.mak))
+# include $(sort $(wildcard $(MAKE_TARGETS_DIR)/*.mak))
+

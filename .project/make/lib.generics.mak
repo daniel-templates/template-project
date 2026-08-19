@@ -25,7 +25,7 @@ endif
 
 
 #===============================================================================
-#>>> EXPRESSIONS
+#>    ## EXPRESSIONS
 #===============================================================================
 #
 #	Advanced expression generators for use in generic function templates.
@@ -35,7 +35,7 @@ endif
 
 
 #-------------------------------------------------------------------------------
-#>> Expressions: Substitution
+#>    ### Expressions: Substitution
 #-------------------------------------------------------------------------------
 #> expr.subst.expr2expr    	[expr[str]([str:in])] <-- $(call expr.subst.expr2expr,[expr[str]([str:in])],[expr[str]:from],[expr[str]:to])
 #> expr.subst.expr2str     	[expr[str]([str:in])] <-- $(call expr.subst.expr2str,[expr[str]([str:in])],[expr[str]:from],[str:to])
@@ -103,7 +103,7 @@ override expr.subst.vars2vars   = $(call expr.subst.exprs2exprs,$1,$(call expr.v
 
 
 #-------------------------------------------------------------------------------
-#>> Expressions: Strip, Cull
+#>    ### Expressions: Strip, Cull
 #-------------------------------------------------------------------------------
 #> expr.strip.list     	[expr[str]] <-- $(call expr.strip.list,[expr[str]:in],[list[str]:strip],[list[var]:noescape])
 #> expr.strip.vars     	[expr[str]] <-- $(call expr.strip.vars,[expr[str]:in],[list[var]:strip],[list[var]:noescape])
@@ -139,8 +139,8 @@ override expr.strip.ws      = $(if $(and $1,$(firstword $2)),$(call __expr.strip
 
 
 #-------------------------------------------------------------------------------
-#>> word.pack.<T>           	[word<T>] <-- $(call word.pack.<T>,[T:val])
-#>> expr.word.pack.<T>      	[expr<word<T>>([T:val])] <-- $(call expr.word.pack.<T>,[type:T],[expr:$1])
+#>    ### word.pack.<T>           	[word<T>] <-- $(call word.pack.<T>,[T:val])
+#>    ### expr.word.pack.<T>      	[expr<word<T>>([T:val])] <-- $(call expr.word.pack.<T>,[type:T],[expr:$1])
 #-------------------------------------------------------------------------------
 override expr.word.pack.<T> = $(strip $(foreach T,$1, \
 	$(null Define local variables) \
@@ -160,8 +160,8 @@ override expr.word.pack.<T> = $(strip $(foreach T,$1, \
 
 
 #-------------------------------------------------------------------------------
-#>> word.unpack.<T>         	[T:val] <-- $(call word.unpack.<T>,[word<T>])
-#>> expr.word.unpack.<T>    	[expr<T:val>([word<T>])] <-- $(call expr.word.unpack.<T>,{type:T},[expr<word<T>>([word[T]]):$1])
+#>    ### word.unpack.<T>         	[T:val] <-- $(call word.unpack.<T>,[word<T>])
+#>    ### expr.word.unpack.<T>    	[expr<T:val>([word<T>])] <-- $(call expr.word.unpack.<T>,{type:T},[expr<word<T>>([word[T]]):$1])
 #-------------------------------------------------------------------------------
 override expr.word.unpack.<T> = $(strip $(foreach T,$1, \
 	$(null Define local variables) \
@@ -181,8 +181,8 @@ override expr.word.unpack.<T> = $(strip $(foreach T,$1, \
 
 
 #-------------------------------------------------------------------------------
-#>> chars.split.<T>         	[list<char>] <-- $(call chars.split.<T>,[T:val])
-#>> expr.chars.split.<T>    	[expr<list<char>>([T:val])] <-- $(call expr.chars.split.<T>,{type:T},[expr<T>([T:val]):$1])
+#>    ### chars.split.<T>         	[list<char>] <-- $(call chars.split.<T>,[T:val])
+#>    ### expr.chars.split.<T>    	[expr<list<char>>([T:val])] <-- $(call expr.chars.split.<T>,{type:T},[expr<T>([T:val]):$1])
 #-------------------------------------------------------------------------------
 override expr.chars.split.<T> = $(strip $(foreach T,$1, \
 	$(null Define local variables) \
@@ -203,7 +203,7 @@ override expr.chars.split.<T> = $(strip $(foreach T,$1, \
 
 
 #===============================================================================
-#>>> TYPES
+#>    ## TYPES
 #===============================================================================
 
 # Type Definitions ==================== type: list{char}
@@ -330,7 +330,7 @@ override expr.word.pack.{wpath} = $(subst $$1,$(call expr.word.pack.<T>,$1,$2),$
 
 
 #===============================================================================
-#>>> TARGETS
+#>    ## TARGETS
 #===============================================================================
 
 
