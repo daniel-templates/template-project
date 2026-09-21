@@ -34,11 +34,11 @@ endif
 #-------------------------------------------------------------------------------
 ifneq "$(filter $(tests),var.is.shortname var.is.defined var.is.undefined var.is.environment var.is.commandline var.is.makefile var.is.internal var.is.ws var.is.nonws var.is.empty var.is.def.empty var.is.nonempty)" ""
 
-vars    := s x char.comma PATH $$ ns ( \ \# e xp % SHELL %stupid%
+vars    := s x char.comma PATH $$ ns ( ) \ \# e xp % SHELL %stupid%
 $(info $e)
 $(info $e================================================)
 $(info $e vars                = [$(strip $(vars))])
-$(foreach func,\
+$(foreach F,\
 var.is.shortname___\
 var.is.defined_____\
 var.is.undefined___\
@@ -52,7 +52,7 @@ var.is.empty_______\
 var.is.def.empty___\
 var.is.nonempty____\
 ,\
-$(info $e $(subst _,$s,$(func)) = [$(foreach var,$(vars),$(or $(call $(subst _,,$(func)),$(var)),$(call str.subst.list2str,$(var),$(char.{var}),$s)))])\
+$(info $e $(subst _,$s,$F) = [$(foreach V,$(vars),$(or $(call $(subst _,,$F),$V),$(call str.subst.list2str,$V,$(char.{str}),$s)))])\
 )
 $(info $e)
 

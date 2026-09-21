@@ -126,12 +126,12 @@ override expr.subst.vars2vars   = $(call expr.subst.exprs2exprs,$1,$(call expr.v
 override __expr.strip.pre   = $(call expr.subst.vars2vars,$1,$(filter-out $(subst %,\%,$2),x s t n),$(addprefix x,$(filter-out $(subst %,\%,$2),x s t n)))
 override __expr.strip.post  = $(call expr.subst.vars2vars,$1,$(addprefix x,$(filter-out $(subst %,\%,$2),n t s x)),$(filter-out $(subst %,\%,$2),n t s x))
 override __expr.strip.expr  = $(if $(and $1,$2),$(if $(call expr.expand,$2),$$(subst$s$$s$c$2$c$$(strip$s$$(subst$s$2$c$$s$c$1))),$1),$1)
-override __expr.strip.str = $(call __expr.strip.expr,$1,$(call word.pack,word,$(call str.subst.vars2vars,$2,$(filter-out $(subst %,\%,$3),x s t n),$(addprefix x,$(filter-out $(subst %,\%,$3),x s t n)))))
+override __expr.strip.str   = $(call __expr.strip.expr,$1,$(call word.pack,word,$(call str.subst.vars2vars,$2,$(filter-out $(subst %,\%,$3),x s t n),$(addprefix x,$(filter-out $(subst %,\%,$3),x s t n)))))
 #-----------------------------------------------------------
 
-override expr.strip.list  = $(if $(and $1,$(firstword $2)),$(call __expr.strip.post,$(call list.reduce.1,str,__expr.strip.str,$(call __expr.strip.pre,$1,$3),$2,$3),$3),$1)
+override expr.strip.list    = $(if $(and $1,$(firstword $2)),$(call __expr.strip.post,$(call list.reduce.1,str,__expr.strip.str,$(call __expr.strip.pre,$1,$3),$2,$3),$3),$1)
 override expr.strip.vars    = $(call expr.strip.list,$1,$(foreach var,$2,$(call word.pack,expr,$($(var)))),$3)
-override expr.cull.list   = $(if $(and $1,$(firstword $2)),$(call __expr.strip.post,$$(subst $$xe$c$c$(call list.reduce.1,str,__expr.strip.str,$$xe$(call __expr.strip.pre,$1,$3)$$xe,$2,$3)),$3),$1)
+override expr.cull.list     = $(if $(and $1,$(firstword $2)),$(call __expr.strip.post,$$(subst $$xe$c$c$(call list.reduce.1,str,__expr.strip.str,$$xe$(call __expr.strip.pre,$1,$3)$$xe,$2,$3)),$3),$1)
 override expr.cull.vars     = $(call expr.cull.list,$1,$(foreach var,$2,$(call word.pack,expr,$($(var)))),$3)
 override expr.strip.ws      = $(if $(and $1,$(firstword $2)),$(call __expr.strip.post,$$(strip $(call __expr.strip.pre,$1,$2)),$2),$1)
 
@@ -142,20 +142,35 @@ override expr.strip.ws      = $(if $(and $1,$(firstword $2)),$(call __expr.strip
 #>    ### word.pack.<T>           	[word<T>] <-- $(call word.pack.<T>,[T:val])
 #>    ### expr.word.pack.<T>      	[expr<word<T>>([T:val])] <-- $(call expr.word.pack.<T>,[type:T],[expr:$1])
 #-------------------------------------------------------------------------------
+
+# $(call __expr.word.pack.list2list,expr:inexpr,list:from,list:to)
+override __expr.word.pack.list2list = $(if $(firstword $2),$(call $0,$(call expr.subst,$(firstword $2),$(firstword $3),$1),$(wordlist 2,$(words $2),$2),$(wordlist 2,$(words $3),$3)),$1)
+
 override expr.word.pack.<T> = $(strip $(foreach T,$1, \
-	$(null Define local variables) \
-	$(call var.set,override,$0.locals,{str},$0.locals $0.1 $0.expand $0.normal) \
+	$( Local variables - Each var name is prefixed with the name of this function, '$0'. ) \
+	$( - $0.inexpr is the input expression which we operate on. Defaults to '$1') \
+	$( - $0.normal is the list of normal chars in this type's charset, 'char.$T'. ) \
+	$( - $0.expand is the list of special chars in this type's charset, 'char.$T'. ) \
+	$(   These are the ones in the list which start with '$'; they must be escaped during packing. ) \
+	$(   They are ordered as $x others $e ) \
+	$(call var.set,override,$0.locals,{str},$0.locals $0.inexpr $0.normal $0.expand) \
 	\
-	$(call var.set,override,$0.1,{str},$(or $2,$$1)) \
-	$(call var.set,override,$0.expand,{str},$(filter $$x,$(char.$T)) $(sort $(filter-out $$x $$e,$(filter $$%,$(char.$T)))) $(filter $$e,$(char.$T))) \
+	$(call var.set,override,$0.inexpr,{str},$(or $2,$$1)) \
 	$(call var.set,override,$0.normal,{str},$(sort $(filter-out $$%,$(char.$T)))) \
+	$(call var.set,override,$0.expand,{str},$(filter $$x,$(char.$T)) $(sort $(filter-out $$x $$e,$(filter $$%,$(char.$T)))) $(filter $$e,$(char.$T))) \
 	\
-	$(null Produce expression) \
-	$(subst $$x,$$$$,$(call expr.subst.list2list,$($0.1),$($0.expand),$(call word.pack,{word},$($0.expand)))) \
+	$(info $0.expand = [$($0.expand)]) \
+	$(info [$(call word.pack,{word},$($0.expand))]) \
 	\
-	$(null Cleanup local variables) \
+	$( Generate expression ) \
+	$( try to avoid relying on functions which call 'word.pack/word.unpack' to avoid a circular dependency ) \
+	$( so instead, we create our own 'reduce'-style helper function and just do the $-escaping manually ) \
+	$(call __expr.word.pack.list2list,$($0.inexpr),$($0.expand),$(subst $$,$$$$,$($0.expand))) \
+	\
+	$( Cleanup local variables ) \
 	$(foreach var,$($0.locals),$(call var.set,override,$(var),{str},$e)) \
 ))
+#	$(subst $$x,$$$$,$(call expr.subst.list2list,$($0.inexpr),$($0.expand),$(subst $$,$$x,$($0.expand)))) \
 
 
 
@@ -163,20 +178,31 @@ override expr.word.pack.<T> = $(strip $(foreach T,$1, \
 #>    ### word.unpack.<T>         	[T:val] <-- $(call word.unpack.<T>,[word<T>])
 #>    ### expr.word.unpack.<T>    	[expr<T:val>([word<T>])] <-- $(call expr.word.unpack.<T>,{type:T},[expr<word<T>>([word[T]]):$1])
 #-------------------------------------------------------------------------------
+# $(call __expr.word.unpack.list2list,expr:inexpr,list:from,list:to)
+override __expr.word.unpack.list2list = $(if $(firstword $2),$(call $0,$(call expr.subst,$(firstword $2),$(firstword $3),$1),$(wordlist 2,$(words $2),$2),$(wordlist 2,$(words $3),$3)),$1)
+
 override expr.word.unpack.<T> = $(strip $(foreach T,$1, \
-	$(null Define local variables) \
-	$(call var.set,override,$0.locals,{str},$0.locals $0.1 $0.expand $0.normal) \
+	$( Local variables - Each var name is prefixed with the name of this function, '$0'. ) \
+	$( - $0.inexpr is the input expression which we operate on. Defaults to '$1') \
+	$( - $0.normal is the list of normal chars in this type's charset, 'char.$T'. ) \
+	$( - $0.expand is the list of special chars in this type's charset, 'char.$T'. ) \
+	$(   These are the ones in the list which start with '$'; they must be escaped during packing. ) \
+	$(   They are ordered as $x others $e ) \
+	$(call var.set,override,$0.locals,{str},$0.locals $0.inexpr $0.normal $0.expand) \
 	\
-	$(call var.set,override,$0.1,{str},$(or $2,$$1)) \
-	$(call var.set,override,$0.expand,{str},$(filter $$x,$(char.$T)) $(sort $(filter-out $$x $$e,$(filter $$%,$(char.$T)))) $(filter $$e,$(char.$T))) \
+	$(call var.set,override,$0.inexpr,{str},$(or $2,$$1)) \
 	$(call var.set,override,$0.normal,{str},$(sort $(filter-out $$%,$(char.$T)))) \
+	$(call var.set,override,$0.expand,{str},$(filter $$x,$(char.$T)) $(sort $(filter-out $$x $$e,$(filter $$%,$(char.$T)))) $(filter $$e,$(char.$T))) \
 	\
-	$(null Produce expression) \
-	$(subst $$x,$$$$,$(call expr.subst.list2list,$($0.1),$(call list.reverse,$(call word.pack,{word},$($0.expand))),$(call list.reverse,$($0.expand)))) \
+	$( Generate expression) \
+	$( try to avoid relying on functions which call 'word.pack/word.unpack' to avoid a circular dependency ) \
+	$( so instead, we create our own 'reduce'-style helper function and just do the $-escaping manually ) \
+	$(call __expr.word.pack.list2list,$($0.inexpr),$(call list.reverse,$(subst $$,$$$$,$($0.expand))),$(call list.reverse,$($0.expand))) \
 	\
-	$(null Cleanup local variables) \
+	$( Cleanup local variables) \
 	$(foreach var,$($0.locals),$(call var.set,override,$(var),{str},$e)) \
 ))
+#	$(subst $$x,$$$$,$(call expr.subst.list2list,$($0.inexpr),$(call list.reverse,$(call word.pack,{word},$($0.expand))),$(call list.reverse,$($0.expand)))) \
 
 
 
@@ -185,46 +211,27 @@ override expr.word.unpack.<T> = $(strip $(foreach T,$1, \
 #>    ### expr.chars.split.<T>    	[expr<list<char>>([T:val])] <-- $(call expr.chars.split.<T>,{type:T},[expr<T>([T:val]):$1])
 #-------------------------------------------------------------------------------
 override expr.chars.split.<T> = $(strip $(foreach T,$1, \
-	$(null Define local variables) \
-	$(call var.set,override,$0.locals,{str},$0.locals $0.1 $0.expand $0.normal) \
+	$( Local variables - Each var name is prefixed with the name of this function, '$0'. ) \
+	$( - $0.inexpr is the input expression which we operate on. Defaults to '$1') \
+	$( - $0.normal is the list of normal chars in this type's charset, 'char.$T'. ) \
+	$( - $0.expand is the list of special chars in this type's charset, 'char.$T'. ) \
+	$(   These are the ones in the list which start with '$'; they must be escaped during packing. ) \
+	$(   They are ordered as $x others $e ) \
+	$(call var.set,override,$0.locals,{str},$0.locals $0.inexpr $0.normal $0.expand) \
 	\
-	$(call var.set,override,$0.1,{str},$(or $2,$$1)) \
-	$(call var.set,override,$0.expand,{str},$(filter $$x,$(char.$T)) $(sort $(filter-out $$x $$e,$(filter $$%,$(char.$T)))) $(filter $$e,$(char.$T))) \
+	$(call var.set,override,$0.inexpr,{str},$(or $2,$$1)) \
 	$(call var.set,override,$0.normal,{str},$(sort $(filter-out $$%,$(char.$T)))) \
+	$(call var.set,override,$0.expand,{str},$(filter $$x,$(char.$T)) $(sort $(filter-out $$x $$e,$(filter $$%,$(char.$T)))) $(filter $$e,$(char.$T))) \
 	\
-	$(null Produce expression) \
-	$(call expr.strip,$(subst $$x,$$$$,$(call expr.subst.list2list,$(call expr.call,word.pack.$T,$($0.1)),$(call word.pack,{word},$($0.expand) $($0.normal)),$(addsuffix $$s,$(call word.pack,{word},$($0.expand) $($0.normal)))))) \
+	$( Generate expression) \
+	$(call expr.strip,$(subst $$x,$$$$,$(call expr.subst.list2list,$(call expr.call,word.pack.$T,$($0.inexpr)),$(call word.pack,{word},$($0.expand) $($0.normal)),$(addsuffix $$s,$(call word.pack,{word},$($0.expand) $($0.normal)))))) \
 	\
-	$(null Cleanup local variables) \
+	$( Cleanup local variables) \
 	$(foreach var,$($0.locals),$(call var.set,override,$(var),{str},$e)) \
 ))
 
 
 
-
-#===============================================================================
-#>    ## TYPES
-#===============================================================================
-
-# Type Definitions ==================== type: list{char}
-override char.{str}     := $(char.lowers) $(char.uppers) $(char.digits) $(char.whitespace) $(char.symbols)
-override char.{bool}    := $(char.{str})
-override char.{char}    := $(char.{str})
-override char.{expr}    := $(char.{str})
-override char.{line}    := $(char.lowers) $(char.uppers) $(char.digits) $$s $$t            $(char.symbols)
-override char.{origin}  := $(char.{line})
-override char.{word}    := $(char.lowers) $(char.uppers) $(char.digits)                    $(char.symbols)
-override char.{feature} := $(char.{word})
-override char.{flavor}  := $(char.{word})
-override char.{type}    := $(char.{word})
-override char.{var}     := $(char.lowers) $(char.uppers) $(char.digits) $(char.whitespace) $(filter-out : =,$(char.symbols))
-override char.{int}     :=                               $(char.digits)                    -
-override char.{uint}    :=                               $(char.digits)
-override char.{idx}     := $(char.{uint})
-override char.{digit}   := $(char.{uint})
-override char.{path}    := $(char.lowers) $(char.uppers) $(char.digits) $$s                $(filter-out < > | & ",$(char.symbols))
-override char.{xpath}   := $(char.lowers) $(char.uppers) $(char.digits) $$s                $(filter-out < > | & ",$(char.symbols))
-override char.{wpath}   := $(char.lowers) $(char.uppers) $(char.digits)                    $(filter-out < > | & ",$(char.symbols))
 
 # Generic Overrides
 override expr.word.pack.{bool}      = $(call $(if $2,expr.call,expr.var),word.pack.{str},$2)
@@ -332,6 +339,19 @@ override expr.word.pack.{wpath} = $(subst $$1,$(call expr.word.pack.<T>,$1,$2),$
 #===============================================================================
 #>    ## TARGETS
 #===============================================================================
+#
+# Dynamically creates a heirarchy of targets for all generic functions (those
+# with "<T>" in the name) and all defined types (char.{T} and char.[T])
+#
+# The output file $(generics.file) is only written if running the top-level "generics" target.
+#
+# generics
+#   generics.header
+#   word.pack.<T>
+#     word.pack.{str}
+#     word.pack.{char}
+#   generics.footer
+#
 
 
 
@@ -341,12 +361,21 @@ override generics.types   := $(strip $(foreach T,$(patsubst char.%,%,$(sort $(fi
 override generics.targets := $(strip $(foreach V,$(patsubst expr.%,%,$(filter expr.%,$(.VARIABLES))),$(if $(findstring <T>,$V),$V)))
 
 .PHONY: generics generics.header generics.footer $(generics.targets) $(subst <T>,%,$(generics.targets))
+
+# generics
 generics: generics.file := .project/make/lib.generics.local.mak
 generics: | generics.header $(generics.targets) generics.footer
+
+# generics.header
 generics.header:
 	$(info $(call file.tee,>,$(generics.file),$($@)))
+
+# generics.footer
 generics.footer:
 	$(info $(call file.tee,>>,$(generics.file),$($@)))
+
+# chars.split.<T>, word.pack.<T>, word.unpack.<T>, ...
+# chars.split.{str}, chars.split.{char}, ...
 override define expr.generics.target
 $1: | $$(foreach T,$$(generics.types),$$(subst <T>,$$T,$1))
 	$$(info $$(call file.tee,>>,$$(generics.file),$$e))
