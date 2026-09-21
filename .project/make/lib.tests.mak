@@ -52,7 +52,7 @@ var.is.empty_______\
 var.is.def.empty___\
 var.is.nonempty____\
 ,\
-$(info $e $(subst _,$s,$(func)) = [$(foreach var,$(vars),$(or $(call $(subst _,,$(func)),$(var)),$(call str.subst.list2str,$(var),$(char.vars),$s)))])\
+$(info $e $(subst _,$s,$(func)) = [$(foreach var,$(vars),$(or $(call $(subst _,,$(func)),$(var)),$(call str.subst.list2str,$(var),$(char.{var}),$s)))])\
 )
 $(info $e)
 

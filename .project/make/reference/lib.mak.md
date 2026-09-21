@@ -99,12 +99,12 @@ $(char.letters)   --> $(char.lowers) $(char.uppers)
 ### Character Namespaces
 
 ```
-$(char.vars.symbols) --> 'char.grave char.tilde char.excl char.commat char.num
+$(char.{var}.symbols) --> 'char.grave char.tilde char.excl char.commat char.num
   char.dollar char.percnt char.hat char.amp char.ast char.lparen char.rparen
   char.hyphen char.lowbar char.equals char.plus char.lsqb char.rsqb char.lcub
   char.rcub char.bsol char.verbar char.semi char.colon char.apos char.quot
   char.comma char.period char.lt char.gt char.sol char.quest'
-$(char.vars.ws) --> 'char.space char.tab char.linefeed'
+$(char.{var}.ws) --> 'char.space char.tab char.linefeed'
 ```
 
 ## Functions
