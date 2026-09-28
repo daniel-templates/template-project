@@ -1480,7 +1480,6 @@ override path.suffix    = $(__list.path.op)
 
 override list.path.abspath     = $(foreach __path,$1,$(or $(abspath $(__path)),$$e))
 override list.path.realpath    = $(foreach __path,$1,$(or $(call word.pack,{path},$(realpath $(call word.unpack,{path},$(__path)))),$$e))
-override __list.path.mark      = $(foreach __path,$1,$(call word.concat.pair,[path],/,$(if $(__path:/%=),,/)<MARK>/..,$(__path)))
 override list.path.dir         = $(foreach __path,$1,$(or $(dir $(__path)),$$e))
 override list.path.notdir      = $(foreach __path,$1,$(or $(notdir $(__path)),$$e))
 override list.path.parent      = $(foreach __path,$1,$(or $(patsubst %/,%,$(dir $(patsubst %/,%,$(__path)))),$$e))
@@ -1672,6 +1671,7 @@ override list.path.patsubst.suffix      = $(foreach __find,$(call word.pack,[pat
 #	- Redundant '/' are removed.
 #
 #-------------------------------------------------------------------------------
+override __list.path.mark   = $(foreach __path,$1,$(call word.concat.pair,[path],/,$(if $(__path:/%=),,/)<MARK>/..,$(__path)))
 override path.wildcard      = $(call list.path.wildcard,$(call word.pack,[path],$1))
 override list.path.wildcard = $(if $1,$(call str.split,{path},$(subst <MARK>/..,,$(subst <MARK>/../,,$(subst /<MARK>/..,,$(subst $s<MARK>/../,<SPLIT>,$(subst $s/<MARK>/..,<SPLIT>,$(wildcard $(foreach __path,$(call __list.path.mark,$1),$(call word.unpack,[path],$(__path))))))))),<SPLIT>))
 
@@ -2402,10 +2402,25 @@ PHONY:
 
 make.lib.dir := .project/make
 
+mark := ././././.
+split := <SPLIT>
 
+override __list.path.mark   = $(foreach __path,$1,$(call word.concat.pair,[path],/,$(if $(__path:/%=),,/)$(mark),$(__path)))
+#
+override list.path.wildcard = $(if $1,$(call str.split,{path},$(subst $(mark),,$(subst $(mark)/,,$(subst /$(mark),,$(subst $s$(mark)/,<SPLIT>,$(subst $s/$(mark),<SPLIT>,$(wildcard $(foreach __path,$(call __list.path.mark,$1),$(call word.unpack,[path],$(__path))))))))),<SPLIT>))
+override list.dir.exists  = $(call list.map.1,,__filter.dir,$(call list.repack,[path],$1),$(call list.path.wildcard,$(foreach __path,$(call list.repack,[path],$1),$(if $(filter-out $$e,$(__path)),$(__path:%/=%)$s$(__path:%/=%)/))))
 
+path := temp\ dir/*
 .PHONY: $(make.lib.dir)
 $(make.lib.dir):
+	$(info $e)
+	$(info $e            path=[$(path)])
+	$(info $e       word.pack=[$(call word.pack,xpath,$(path))])
+	$(info $e__list.path.mark=[$(call __list.path.mark,$(call word.pack,xpath,$(path)))])
+	$(info $e     word.unpack=[$(call word.unpack,xpath,$(call __list.xpath.mark,$(call word.pack,xpath,$(path))))])
+	$(info $e        wildcard=[$(wildcard $(call word.unpack,xpath,$(call __list.path.mark,$(call word.pack,xpath,$(path)))))])
+	$(info $e   path.wildcard=[$(call path.wildcard,$(path))])
+	$(info $e)
 	$(if $(call dir.exists,$@),,$(error Directory does not exist: "$@"))
 
 
@@ -2415,10 +2430,9 @@ lib.%.mak: PHONY $(make.lib.dir)/lib.%.mak
 
 
 # Files matched by %-patterns are not "explicitly mentioned" by a target, so may be categorized
-# as an INTERMEDIATE, and may be auto-deleted in some cases.
-# Make %-patterns dependents of .PRECIOUS and .NOTINTERMEDIATE to prevent deletion.
+# as an INTERMEDIATE in some cases, which may make them eligible for auto-deletion.
+# Make %-patterns dependents of .PRECIOUS to prevent auto-deletion.
 .PRECIOUS: $(make.lib.dir)/lib.%.mak
-.NOTINTERMEDIATE: $(make.lib.dir)/lib.%.mak
 $(make.lib.dir)/lib.%.mak: | $(make.lib.dir)
 
 

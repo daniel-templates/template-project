@@ -293,7 +293,7 @@ override expr.chars.split.{digit}   = $(call expr.strip,$(or $2,$$1))
 #	1. Standard substitutions, determined by what characters are available.
 #	-----------------	{path} 	{xpath}	{wpath}
 #	 '$'   --> '$x'  	   +   	   +   	   +
-#	 ' '   --> '$s'  	   +   	   +   	   -
+#	 ' '   --> '$s'  	   +   	   +   	   -			{wpath} has no spaces, so spaces should remain unmodified
 #	 '%'   --> '$p'  	   +   	   +   	   +
 #	 '\'   --> '$b'  	   +   	   +   	   +
 #	 ...
@@ -310,7 +310,7 @@ override expr.chars.split.{digit}   = $(call expr.strip,$(or $2,$$1))
 #	 '\]'  --> '$b]' 	   +   	   +   	   +
 #	 '\?'  --> '$b?' 	   +   	   +   	   +
 #	-----------------	{path} 	{xpath}	{wpath}
-#	 ' '   --> '$s'  	   +   	   -   	   -
+#	 ' '   --> '$s'  	   +   	   -   	   -			{xpath} has no unescaped spaces, so unescaped spaces should remain unmodified
 #	 '\'   --> '/'   	   +   	   +   	   +
 #
 #	3. Cull path separators (Replace each sequence of '/' with a single '/')
