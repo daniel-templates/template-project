@@ -189,7 +189,6 @@ override bool.is.falsey = $(if $(filter $(bool.falsies),$(or $(strip $1),false))
 
 
 
-
 #===============================================================================
 #> ## CHARACTERS
 #===============================================================================
@@ -349,9 +348,6 @@ override chars.split.{word} = $(strip $(subst ~,~$s,$(subst |,|$s,$(subst z,z$s,
 override chars.split.{wpath} = $(strip $(subst ~,~$s,$(subst z,z$s,$(subst y,y$s,$(subst x,x$s,$(subst w,w$s,$(subst v,v$s,$(subst u,u$s,$(subst t,t$s,$(subst s,s$s,$(subst r,r$s,$(subst q,q$s,$(subst p,p$s,$(subst o,o$s,$(subst n,n$s,$(subst m,m$s,$(subst l,l$s,$(subst k,k$s,$(subst j,j$s,$(subst i,i$s,$(subst h,h$s,$(subst g,g$s,$(subst f,f$s,$(subst e,e$s,$(subst d,d$s,$(subst c,c$s,$(subst b,b$s,$(subst a,a$s,$(subst `,`$s,$(subst _,_$s,$(subst ^,^$s,$(subst ],]$s,$(subst [,[$s,$(subst Z,Z$s,$(subst Y,Y$s,$(subst X,X$s,$(subst W,W$s,$(subst V,V$s,$(subst U,U$s,$(subst T,T$s,$(subst S,S$s,$(subst R,R$s,$(subst Q,Q$s,$(subst P,P$s,$(subst O,O$s,$(subst N,N$s,$(subst M,M$s,$(subst L,L$s,$(subst K,K$s,$(subst J,J$s,$(subst I,I$s,$(subst H,H$s,$(subst G,G$s,$(subst F,F$s,$(subst E,E$s,$(subst D,D$s,$(subst C,C$s,$(subst B,B$s,$(subst A,A$s,$(subst @,@$s,$(subst ?,?$s,$(subst =,=$s,$(subst ;,;$s,$(subst :,:$s,$(subst 9,9$s,$(subst 8,8$s,$(subst 7,7$s,$(subst 6,6$s,$(subst 5,5$s,$(subst 4,4$s,$(subst 3,3$s,$(subst 2,2$s,$(subst 1,1$s,$(subst 0,0$s,$(subst /,/$s,$(subst .,.$s,$(subst -,-$s,$(subst +,+$s,$(subst *,*$s,$(subst ','$s,$(subst !,!$s,$(subst $$r,$$r$s,$(subst $$p,$$p$s,$(subst $$l,$$l$s,$(subst $$k,$$k$s,$(subst $$j,$$j$s,$(subst $$g,$$g$s,$(subst $$c,$$c$s,$(subst $$b,$$b$s,$(subst $$x,$$x$s,$(call word.pack.{wpath},$1)))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))
 override chars.split.{xpath} = $(strip $(subst ~,~$s,$(subst z,z$s,$(subst y,y$s,$(subst x,x$s,$(subst w,w$s,$(subst v,v$s,$(subst u,u$s,$(subst t,t$s,$(subst s,s$s,$(subst r,r$s,$(subst q,q$s,$(subst p,p$s,$(subst o,o$s,$(subst n,n$s,$(subst m,m$s,$(subst l,l$s,$(subst k,k$s,$(subst j,j$s,$(subst i,i$s,$(subst h,h$s,$(subst g,g$s,$(subst f,f$s,$(subst e,e$s,$(subst d,d$s,$(subst c,c$s,$(subst b,b$s,$(subst a,a$s,$(subst `,`$s,$(subst _,_$s,$(subst ^,^$s,$(subst ],]$s,$(subst [,[$s,$(subst Z,Z$s,$(subst Y,Y$s,$(subst X,X$s,$(subst W,W$s,$(subst V,V$s,$(subst U,U$s,$(subst T,T$s,$(subst S,S$s,$(subst R,R$s,$(subst Q,Q$s,$(subst P,P$s,$(subst O,O$s,$(subst N,N$s,$(subst M,M$s,$(subst L,L$s,$(subst K,K$s,$(subst J,J$s,$(subst I,I$s,$(subst H,H$s,$(subst G,G$s,$(subst F,F$s,$(subst E,E$s,$(subst D,D$s,$(subst C,C$s,$(subst B,B$s,$(subst A,A$s,$(subst @,@$s,$(subst ?,?$s,$(subst =,=$s,$(subst ;,;$s,$(subst :,:$s,$(subst 9,9$s,$(subst 8,8$s,$(subst 7,7$s,$(subst 6,6$s,$(subst 5,5$s,$(subst 4,4$s,$(subst 3,3$s,$(subst 2,2$s,$(subst 1,1$s,$(subst 0,0$s,$(subst /,/$s,$(subst .,.$s,$(subst -,-$s,$(subst +,+$s,$(subst *,*$s,$(subst ','$s,$(subst !,!$s,$(subst $$s,$$s$s,$(subst $$r,$$r$s,$(subst $$p,$$p$s,$(subst $$l,$$l$s,$(subst $$k,$$k$s,$(subst $$j,$$j$s,$(subst $$g,$$g$s,$(subst $$c,$$c$s,$(subst $$b,$$b$s,$(subst $$x,$$x$s,$(call word.pack.{xpath},$1))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))
 # <\lib.generics.mak>
-
-
-
 
 
 
@@ -619,6 +615,8 @@ override str.suffix.list     = $(call list.reduce.1,,str.suffix.str,$1,$2,$3)
 override str.suffix.vars     = $(call list.reduce.1,,str.suffix.var,$1,$2,$3)
 override str.wrap.list       = $(call list.reduce.1,,str.wrap.str,$1,$2,$3,$4)
 override str.wrap.vars       = $(call list.reduce.1,,str.wrap.var,$1,$2,$3,$4)
+
+
 
 
 
@@ -1689,11 +1687,11 @@ override list.path.wildcard = $(if $1,$(call str.split,{path},$(subst <MARK>/..,
 
 #-------------------------------------------------------------------------------
 #> path.exists           	[path]         |   $(call path.exists,[path])
-#> file.exists           	[path]         |   $(call dir.exists,[path])
-#> dir.exists            	[path]         |   $(call file.exists,[path])
+#> file.exists           	[path]         |   $(call file.exists,[path])
+#> dir.exists            	[path]         |   $(call dir.exists,[path])
 #> list.path.exists      	[list[path]]   |   $(call list.path.exists,[list[path]])
-#> list.file.exists      	[list[path]]   |   $(call list.dir.exists,[list[path]])
-#> list.dir.exists       	[list[path]]   |   $(call list.file.exists,[list[path]])
+#> list.file.exists      	[list[path]]   |   $(call list.file.exists,[list[path]])
+#> list.dir.exists       	[list[path]]   |   $(call list.dir.exists,[list[path]])
 #-------------------------------------------------------------------------------
 #
 #	Returns [path] if it exists (and is a file/directory/either).
@@ -2389,16 +2387,48 @@ override assert.shell.started = $(if $(filter-out 127,$(.SHELLSTATUS)),,$(error 
 override assert.shell.started = $(and $1,$(call str.neq,$(basename $(SHELL)),$(basename $1),/i))
 
 
+#
+# Prerequisites of .PHONY are always executed.
+# However, .PHONY does not support %-patterns in its prerequisites;
+# The workaround is to define a "Force" target with no prerequisites and no recipe,
+# and add it as a prereq of the pattern target.
+#
+# See documentation on "Force Targets":
+#   https://www.gnu.org/software/make/manual/html_node/Force-Targets.html
+#
+.PHONY: PHONY
+PHONY:
+
+
 make.lib.dir := .project/make
 
-lib.%.mak: PHONY $(make.lib.dir)/lib.%.mak ;
+
+
+.PHONY: $(make.lib.dir)
+$(make.lib.dir):
+	$(if $(call dir.exists,$@),,$(error Directory does not exist: "$@"))
+
+
+
+# .PHONY does not recognize %-patterns; make the %-pattern depend on force-target "PHONY" instead.
+lib.%.mak: PHONY $(make.lib.dir)/lib.%.mak
+
+
+# Files matched by %-patterns are not "explicitly mentioned" by a target, so may be categorized
+# as an INTERMEDIATE, and may be auto-deleted in some cases.
+# Make %-patterns dependents of .PRECIOUS and .NOTINTERMEDIATE to prevent deletion.
+.PRECIOUS: $(make.lib.dir)/lib.%.mak
+.NOTINTERMEDIATE: $(make.lib.dir)/lib.%.mak
+$(make.lib.dir)/lib.%.mak: | $(make.lib.dir)
+
+
+
+# .PHONY does not recognize %-patterns; make the %-pattern depend on force-target "PHONY" instead.
 lib.%.md: PHONY $(make.lib.dir)/lib.%.md ;
 
-.NOTINTERMEDIATE: $(make.lib.dir)/lib.%.mak
-$(make.lib.dir)/lib.%.mak:: ;
 
 .NOTINTERMEDIATE: $(make.lib.dir)/lib.%.md
-$(make.lib.dir)/lib.%.md: $(make.lib.dir)/lib.%.mak .WAIT | $(make.lib.dir)/lib.%.md.{HEADER} .WAIT $(make.lib.dir)/lib.%.md.{BODY} .WAIT $(make.lib.dir)/lib.%.md.{FOOTER} ;
+$(make.lib.dir)/lib.%.md: $(make.lib.dir)/lib.%.mak .WAIT | $(make.lib.dir)/lib.%.md.{HEADER} .WAIT $(make.lib.dir)/lib.%.md.{BODY} .WAIT $(make.lib.dir)/lib.%.md.{FOOTER}
 $(make.lib.dir)/lib.%.md: override __src = $(patsubst %.md,%.mak,$(basename $@))
 $(make.lib.dir)/lib.%.md: override __dst = $(basename $@)
 
@@ -2414,14 +2444,3 @@ $(make.lib.dir)/lib.%.md.{BODY}: override __op = $(info LINE:[$1])$1
 
 $(make.lib.dir)/lib.%.md.{FOOTER}: PHONY
 	$(info $(call file.tee,>>,$(__dst),footer $n))
-
-#
-# Prerequisites of .PHONY are always executed.
-# However, .PHONY does not support %-patterns in its prerequisites;
-# The workaround is to define a "Force" target with no prerequisites and no recipe,
-# and add it as a prereq of the pattern target.
-# See documentation on "Force Targets":
-#   https://www.gnu.org/software/make/manual/html_node/Force-Targets.html
-#
-.PHONY: PHONY
-PHONY:
