@@ -136,55 +136,6 @@ bool.falsies  := FALSE False false NO No no N n 0
 
 
 
-#===============================================================================
-#> ## BOOLEANS
-#===============================================================================
-
-#-------------------------------------------------------------------------------
-#> ### Booleans: Constants
-#-------------------------------------------------------------------------------
-override true  := 1#>  $(true)  --> {true}    (nonempty)
-override false := #>   $(false) --> [false]   (empty)
-
-
-
-#-------------------------------------------------------------------------------
-#> ### Booleans: Logic
-#-------------------------------------------------------------------------------
-#> Function | Returns | Syntax | Requires
-#> -------- | ------- | ------ | --------
-#-------------------------------------------------------------------------------
-
-
-#-------------------------------------------------------------------------------
-#> `if`  | `[str]`    | `$(if [bool],[str:if_true],[str:if_false])` | GNU Make
-#> `or`  | `[true:N]` | `$(or [bool:1],[bool:2],...)`               | GNU Make 3.81+
-#> `and` | `[true:1]` | `$(and [bool:1],[bool:2],...)`              | GNU Make 3.81+
-#-------------------------------------------------------------------------------
-
-
-#-------------------------------------------------------------------------------
-#> ### Booleans: User Interaction
-#-------------------------------------------------------------------------------
-#> Function | Returns | Syntax | Requires
-#> -------- | ------- | ------ | --------
-#-------------------------------------------------------------------------------
-
-
-#-------------------------------------------------------------------------------
-#> `bool.is.truthy` | `[bool]` | `$(call bool.is.truthy,[str])` | lib.common.mak
-#> `bool.is.falsey` | `[bool]` | `$(call bool.is.falsey,[str])` | lib.common.mak
-#-------------------------------------------------------------------------------
-#
-#	Evaluates if [str] is "truthy" or "falsey", for interactive purposes.
-#
-#	Truthy: Returns {true} (nonempty) if [str] is a member of $(bool.truthies)
-#	Falsey: Returns [false] (empty) if [str] is a member of $(bool.falsies)
-#
-#-------------------------------------------------------------------------------
-override bool.is.truthy = $(if $(filter $(bool.truthies),$(strip $1)),$(true),$(false))
-override bool.is.falsey = $(if $(filter $(bool.falsies),$(or $(strip $1),false)),$(true),$(false))
-
 
 
 
@@ -350,6 +301,55 @@ override chars.split.{xpath} = $(strip $(subst ~,~$s,$(subst z,z$s,$(subst y,y$s
 # <\lib.generics.mak>
 
 
+
+#===============================================================================
+#> ## BOOLEANS
+#===============================================================================
+
+#-------------------------------------------------------------------------------
+#> ### Booleans: Constants
+#-------------------------------------------------------------------------------
+override true  := 1#>  $(true)  --> {true}    (nonempty)
+override false := #>   $(false) --> [false]   (empty)
+
+
+
+#-------------------------------------------------------------------------------
+#> ### Booleans: Logic
+#-------------------------------------------------------------------------------
+#> Function | Returns | Syntax | Requires
+#> -------- | ------- | ------ | --------
+#-------------------------------------------------------------------------------
+
+
+#-------------------------------------------------------------------------------
+#> `if`  | `[str]`    | `$(if [bool],[str:if_true],[str:if_false])` | GNU Make
+#> `or`  | `[true:N]` | `$(or [bool:1],[bool:2],...)`               | GNU Make 3.81+
+#> `and` | `[true:1]` | `$(and [bool:1],[bool:2],...)`              | GNU Make 3.81+
+#-------------------------------------------------------------------------------
+
+
+#-------------------------------------------------------------------------------
+#> ### Booleans: User Interaction
+#-------------------------------------------------------------------------------
+#> Function | Returns | Syntax | Requires
+#> -------- | ------- | ------ | --------
+#-------------------------------------------------------------------------------
+
+
+#-------------------------------------------------------------------------------
+#> `bool.is.truthy` | `[bool]` | `$(call bool.is.truthy,[str])` | lib.common.mak
+#> `bool.is.falsey` | `[bool]` | `$(call bool.is.falsey,[str])` | lib.common.mak
+#-------------------------------------------------------------------------------
+#
+#	Evaluates if [str] is "truthy" or "falsey", for interactive purposes.
+#
+#	Truthy: Returns {true} (nonempty) if [str] is a member of $(bool.truthies)
+#	Falsey: Returns [false] (empty) if [str] is a member of $(bool.falsies)
+#
+#-------------------------------------------------------------------------------
+override bool.is.truthy = $(if $(filter $(bool.truthies),$(strip $1)),$(true),$(false))
+override bool.is.falsey = $(if $(filter $(bool.falsies),$(or $(strip $1),false)),$(true),$(false))
 
 
 #===============================================================================
@@ -2103,8 +2103,8 @@ endef
 #	      No-op if there is no previous value of SHELL.
 #
 #-------------------------------------------------------------------------------
-shell.push = $(if $1,$(call var.push,SHELL,path,$1)$(call var.push,.SHELLFLAGS,str,$2)$(call var.push,.SHELLSTATUS,int,))
-shell.pop  = $(if $(var.SHELL.stack),$(call var.pop,.SHELLSTATUS)$(call var.pop,.SHELLFLAGS)$(call var.pop,SHELL))
+override shell.push = $(if $1,$(call var.push,SHELL,path,$1)$(call var.push,.SHELLFLAGS,str,$2)$(call var.push,.SHELLSTATUS,int,))
+override shell.pop  = $(if $(var.SHELL.stack),$(call var.pop,.SHELLSTATUS)$(call var.pop,.SHELLFLAGS)$(call var.pop,SHELL))
 
 
 
@@ -2122,8 +2122,8 @@ shell.pop  = $(if $(var.SHELL.stack),$(call var.pop,.SHELLSTATUS)$(call var.pop,
 #	  SHELL, .SHELLFLAGS, and .SHELLSTATUS (GNU Make 4.2+) are restored afterward.
 #
 #-------------------------------------------------------------------------------
-shell.run  = $(if $1,$(if $3,$(call shell.push,$3,$4))$(shell $1)$(call make.exit.if.badshell,,,$1)$(call var.set,,$2,int,$(.SHELLSTATUS))$(if $3,$(call shell.pop)))
-shell.test = $(if $1,$(if $3,$(call shell.push,$3,$4))$(call var.set,,$2,str,$(shell $1))$(call make.exit.if.badshell,,,$1)$(filter 0,$(.SHELLSTATUS))$(if $3,$(call shell.pop)))
+override shell.run  = $(if $1,$(if $3,$(call shell.push,$3,$4))$(shell $1)$(call make.exit.if.badshell,,,$1)$(call var.set,,$2,int,$(.SHELLSTATUS))$(if $3,$(call shell.pop)))
+override shell.test = $(if $1,$(if $3,$(call shell.push,$3,$4))$(call var.set,,$2,str,$(shell $1))$(call make.exit.if.badshell,,,$1)$(filter 0,$(.SHELLSTATUS))$(if $3,$(call shell.pop)))
 
 
 
@@ -2298,7 +2298,6 @@ override COLOR_RED=\033[0;31m
 override COLOR_BLUE=\033[0;34m
 override COLOR_END=\033[0m
 
-override print.var =
 # $(call print.var,{var},{indent},{col},{prefix},{suffix})
 override print.var = $(info $2$(call str.justify.l,$1,$3)=$4$(subst $n,$5$n$2$(subst .,$s,$3.)$4,$($1))$5)
 
@@ -2384,7 +2383,7 @@ override assert.var.is.word        = $(if $(filter-out 1,$(words $1)),$(error $(
 #-------------------------------------------------------------------------------
 override assert.shell.success = $(if $(filter       0,$(.SHELLSTATUS)),,$(throw Failed to start shell process:$n  SHELL       = [$(or $1,$(SHELL))]$n  .SHELLFLAGS = [$(or $2,$(.SHELLFLAGS))]$(if $3,$n  Command:      [$3])$n$n))
 override assert.shell.started = $(if $(filter-out 127,$(.SHELLSTATUS)),,$(error Failed to start shell process:$n  SHELL       = [$(or $1,$(SHELL))]$n  .SHELLFLAGS = [$(or $2,$(.SHELLFLAGS))]$(if $3,$n  Command:      [$3])$n$n))
-override assert.shell.started = $(and $1,$(call str.neq,$(basename $(SHELL)),$(basename $1),/i))
+# override assert.shell.started = $(and $1,$(call str.neq,$(basename $(SHELL)),$(basename $1),/i))
 
 
 #
