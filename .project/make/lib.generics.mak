@@ -278,16 +278,26 @@ override expr.chars.split.{digit}   = $(call expr.strip,$(or $2,$$1))
 #	A string containing a single file or directory path.
 #	Types differ in how filename spaces ' ' may be represented:
 #
-#	 {path} 	Allows spaces in filenames as either ' ' or '\ '.
-#	 {xpath}	Spaces in filenames must be escaped as '\ '.
-#	 {wpath}	Spaces in filenames are not allowed.
+#	 {path} 	Allows spaces in filenames as either ' ' or '\ '. Repacking should maintain the same choice of escape character.
+#	 {xpath}	Spaces in filenames must be escaped as '\ '. Repacking should maintain unescaped spaces, since unescaped spaces are not part of the type.
+#	 {wpath}	Spaces in filenames are not allowed. Repacking should maintain all spaces, since they are not part of the type.
 #
 #	Paths may include pattern (%) or path (*?[]) wildcards.
 #	Wildcards can be escaped using '\'.
 #
-#	Since Make prefers the path separator '/' for most use cases (regardless of
-#	platform), all '\' are replaced with '/' except for '\' which are part of an
-#	escape sequence.
+#	Since Make prefers the path separator '/' in most (all?) cases, regardless of platform,
+#	all '\' are replaced with '/' except for '\' which are part of an escape sequence.
+#
+#   '\\' is handled specially. It is always packed as '/'
+#
+#
+#   Upcasting:
+#       As with all types, a lower (more specific) class can always be substituted for a
+#       higher (more general) class.
+#
+#   Downcasting:
+#       As with all types, this is not generally possible without violating the rules
+#
 #
 #	Packing Procedure:
 #	1. Standard substitutions, determined by what characters are available.
@@ -303,7 +313,7 @@ override expr.chars.split.{digit}   = $(call expr.strip,$(or $2,$$1))
 #	 '$b'  --> '\'   	   +   	   +   	   +
 #	 '$s'  --> ' '   	   +   	   +   	   -
 #	-----------------	{path} 	{xpath}	{wpath}
-#	 '\\'  --> '/'   	   +   	   +   	   +
+#	 '\\'  --> '/'		   +   	   +   	   +
 #	 '\ '  --> '$b$s'	   +   	   +   	   -
 #	 '\$p' --> '$b$p'	   +   	   +   	   +
 #	 '\['  --> '$b[' 	   +   	   +   	   +

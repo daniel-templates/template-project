@@ -2407,19 +2407,21 @@ split := <SPLIT>
 
 override __list.path.mark   = $(foreach __path,$1,$(call word.concat.pair,[path],/,$(if $(__path:/%=),,/)$(mark),$(__path)))
 #
-override list.path.wildcard = $(if $1,$(call str.split,{path},$(subst $(mark),,$(subst $(mark)/,,$(subst /$(mark),,$(subst $s$(mark)/,<SPLIT>,$(subst $s/$(mark),<SPLIT>,$(wildcard $(foreach __path,$(call __list.path.mark,$1),$(call word.unpack,[path],$(__path))))))))),<SPLIT>))
+override list.path.wildcard = $(if $1,$(call str.split,{path},$(subst $(mark),,$(subst $(mark)/,,$(subst /$(mark),,$(subst $s$(mark)/,$(split),$(subst $s/$(mark),$(split),$(wildcard $(foreach __path,$(call __list.path.mark,$1),$(call word.unpack,[path],$(__path))))))))),$(split)))
 override list.dir.exists  = $(call list.map.1,,__filter.dir,$(call list.repack,[path],$1),$(call list.path.wildcard,$(foreach __path,$(call list.repack,[path],$1),$(if $(filter-out $$e,$(__path)),$(__path:%/=%)$s$(__path:%/=%)/))))
 
-path := temp\ dir/*
+path := ../template-project/temp\ dir/*
+# path := /etc/*
 .PHONY: $(make.lib.dir)
 $(make.lib.dir):
 	$(info $e)
 	$(info $e            path=[$(path)])
 	$(info $e       word.pack=[$(call word.pack,xpath,$(path))])
 	$(info $e__list.path.mark=[$(call __list.path.mark,$(call word.pack,xpath,$(path)))])
-	$(info $e     word.unpack=[$(call word.unpack,xpath,$(call __list.xpath.mark,$(call word.pack,xpath,$(path))))])
+	$(info $e     word.unpack=[$(call word.unpack,xpath,$(call __list.path.mark,$(call word.pack,xpath,$(path))))])
 	$(info $e        wildcard=[$(wildcard $(call word.unpack,xpath,$(call __list.path.mark,$(call word.pack,xpath,$(path)))))])
 	$(info $e   path.wildcard=[$(call path.wildcard,$(path))])
+	$(info $e)
 	$(info $e)
 	$(if $(call dir.exists,$@),,$(error Directory does not exist: "$@"))
 
