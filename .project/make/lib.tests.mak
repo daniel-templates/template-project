@@ -18,11 +18,6 @@
 #	$(call test,FUNC,CASE,EXPR,EXPECTED)
 #	    Passes if EXPR and EXPECTED expand to exactly the same string.
 #
-#	$(call test.error,FUNC,CASE,EXPR,MESSAGE)
-#	    Passes if expanding EXPR stops Make with an error, and the error output
-#	    contains MESSAGE (any error, if MESSAGE is empty). Each case runs in a
-#	    separate Make process, so the error does not stop the other tests.
-#
 #	FUNC      Name of the library function under test. The test fails if it is
 #	          not defined.
 #	CASE      Short label. FUNC:CASE must be unique and a single word, with no
@@ -56,8 +51,8 @@ __test.vars := $(filter-out test.% $(__test.vars),$(.VARIABLES))
 
 # tests="func1 func2:case ..."
 #
-ifndef tests
-tests := %
+ifeq "$(tests)" ""
+override tests := %
 endif
 
 # verbose=1    Shows tests that PASS as well as those that FAIL, etc
@@ -81,13 +76,8 @@ endif
 
 
 #===============================================================================
-# FRAMEWORK
-#
-# Uses only Make's built-in functions, so that a bug in the library cannot hide
-# a test failure. Every variable defined here begins with 'test.'.
-#===============================================================================
-
 # Constants
+#===============================================================================
 override test.empty  :=
 override test.space  := $(test.empty) $(test.empty)
 override test.tab    := $(test.empty)	$(test.empty)
@@ -147,17 +137,23 @@ override __test.print.str = [$(subst $(test.nl),\n,$(subst $(test.tab),\t,$1))]
 
 # __test.funcs : list of functions which have test coverage
 # __test.ids   : list of unique test ids (id=func:case)
-override __test.funcs := $(test.empty)
-override __test.ids := $(test.empty)
-override __test.ids.passed := $(test.empty)
-override __test.ids.failed := $(test.empty)
-override __test.ids.skipped := $(test.empty)
+override __test.funcs :=
+override __test.ids :=
+override __test.ids.invalid :=
+override __test.ids.passed :=
+override __test.ids.failed :=
+override __test.ids.skipped :=
 
-override __test.log.invalid = $(call __test.log.fail,$(subst $(test.space),\s,$1),$2,$3)
+override __test.log.invalid = $(strip \
+	$(eval override __test.ids.invalid += $1)\
+	$(if $(silent),,\
+		$(info INVALID  $1)\
+		$(if $2,$(info $(test.empty)        $2))\
+		$(if $3,$(info $(test.empty)        $3))\
+	)\
+)
 
 override __test.log.pass = $(strip \
-	$(eval override __test.ids        += $1)\
-	$(eval override __test.funcs      += $(firstword $(subst :,$(test.space),$1)))\
 	$(eval override __test.ids.passed += $1)\
 	$(if $(silent),,\
 		$(if $(verbose),\
@@ -169,8 +165,6 @@ override __test.log.pass = $(strip \
 )
 
 override __test.log.fail = $(strip \
-	$(eval override __test.ids        += $1)\
-	$(eval override __test.funcs      += $(firstword $(subst :,$(test.space),$1)))\
 	$(eval override __test.ids.failed += $1)\
 	$(if $(silent),,\
 		$(info FAIL  $1)\
@@ -180,8 +174,6 @@ override __test.log.fail = $(strip \
 )
 
 override __test.log.skip = $(strip \
-	$(eval override __test.ids         += $1)\
-	$(eval override __test.funcs       += $(firstword $(subst :,$(test.space),$1)))\
 	$(eval override __test.ids.skipped += $1)\
 	$(if $(silent),,\
 		$(info SKIPPED  $1)\
@@ -203,20 +195,26 @@ override __test.log.skip = $(strip \
 # [bool] <-- $(call __test.id.is.duplicate,[str:id])
 override __test.func.is.undefined = $(if $(filter undefined,$(flavor $1)),x,)
 override __test.id.is.invalid     = $(if $(or $(filter-out 1,$(words $1)),$(filter-out 2,$(words $(subst :,$(test.space),$1))),$(findstring ",$1),$(findstring ',$1),$(findstring $(test.hash),$1),$(findstring $$,$1)),x,)
-override __test.id.is.duplicate   = $(if $(filter $1,$(__test.ids)),x,)
+override __test.id.is.duplicate   = $(if $(filter-out 0 1,$(words $(filter $1,$(__test.ids)))),x,)
 
 #-------------------------------------------------------------------------------
 # $(call test,{func:FUNC},{word:CASE},[expr:EVALUATE],[expr:EXPECTED])
 #-------------------------------------------------------------------------------
 
-#	$(eval __test.expr := $(subst $$,$$$$,$3))\
-#	$(eval __test.expected := $(subst $$,$$$$,$4))\
-
 override test = $(strip \
-	$(eval __test.func := $(strip $1))\
-	$(eval __test.case := $(strip $2))\
-	$(eval __test.id   := $$(__test.func):$$(__test.case))\
+	$(null Define local variables)\
+	$(eval override __test.func := $(or $(subst $(test.space),$$s,$(strip $1)),$(test.hash)empty$(test.hash)))\
+	$(eval override __test.case := $(or $(subst $(test.space),$$s,$(strip $2)),$(test.hash)empty$(test.hash)))\
+	$(eval override __test.id   := $$(__test.func):$$(__test.case))\
+	\
+	$(null Add func to function coverage list, id to test id list)\
+	$(eval override __test.funcs += $(__test.func))\
+	$(eval override __test.ids   += $(__test.id))\
+	\
+	$(null If user wants to run this test...)\
 	$(if $(filter $(tests),$(__test.func) $(__test.id)),\
+	\
+		$(null Check test validity)\
 		$(if $(call __test.func.is.undefined,$(__test.func)),\
 			$(call __test.log.invalid,$(__test.id),function not defined: $(__test.func)),\
 		\
@@ -226,13 +224,15 @@ override test = $(strip \
 		$(if $(call __test.id.is.duplicate,$(__test.id)),\
 			$(call __test.log.invalid,$(__test.id),duplicate test id),\
 		\
-		$(call __test.eval,__test.returned,$3)\
-		$(call __test.eval,__test.expected,$4)\
-		\
-		$(if $(call __test.str.neq,$(__test.returned),$(__test.expected)),\
-			$(call __test.log.fail,$(__test.id),Expected: $(call __test.print.str,$(__test.expected)),Returned: $(call __test.print.str,$(__test.returned))),\
-		\
-		$(call __test.log.pass,$(__test.id))))))\
+			$(null Evaluate both expressions and compare them)\
+			$(call __test.eval,__test.returned,$3)\
+			$(call __test.eval,__test.expected,$4)\
+			\
+			$(if $(call __test.str.equ,$(__test.returned),$(__test.expected)),\
+				$(call __test.log.pass,$(__test.id)),\
+				$(call __test.log.fail,$(__test.id),Expected: $(call __test.print.str,$(__test.expected)),Returned: $(call __test.print.str,$(__test.returned)))\
+			)\
+		)))\
 	)\
 )
 
@@ -291,14 +291,17 @@ __test.value        = $(subst $$$$,,$(value $1))
 #-------------------------------------------------------------------------------
 test.report.summary = \
 	$(info $(test.empty))\
-	$(info $(notdir $(__test.file)): $(words $(__test.ids.passed)) passed$(test.comma) $(words $(__test.ids.failed)) failed, $(words $(__test.ids.skipped)) skipped ($(words $(__test.ids)) total))\
-	$(if $(__test.ids.failed),$(error $(words $(__test.ids.failed)) test(s) failed))
+	$(info $(notdir $(__test.file)): $(words $(__test.ids.passed)) passed$(test.comma) $(words $(__test.ids.failed)) failed, $(words $(__test.ids.skipped)) skipped, $(words $(__test.ids.invalid)) invalid ($(words $(__test.ids.passed) $(__test.ids.failed) $(__test.ids.skipped) $(__test.ids.invalid)) total))\
 
 test.report.coverage = $(call __test.report.coverage,$(sort $(filter-out _%,$(call __test.var.filter.functions,$(__test.vars)))))
 __test.report.coverage = \
 	$(info $(test.empty))\
 	$(info coverage: $(words $1) library functions$(test.comma) $(words $(filter $(__test.funcs),$1)) tested$(test.comma) $(words $(filter-out $(__test.funcs),$1)) untested:)\
-	$(foreach __test.f,$(filter-out $(__test.funcs),$1),$(info $(test.empty)  $(__test.f)))
+	$(foreach __F,$(filter-out $(__test.funcs),$1),$(info $(test.empty)  $(__F)))
+
+
+test.exit_on_error = $(if $(strip $(__test.ids.failed) $(__test.ids.invalid)),$(error Exiting with error.$(if $(strip $(__test.ids.failed)),$(test.nl)$(words $(__test.ids.failed)) test(s) failed.)$(if $(strip $(__test.ids.invalid)),$(test.nl)$(words $(__test.ids.invalid)) test(s) invalid)))
+
 
 
 #func = $$0=[$0],$n$$1=[$1],$n$$2=[$2],$n$$3=[$3]
@@ -1516,6 +1519,8 @@ $(if $(silent),,\
 	$(if $(coverage),$(call test.report.coverage))\
 	$(call test.report.summary)\
 )
+
+$(call test.exit_on_error)
 
 .DEFAULT_GOAL := test
 .PHONY: $(notdir $(__test.file))
