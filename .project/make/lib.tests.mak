@@ -399,7 +399,10 @@ test.exit_on_error = $(if $(strip $(__test.ids.failed) $(__test.ids.invalid)),$(
 # CHARACTERS
 #===============================================================================
 # [list{char}] <-- $(call chars.split,[type:T],[T:val])
-$(call test,chars.split,str,$$(call chars.split,{str},abc$$1),a b c)
+$(call test,chars.split,{str}-all,$$(call chars.split,{str},$$(eval __tmp:=$$(subst $$s,,$$(char.{str})))$$(__tmp)$$(eval __tmp:=)),$$(char.{str}))
+$(call test,chars.split,[str]-all,$$(call chars.split,[str],$$(eval __tmp:=$$(subst $$s,,$$(char.{str})))$$(__tmp)$$(eval __tmp:=)),$$(char.{str}))
+$(call test,chars.split, str-all ,$$(call chars.split, str ,$$(eval __tmp:=$$(subst $$s,,$$(char.{str})))$$(__tmp)$$(eval __tmp:=)),$$(char.{str}))
+$(call test,chars.split, str ,$$(call chars.split, str ,abc),a b c)
 $(call test,chars.split,space,$$(call chars.split,{str},a b),a $$$$s b)
 $(call test,chars.split,empty,$$(call chars.split,{str},),)
 
@@ -426,10 +429,12 @@ $(call test,bool.is.falsey,yes,$$(call bool.is.falsey,yes),)
 # STRINGS
 #===============================================================================
 # [str] <-- $(call str.lower,[str])
-$(call test,str.lower,mixed,$$(call str.lower,Hello World),hello world)
+$(call test,str.lower,mixed,$$(call str.lower,$$(test.tab)Hello World),$$(test.tab)hello world)
+$(call test,str.lower,empty,$$(call str.lower,$$(test.empty)),$$(test.empty))
 
 # [str] <-- $(call str.upper,[str])
-$(call test,str.upper,mixed,$$(call str.upper,Hello World),HELLO WORLD)
+$(call test,str.upper,mixed,$$(call str.upper,$$(test.tab)Hello World),$$(test.tab)HELLO WORLD)
+$(call test,str.upper,empty,$$(call str.upper,$$(test.empty)),$$(test.empty))
 
 # {uint} <-- $(call str.len,[type:T],[T:str])
 $(call test,str.len,str,$$(call str.len,{str},a b),3)
