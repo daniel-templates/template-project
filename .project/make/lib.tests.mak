@@ -53,9 +53,8 @@ __test.vars := $(filter-out test.% $(__test.vars),$(.VARIABLES))
 #
 ifeq "$(tests)" ""
 override tests := %
-else
-override tests := $(subst *,%,$(tests))
 endif
+override tests := $(subst *,%,$(tests))
 
 # verbose=1    Shows tests that PASS as well as those that FAIL, etc
 #
