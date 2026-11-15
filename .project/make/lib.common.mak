@@ -133,13 +133,6 @@ bool.falsies  := FALSE False false NO No no N n 0
 
 
 
-
-
-
-
-
-
-
 #===============================================================================
 #> ## CHARACTERS
 #===============================================================================
@@ -151,7 +144,7 @@ override char.empty :=# Empty String
 # Whitespace Characters ================ type: {char}
 override char.space := $(char.empty) $(char.empty)
 override char.tab   := $(char.empty)	$(char.empty)
-override define char.linefeed # BEGIN: definition must contain exactly two empty lines. Do not modify.
+override define char.lf # BEGIN: definition must contain exactly two empty lines. Do not modify.
 
 
 endef # END
@@ -196,7 +189,7 @@ override char.quest  := ?
 override e := $(char.empty)#>    $e --> [empty]    Empty string
 override s := $(char.space)#>    $s --> {space}    Space character
 override t := $(char.tab)#>      $t --> {tab}      Tab character
-override n := $(char.linefeed)#> $n --> {lf}       Linefeed character
+override n := $(char.lf)#>       $n --> {lf}       Linefeed character
 override x := $(char.dollar)#>   $x --> '$'        Expansion operator
 override c := $(char.comma)#>    $c --> ','        Comma (Argument Separator)
 override g := $(char.num)#>      $g --> '#'        Makefile line-comment
@@ -1238,8 +1231,8 @@ override list.idx.last  = $(filter-out 0,$(words $1))
 #	Word-packs [val] before storage, if necessary.
 #
 #-------------------------------------------------------------------------------
-override list.insert.N = $(strip $(if $4,$(wordlist 1,$(call __list.idx.dec,$2,$4),$2)$s$(call word.pack,$1,$3)$s$(wordlist $4,$(words $2),$2),$2))
-override list.insert   = $(call list.insert.N,$1,$2,$3,$(call list.idx,$2$s$$,$4))
+override __list.insert.N = $(strip $(if $4,$(wordlist 1,$(call __list.idx.dec,$2,$4),$2)$s$(call word.pack,$1,$3)$s$(wordlist $4,$(words $2),$2),$2))
+override list.insert   = $(call __list.insert.N,$1,$2,$3,$(call list.idx,$2$s$$,$4))
 override list.prepend  = $(strip $(call word.pack,$1,$3) $2)
 override list.append   = $(strip $2 $(call word.pack,$1,$3))
 
@@ -2293,10 +2286,10 @@ override block.vstack = $(strip $(call block.hresize,$1,$2,$3) $(call block.hres
 
 
 
-override COLOR_GREEN=\033[0;32m
-override COLOR_RED=\033[0;31m
-override COLOR_BLUE=\033[0;34m
-override COLOR_END=\033[0m
+override COLOR_GREEN := \033[0;32m
+override COLOR_RED   := \033[0;31m
+override COLOR_BLUE  := \033[0;34m
+override COLOR_END   := \033[0m
 
 # $(call print.var,{var},{indent},{col},{prefix},{suffix})
 override print.var = $(info $2$(call str.justify.l,$1,$3)=$4$(subst $n,$5$n$2$(subst .,$s,$3.)$4,$($1))$5)
