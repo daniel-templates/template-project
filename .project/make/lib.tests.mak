@@ -430,132 +430,424 @@ $(call test,bool.is.falsey,yes,$$(call bool.is.falsey,yes),)
 #===============================================================================
 # [str] <-- $(call str.lower,[str])
 $(call test,str.lower,mixed,$$(call str.lower,$$(test.tab)Hello World),$$(test.tab)hello world)
+$(call test,str.lower,already,$$(call str.lower,abc),abc)
+$(call test,str.lower,specials,$$(call str.lower,A1$$c%$$$$B),a1$$c%$$$$b)
+$(call test,str.lower,leading-space,$$(call str.lower,$$sAB),$$sab)
 $(call test,str.lower,empty,$$(call str.lower,$$(test.empty)),$$(test.empty))
 
 # [str] <-- $(call str.upper,[str])
 $(call test,str.upper,mixed,$$(call str.upper,$$(test.tab)Hello World),$$(test.tab)HELLO WORLD)
+$(call test,str.upper,already,$$(call str.upper,ABC),ABC)
+$(call test,str.upper,specials,$$(call str.upper,a1$$c%$$$$b),A1$$c%$$$$B)
+$(call test,str.upper,leading-space,$$(call str.upper,$$sab),$$sAB)
 $(call test,str.upper,empty,$$(call str.upper,$$(test.empty)),$$(test.empty))
 
 # {uint} <-- $(call str.len,[type:T],[T:str])
 $(call test,str.len,str,$$(call str.len,{str},a b),3)
-$(call test,str.len,list,$$(call str.len,,a b c),3)
+$(call test,str.len,plain,$$(call str.len,{str},abc),3)
+$(call test,str.len,tab-comma,$$(call str.len,{str},a$$(test.tab)b$$cc),5)
+$(call test,str.len,dollar,$$(call str.len,{str},a$$$$b),3)
+$(call test,str.len,empty,$$(call str.len,[str],),0)
+$(call test,str.len,no-type,$$(call str.len,,a b c),3)
+$(call test,str.len,no-type-empty,$$(call str.len,,),0)
 
 # [T] <-- $(call str.sub,[type:T],[T:str],[idx:start],[uint:end])
 $(call test,str.sub,middle,$$(call str.sub,{str},abcdef,2,4),bcd)
+$(call test,str.sub,first,$$(call str.sub,{str},abcdef,1,1),a)
+$(call test,str.sub,whole,$$(call str.sub,{str},abcdef,1,6),abcdef)
 $(call test,str.sub,to-end,$$(call str.sub,{str},abcdef,3),cdef)
+$(call test,str.sub,end-past,$$(call str.sub,{str},abc,2,9),bc)
+$(call test,str.sub,start-past,$$(call str.sub,{str},abc,5,9),)
+$(call test,str.sub,reversed,$$(call str.sub,{str},abc,3,1),)
+$(call test,str.sub,no-start,$$(call str.sub,{str},abc,,2),)
+$(call test,str.sub,empty,$$(call str.sub,[str],,1,2),)
+$(call test,str.sub,spaces,$$(call str.sub,{str},a b c,2,4),$$sb$$s)
+$(call test,str.sub,no-type,$$(call str.sub,,a b c d,2,3),b c)
 
 # {uint} <-- $(call str.cnt,[type:T],[T:find],[T:in])
+$(call test,str.cnt,no-type,$$(call str.cnt,,ab,xabyab),2)
+$(call test,str.cnt,none,$$(call str.cnt,{str},z,abc),0)
+$(call test,str.cnt,adjacent,$$(call str.cnt,{str},aa,aaaa),2)
+$(call test,str.cnt,space,$$(call str.cnt,{str},a b,a b a b),2)
+$(call test,str.cnt,dollar,$$(call str.cnt,{str},$$$$,a$$$$b$$$$),2)
+$(call test,str.cnt,empty-in,$$(call str.cnt,{str},a,),0)
+$(call test,str.cnt,empty-find-braced,$$(call str.cnt,{str},,),0)
+$(call test,str.cnt,empty-find-bracketed,$$(call str.cnt,[str],,),1)
+$(call test,str.cnt,empty-find-nonempty-in,$$(call str.cnt,[str],,abc),0)
 
 # [bool] <-- $(call str.equ,[str:1],[str:2],[bool:case_insensitive])
 $(call test,str.equ,same,$$(call str.equ,abc,abc),1)
 $(call test,str.equ,different,$$(call str.equ,abc,abd),)
+$(call test,str.equ,prefix,$$(call str.equ,abc,ab),)
+$(call test,str.equ,both-empty,$$(call str.equ,,),1)
+$(call test,str.equ,one-empty,$$(call str.equ,a,),)
+$(call test,str.equ,space-vs-empty,$$(call str.equ,$$s,),)
+$(call test,str.equ,case-sensitive,$$(call str.equ,ABC,abc),)
 $(call test,str.equ,case-insensitive,$$(call str.equ,ABC,abc,1),1)
+$(call test,str.equ,case-insensitive-different,$$(call str.equ,ABC,abd,1),)
+$(call test,str.equ,flag-word,$$(call str.equ,ABC,abc,yes),1)
 
 # [bool] <-- $(call str.neq,[str:1],[str:2],[bool:case_insensitive])
+$(call test,str.neq,same,$$(call str.neq,abc,abc),)
+$(call test,str.neq,different,$$(call str.neq,abc,abd),1)
+$(call test,str.neq,both-empty,$$(call str.neq,,),)
+$(call test,str.neq,one-empty,$$(call str.neq,a,),1)
+$(call test,str.neq,case-sensitive,$$(call str.neq,ABC,abc),1)
+$(call test,str.neq,case-insensitive,$$(call str.neq,ABC,abc,1),)
+$(call test,str.neq,case-insensitive-different,$$(call str.neq,ABC,abd,1),1)
 
 # [str] <-- $(call str.concat.pair,[str:sep],[str:1],[str:2])
 $(call test,str.concat.pair,both,$$(call str.concat.pair,$$c,a,b),a$$cb)
 $(call test,str.concat.pair,skip-empty,$$(call str.concat.pair,$$c,a,),a)
+$(call test,str.concat.pair,skip-first,$$(call str.concat.pair,$$c,,b),b)
+$(call test,str.concat.pair,both-empty,$$(call str.concat.pair,$$c,,),)
+$(call test,str.concat.pair,empty-sep,$$(call str.concat.pair,,a,b),ab)
+$(call test,str.concat.pair,sep-space,$$(call str.concat.pair,$$s,a,b),a b)
+$(call test,str.concat.pair,sep-multichar,$$(call str.concat.pair,<->,a,b),a<->b)
+$(call test,str.concat.pair,values-with-spaces,$$(call str.concat.pair,$$c,a b,c d),a b$$cc d)
 
 # [str] <-- $(call str.concat,[str:sep],[str:1],[str:2],...,[str:8])
+$(call test,str.concat,two,$$(call str.concat,-,a,b),a-b)
+$(call test,str.concat,all-eight,$$(call str.concat,-,1,2,3,4,5,6,7,8),1-2-3-4-5-6-7-8)
+$(call test,str.concat,gaps,$$(call str.concat,-,1,,3,,5,,7,8),1-3-5-7-8)
+$(call test,str.concat,leading-empty,$$(call str.concat,-,,b,c),b-c)
+$(call test,str.concat,only-first,$$(call str.concat,-,a),a)
+$(call test,str.concat,only-last,$$(call str.concat,-,,,,,,,,z),z)
+$(call test,str.concat,all-empty,$$(call str.concat,-,,,,,,,,),)
+$(call test,str.concat,empty-sep,$$(call str.concat,,a,b,c),abc)
+$(call test,str.concat,sep-comma,$$(call str.concat,$$c,a,b),a$$cb)
 
 # [word[T]] <-- $(call word.concat.pair,[type:T],[T:sep],[word[T]:1],[word[T]:2])
+$(call test,word.concat.pair,basic,$$(call word.concat.pair,[str],-,a,b),a-b)
+$(call test,word.concat.pair,packed,$$(call word.concat.pair,[str],$$s,a$$$$sb,c),a$$$$sb$$$$sc)
+$(call test,word.concat.pair,skip-empty,$$(call word.concat.pair,[str],-,a,),a)
+$(call test,word.concat.pair,both-empty,$$(call word.concat.pair,[str],-,,),$$$$e)
+$(call test,word.concat.pair,no-type,$$(call word.concat.pair,,-,a b,c),a b-c)
 
 # [str] <-- $(call str.map,[type:T],[func[T]([T:1],[str:const1],...)],[str:sep],[str:1],[str:const1],...,[str:const3])
+t.str.map.wrap = $2$1$3
+$(call test,str.map,upper,$$(call str.map,[str],str.upper,$$c,a$$cb$$cc),A$$cB$$cC)
+$(call test,str.map,keep-empty,$$(call str.map,[str],str.upper,$$c,a$$c$$cb),A$$c$$cB)
+$(call test,str.map,drop-empty,$$(call str.map,{str},str.upper,$$c,a$$c$$cb),A$$cB)
+$(call test,str.map,spaces,$$(call str.map,[str],str.upper,$$c,a b$$c c d),A B$$c C D)
+$(call test,str.map,sep-space,$$(call str.map,[str],str.upper,$$s,a b c),A B C)
+$(call test,str.map,consts,$$(call str.map,[str],t.str.map.wrap,$$c,a$$cb,<,>),<a>$$c<b>)
+$(call test,str.map,empty-in,$$(call str.map,[str],str.upper,$$c,),)
 
 # [str] <-- $(call str.map.1,[type:T],[func[T]([T:1],[str:const1],...)],[str:sep],[str:1],[str:const1],...,[str:const4])
+t.str.map.1.f = $1$2$3$4$5
+$(call test,str.map.1,upper,$$(call str.map.1,[str],str.upper,$$c,a$$cb),A$$cB)
+$(call test,str.map.1,consts,$$(call str.map.1,[str],t.str.map.1.f,$$c,a$$cb,1,2,3,4),a1234$$cb1234)
 
 # [str] <-- $(call str.map.2,[type:T],[func[T]([T:1],[T:2],[str:const1],...)],[str:sep],[str:1],[str:2],[str:const1],...,[str:const4])
+t.str.map.2.f = $1=$2
+t.str.map.2.g = $1$2$3$4$5$6
+$(call test,str.map.2,pairs,$$(call str.map.2,[str],t.str.map.2.f,$$c,a$$cb,1$$c2),a=1$$cb=2)
+$(call test,str.map.2,uneven,$$(call str.map.2,[str],t.str.map.2.f,$$c,a$$cb$$cc,1),a=1$$cb=$$cc=)
+$(call test,str.map.2,uneven-rev,$$(call str.map.2,[str],t.str.map.2.f,$$c,a,1$$c2),a=1$$c=2)
+$(call test,str.map.2,consts,$$(call str.map.2,[str],t.str.map.2.g,$$c,a$$cb,1$$c2,-,=,+,*),a1-=+*$$cb2-=+*)
 
 # [str] <-- $(call str.map.3,[type:T],[func[T]([T:1],[T:2],[T:3],[str:const1],...)],[str:sep],[str:1],[str:2],[str:3],[str:const1],...,[str:const4])
+t.str.map.3.f = $1$2$3$4$5$6$7
+$(call test,str.map.3,triples,$$(call str.map.3,[str],t.str.map.3.f,$$c,a$$cb,1$$c2,x$$cy),a1x$$cb2y)
+$(call test,str.map.3,consts,$$(call str.map.3,[str],t.str.map.3.f,$$c,a$$cb,1$$c2,x$$cy,-,=,+,*),a1x-=+*$$cb2y-=+*)
 
 # [str] <-- $(call str.map.4,[type:T],[func[T]([T:1],[T:2],[T:3],[T:4],[str:const1],...)],[str:sep],[str:1],[str:2],[str:3],[str:4],[str:const1],...,[str:const4])
+t.str.map.4.f = $1$2$3$4$5$6$7$8
+$(call test,str.map.4,quads,$$(call str.map.4,[str],t.str.map.4.f,$$c,a$$cb,1$$c2,x$$cy,p$$cq),a1xp$$cb2yq)
+$(call test,str.map.4,consts,$$(call str.map.4,[str],t.str.map.4.f,$$c,a$$cb,1$$c2,x$$cy,p$$cq,-,=,+,*),a1xp-=+*$$cb2yq-=+*)
 
 # [str] <-- $(call str.subst.str2str,[str:in],[str:find],[str:repl])
+$(call test,str.subst.str2str,basic,$$(call str.subst.str2str,banana,an,AN),bANANa)
+$(call test,str.subst.str2str,no-match,$$(call str.subst.str2str,banana,xy,Z),banana)
+$(call test,str.subst.str2str,whole,$$(call str.subst.str2str,abc,abc,X),X)
+$(call test,str.subst.str2str,adjacent,$$(call str.subst.str2str,aaaa,aa,b),bb)
+$(call test,str.subst.str2str,empty-in,$$(call str.subst.str2str,,a,b),)
+$(call test,str.subst.str2str,empty-find,$$(call str.subst.str2str,abc,,X),abc)
+$(call test,str.subst.str2str,empty-repl,$$(call str.subst.str2str,banana,an,),ba)
+$(call test,str.subst.str2str,space-find,$$(call str.subst.str2str,a b c,$$s,_),a_b_c)
+$(call test,str.subst.str2str,dollar,$$(call str.subst.str2str,a$$cb$$(test.tab)c$$$$d,$$$$,%),a$$cb$$(test.tab)c%d)
+$(call test,str.subst.str2str,hash,$$(call str.subst.str2str,a$$(test.num)b,$$(test.num),-),a-b)
+$(call test,str.subst.str2str,newline,$$(call str.subst.str2str,a$$(test.lf)b,$$(test.lf),-),a-b)
+$(call test,str.subst.str2str,parens,$$(call str.subst.str2str,$$(test.lparen)a$$(test.rparen),$$(test.lparen),<),<a$$(test.rparen))
 
 # [str] <-- $(call str.subst.str2var,[str:in],[str:find],[var:repl])
+t.str.subst.str2var.repl  := x y
+t.str.subst.str2var.empty :=
+$(call test,str.subst.str2var,basic,$$(call str.subst.str2var,a-b,-,t.str.subst.str2var.repl),ax yb)
+$(call test,str.subst.str2var,empty-find,$$(call str.subst.str2var,abc,,t.str.subst.str2var.repl),abc)
+$(call test,str.subst.str2var,empty-var,$$(call str.subst.str2var,a-b,-,t.str.subst.str2var.empty),ab)
+$(call test,str.subst.str2var,no-var,$$(call str.subst.str2var,a-b,-,),a-b)
 
 # [str] <-- $(call str.subst.var2str,[str:in],[var:find],[str:repl])
+t.str.subst.var2str.find  := a b
+t.str.subst.var2str.empty :=
+$(call test,str.subst.var2str,basic,$$(call str.subst.var2str,xa by,t.str.subst.var2str.find,_),x_y)
+$(call test,str.subst.var2str,no-match,$$(call str.subst.var2str,xyz,t.str.subst.var2str.find,_),xyz)
+$(call test,str.subst.var2str,empty-var,$$(call str.subst.var2str,abc,t.str.subst.var2str.empty,X),abc)
+$(call test,str.subst.var2str,no-var,$$(call str.subst.var2str,abc,,X),abc)
+$(call test,str.subst.var2str,empty-in,$$(call str.subst.var2str,,t.str.subst.var2str.find,X),)
+$(call test,str.subst.var2str,empty-in-no-var,$$(call str.subst.var2str,,,X),)
+# NOTE: An empty [find] variable matches an empty [in] and returns [repl]; str2str returns [in] here.
+$(call test,str.subst.var2str,empty-in-empty-var,$$(call str.subst.var2str,,t.str.subst.var2str.empty,X),X)
 
 # [str] <-- $(call str.subst.var2var,[str:in],[var:find],[var:repl])
+t.str.subst.var2var.find  := a b
+t.str.subst.var2var.repl  := c,d
+t.str.subst.var2var.empty :=
+$(call test,str.subst.var2var,basic,$$(call str.subst.var2var,xa by,t.str.subst.var2var.find,t.str.subst.var2var.repl),xc$$cdy)
+$(call test,str.subst.var2var,empty-var,$$(call str.subst.var2var,xa by,t.str.subst.var2var.empty,t.str.subst.var2var.repl),xa by)
+$(call test,str.subst.var2var,no-repl-var,$$(call str.subst.var2var,xa by,t.str.subst.var2var.find,),xa by)
+$(call test,str.subst.var2var,empty-in-empty-var,$$(call str.subst.var2var,,t.str.subst.var2var.empty,t.str.subst.var2var.repl),c$$cd)
 
 # [str] <-- $(call str.prefix.str,[str:in],[str:find],[str:prefix])
+$(call test,str.prefix.str,basic,$$(call str.prefix.str,a-b-c,-,+),a+-b+-c)
+$(call test,str.prefix.str,no-match,$$(call str.prefix.str,abc,-,+),abc)
+$(call test,str.prefix.str,empty-find,$$(call str.prefix.str,a-b,,+),a-b)
+$(call test,str.prefix.str,empty-prefix,$$(call str.prefix.str,a-b,-,),a-b)
+$(call test,str.prefix.str,empty-in,$$(call str.prefix.str,,-,+),)
 
 # [str] <-- $(call str.prefix.var,[str:in],[var:find],[str:prefix])
+t.str.prefix.var.find  := a b
+t.str.prefix.var.empty :=
+$(call test,str.prefix.var,basic,$$(call str.prefix.var,xa by,t.str.prefix.var.find,<),x<a by)
+$(call test,str.prefix.var,empty-var,$$(call str.prefix.var,xy,t.str.prefix.var.empty,<),xy)
+$(call test,str.prefix.var,empty-in-empty-var,$$(call str.prefix.var,,t.str.prefix.var.empty,<),<)
 
 # [str] <-- $(call str.suffix.str,[str:in],[str:find],[str:suffix])
+$(call test,str.suffix.str,basic,$$(call str.suffix.str,a-b-c,-,+),a-+b-+c)
+$(call test,str.suffix.str,no-match,$$(call str.suffix.str,abc,-,+),abc)
+$(call test,str.suffix.str,empty-find,$$(call str.suffix.str,a-b,,+),a-b)
+$(call test,str.suffix.str,empty-suffix,$$(call str.suffix.str,a-b,-,),a-b)
+$(call test,str.suffix.str,empty-in,$$(call str.suffix.str,,-,+),)
 
 # [str] <-- $(call str.suffix.var,[str:in],[var:find],[str:suffix])
+t.str.suffix.var.find  := a b
+t.str.suffix.var.empty :=
+$(call test,str.suffix.var,basic,$$(call str.suffix.var,xa by,t.str.suffix.var.find,>),xa b>y)
+$(call test,str.suffix.var,empty-var,$$(call str.suffix.var,xy,t.str.suffix.var.empty,>),xy)
+$(call test,str.suffix.var,empty-in-empty-var,$$(call str.suffix.var,,t.str.suffix.var.empty,>),>)
 
 # [str] <-- $(call str.wrap.str,[str:in],[str:find],[str:prefix],[str:suffix])
+$(call test,str.wrap.str,basic,$$(call str.wrap.str,a-b-c,-,<,>),a<->b<->c)
+$(call test,str.wrap.str,no-match,$$(call str.wrap.str,abc,-,<,>),abc)
+$(call test,str.wrap.str,empty-find,$$(call str.wrap.str,a-b,,<,>),a-b)
+$(call test,str.wrap.str,only-prefix,$$(call str.wrap.str,a-b,-,<,),a<-b)
+$(call test,str.wrap.str,only-suffix,$$(call str.wrap.str,a-b,-,,>),a->b)
+$(call test,str.wrap.str,empty-in,$$(call str.wrap.str,,-,<,>),)
 
 # [str] <-- $(call str.wrap.var,[str:in],[var:find],[str:prefix],[str:suffix])
+t.str.wrap.var.find  := a b
+t.str.wrap.var.empty :=
+$(call test,str.wrap.var,basic,$$(call str.wrap.var,xa by,t.str.wrap.var.find,<,>),x<a b>y)
+$(call test,str.wrap.var,empty-var,$$(call str.wrap.var,xy,t.str.wrap.var.empty,<,>),xy)
+# NOTE: The empty-match fallback returns only [prefix]; [suffix] is dropped.
+$(call test,str.wrap.var,empty-in-empty-var,$$(call str.wrap.var,,t.str.wrap.var.empty,<,>),<)
 
 # [str] <-- $(call str.strip.str,[str:in],[str:strip])
+$(call test,str.strip.str,both,$$(call str.strip.str,xxaxx,x),a)
+$(call test,str.strip.str,start-only,$$(call str.strip.str,xxa,x),a)
+$(call test,str.strip.str,end-only,$$(call str.strip.str,axx,x),a)
+$(call test,str.strip.str,middle-kept,$$(call str.strip.str,xaxax,x),axa)
+$(call test,str.strip.str,all,$$(call str.strip.str,aaa,a),)
+$(call test,str.strip.str,none,$$(call str.strip.str,abc,x),abc)
+$(call test,str.strip.str,multichar,$$(call str.strip.str,ababXab,ab),X)
+$(call test,str.strip.str,empty-strip,$$(call str.strip.str,abc,),abc)
+$(call test,str.strip.str,empty-in,$$(call str.strip.str,,x),)
+$(call test,str.strip.str,strip-with-space,$$(call str.strip.str,x yx yAx y,x y),A)
+$(call test,str.strip.str,strip-spaces,$$(call str.strip.str,$$s$$sa b$$s,$$s),a b)
+$(call test,str.strip.str,dollar,$$(call str.strip.str,$$$$$$$$a$$$$,$$$$),a)
+$(call test,str.strip.str,comma,$$(call str.strip.str,$$ca$$c,$$c),a)
 
 # [str] <-- $(call str.strip.str.start,[str:in],[str:strip])
+$(call test,str.strip.str.start,basic,$$(call str.strip.str.start,xxaxx,x),axx)
+$(call test,str.strip.str.start,all,$$(call str.strip.str.start,xx,x),)
+$(call test,str.strip.str.start,none,$$(call str.strip.str.start,abc,x),abc)
+$(call test,str.strip.str.start,multichar,$$(call str.strip.str.start,ababXab,ab),Xab)
+$(call test,str.strip.str.start,empty-strip,$$(call str.strip.str.start,abc,),abc)
+$(call test,str.strip.str.start,strip-with-space,$$(call str.strip.str.start,x yAx y,x y),Ax y)
 
 # [str] <-- $(call str.strip.str.end,[str:in],[str:strip])
+$(call test,str.strip.str.end,basic,$$(call str.strip.str.end,xxaxx,x),xxa)
+$(call test,str.strip.str.end,all,$$(call str.strip.str.end,xx,x),)
+$(call test,str.strip.str.end,none,$$(call str.strip.str.end,abc,x),abc)
+$(call test,str.strip.str.end,multichar,$$(call str.strip.str.end,ababXab,ab),ababX)
+$(call test,str.strip.str.end,empty-strip,$$(call str.strip.str.end,abc,),abc)
+$(call test,str.strip.str.end,strip-with-space,$$(call str.strip.str.end,x yAx y,x y),x yA)
 
 # [str] <-- $(call str.strip.var,[str:in],[var:strip])
+t.str.strip.var.strip := a b
+t.str.strip.var.empty :=
+$(call test,str.strip.var,basic,$$(call str.strip.var,a ba bXa b,t.str.strip.var.strip),X)
+$(call test,str.strip.var,empty-var,$$(call str.strip.var,abc,t.str.strip.var.empty),abc)
 
 # [str] <-- $(call str.strip.var.start,[str:in],[var:strip])
+$(call test,str.strip.var.start,basic,$$(call str.strip.var.start,a ba bXa b,t.str.strip.var.strip),Xa b)
+$(call test,str.strip.var.start,empty-var,$$(call str.strip.var.start,abc,t.str.strip.var.empty),abc)
 
 # [str] <-- $(call str.strip.var.end,[str:in],[var:strip])
+$(call test,str.strip.var.end,basic,$$(call str.strip.var.end,a ba bXa b,t.str.strip.var.strip),a ba bX)
+$(call test,str.strip.var.end,empty-var,$$(call str.strip.var.end,abc,t.str.strip.var.empty),abc)
 
 # [str] <-- $(call str.subst.list2str,[str:in],[list:find],[str:repl])
+$(call test,str.subst.list2str,basic,$$(call str.subst.list2str,banana,b n,X),XaXaXa)
+$(call test,str.subst.list2str,single,$$(call str.subst.list2str,abc,b,X),aXc)
+$(call test,str.subst.list2str,empty-list,$$(call str.subst.list2str,abc,,X),abc)
+$(call test,str.subst.list2str,empty-in,$$(call str.subst.list2str,,a b,X),)
+$(call test,str.subst.list2str,empty-repl,$$(call str.subst.list2str,abc,a c,),b)
 
 # [str] <-- $(call str.subst.list2var,[str:in],[list:find],[var:repl])
+t.str.subst.list2var.repl := x y
+$(call test,str.subst.list2var,basic,$$(call str.subst.list2var,a-b,- b,t.str.subst.list2var.repl),ax yx y)
+$(call test,str.subst.list2var,empty-list,$$(call str.subst.list2var,abc,,t.str.subst.list2var.repl),abc)
 
 # [str] <-- $(call str.subst.vars2str,[str:in],[list{var}:find],[str:repl])
+t.str.subst.vars2str.f1    := a b
+t.str.subst.vars2str.f2    := ,
+t.str.subst.vars2str.empty :=
+$(call test,str.subst.vars2str,basic,$$(call str.subst.vars2str,xa b$$cy,t.str.subst.vars2str.f1 t.str.subst.vars2str.f2,_),x__y)
+$(call test,str.subst.vars2str,empty-var-in-list,$$(call str.subst.vars2str,xa by,t.str.subst.vars2str.empty t.str.subst.vars2str.f1,_),x_y)
+$(call test,str.subst.vars2str,empty-list,$$(call str.subst.vars2str,abc,,_),abc)
 
 # [str] <-- $(call str.subst.vars2var,[str:in],[list{var}:find],[var:repl])
+t.str.subst.vars2var.f1   := a b
+t.str.subst.vars2var.f2   := ,
+t.str.subst.vars2var.repl := <>
+$(call test,str.subst.vars2var,basic,$$(call str.subst.vars2var,xa b$$cy,t.str.subst.vars2var.f1 t.str.subst.vars2var.f2,t.str.subst.vars2var.repl),x<><>y)
+$(call test,str.subst.vars2var,empty-list,$$(call str.subst.vars2var,abc,,t.str.subst.vars2var.repl),abc)
 
 # [str] <-- $(call str.strip.list,[str:in],[list:strip])
+$(call test,str.strip.list,sequential,$$(call str.strip.list,abXab,a b),Xa)
+$(call test,str.strip.list,sequential-blocked,$$(call str.strip.list,baXab,a b),aXa)
+$(call test,str.strip.list,single,$$(call str.strip.list,xax,x),a)
+$(call test,str.strip.list,empty-list,$$(call str.strip.list,abc,),abc)
+$(call test,str.strip.list,empty-in,$$(call str.strip.list,,a),)
 
 # [str] <-- $(call str.strip.list.start,[str:in],[list:strip])
+$(call test,str.strip.list.start,basic,$$(call str.strip.list.start,abXab,a b),Xab)
+$(call test,str.strip.list.start,mixed-order,$$(call str.strip.list.start,babaX,a b),X)
+$(call test,str.strip.list.start,none,$$(call str.strip.list.start,Xab,a b),Xab)
+$(call test,str.strip.list.start,empty-list,$$(call str.strip.list.start,abc,),abc)
+$(call test,str.strip.list.start,empty-in,$$(call str.strip.list.start,,a),)
+$(call test,str.strip.list.start,overlap,$$(call str.strip.list.start,aabX,ab a),X)
+$(call test,str.strip.list.start,overlap-rev,$$(call str.strip.list.start,aabX,a ab),bX)
 
 # [str] <-- $(call str.strip.list.end,[str:in],[list:strip])
+$(call test,str.strip.list.end,basic,$$(call str.strip.list.end,abXab,a b),abX)
+$(call test,str.strip.list.end,mixed-order,$$(call str.strip.list.end,Xabba,a b),X)
+$(call test,str.strip.list.end,none,$$(call str.strip.list.end,abX,a b),abX)
+$(call test,str.strip.list.end,empty-list,$$(call str.strip.list.end,abc,),abc)
+$(call test,str.strip.list.end,empty-in,$$(call str.strip.list.end,,a),)
 
 # [str] <-- $(call str.strip.vars,[str:in],[list{var}:strip])
+t.str.strip.vars.s1 := a b
+t.str.strip.vars.s2 := c
+$(call test,str.strip.vars,sequential,$$(call str.strip.vars,a bca bXa bc,t.str.strip.vars.s1 t.str.strip.vars.s2),a bXa b)
+$(call test,str.strip.vars,empty-list,$$(call str.strip.vars,abc,),abc)
 
 # [str] <-- $(call str.strip.vars.start,[str:in],[list{var}:strip])
+$(call test,str.strip.vars.start,basic,$$(call str.strip.vars.start,a bca bXa bc,t.str.strip.vars.s1 t.str.strip.vars.s2),Xa bc)
+$(call test,str.strip.vars.start,empty-list,$$(call str.strip.vars.start,abc,),abc)
 
 # [str] <-- $(call str.strip.vars.end,[str:in],[list{var}:strip])
+$(call test,str.strip.vars.end,basic,$$(call str.strip.vars.end,a bca bXa bc,t.str.strip.vars.s1 t.str.strip.vars.s2),a bca bX)
+$(call test,str.strip.vars.end,empty-list,$$(call str.strip.vars.end,abc,),abc)
 
 # [str] <-- $(call str.subst.list2list,[str:in],[list:find],[list:repl])
 $(call test,str.subst.list2list,doc-example,\
 	$$(call str.subst.list2list,<string>,i < >,<i> << >>),\
 	<<str<<i>>ng>>)
+$(call test,str.subst.list2list,basic,$$(call str.subst.list2list,abc,a c,1 3),1b3)
+$(call test,str.subst.list2list,clobber,$$(call str.subst.list2list,ab,a b,b a),aa)
+$(call test,str.subst.list2list,short-repl,$$(call str.subst.list2list,abc,a b c,1),1)
+$(call test,str.subst.list2list,long-repl,$$(call str.subst.list2list,abc,a,1 2),1bc)
+$(call test,str.subst.list2list,empty-lists,$$(call str.subst.list2list,abc,,),abc)
+$(call test,str.subst.list2list,empty-in,$$(call str.subst.list2list,,a,1),)
 
 # [str] <-- $(call str.subst.list2vars,[str:in],[list:find],[list{var}:repl])
+t.str.subst.list2vars.r1 := x y
+t.str.subst.list2vars.r2 := ,
+$(call test,str.subst.list2vars,basic,$$(call str.subst.list2vars,abc,a c,t.str.subst.list2vars.r1 t.str.subst.list2vars.r2),x yb$$c)
+$(call test,str.subst.list2vars,empty-lists,$$(call str.subst.list2vars,abc,,),abc)
 
 # [str] <-- $(call str.subst.vars2list,[str:in],[list{var}:find],[list:repl])
+t.str.subst.vars2list.f1 := a b
+t.str.subst.vars2list.f2 := b
+$(call test,str.subst.vars2list,basic,$$(call str.subst.vars2list,xa bycbz,t.str.subst.vars2list.f1 t.str.subst.vars2list.f2,1 2),x1yc2z)
+$(call test,str.subst.vars2list,clobber,$$(call str.subst.vars2list,xa by,t.str.subst.vars2list.f1 t.str.subst.vars2list.f2,b 2),x2y)
+$(call test,str.subst.vars2list,empty-lists,$$(call str.subst.vars2list,abc,,),abc)
 
 # [str] <-- $(call str.subst.vars2vars,[str:in],[list{var}:find],[list{var}:repl])
+t.str.subst.vars2vars.f1 := a b
+t.str.subst.vars2vars.f2 := c
+t.str.subst.vars2vars.r1 := <>
+t.str.subst.vars2vars.r2 := -
+$(call test,str.subst.vars2vars,basic,$$(call str.subst.vars2vars,xa bycz,t.str.subst.vars2vars.f1 t.str.subst.vars2vars.f2,t.str.subst.vars2vars.r1 t.str.subst.vars2vars.r2),x<>y-z)
+$(call test,str.subst.vars2vars,empty-lists,$$(call str.subst.vars2vars,abc,,),abc)
 
 # [str] <-- $(call str.prefix.list,[str:in],[list:find],[str:prefix])
+$(call test,str.prefix.list,basic,$$(call str.prefix.list,abc,a c,+),+ab+c)
+$(call test,str.prefix.list,empty-list,$$(call str.prefix.list,abc,,+),abc)
 
 # [str] <-- $(call str.prefix.vars,[str:in],[list{var}:find],[str:prefix])
+t.str.prefix.vars.f1 := a b
+t.str.prefix.vars.f2 := c
+$(call test,str.prefix.vars,basic,$$(call str.prefix.vars,xa bycz,t.str.prefix.vars.f1 t.str.prefix.vars.f2,+),x+a by+cz)
+$(call test,str.prefix.vars,empty-list,$$(call str.prefix.vars,abc,,+),abc)
 
 # [str] <-- $(call str.suffix.list,[str:in],[list:find],[str:suffix])
+$(call test,str.suffix.list,basic,$$(call str.suffix.list,abc,a c,+),a+bc+)
+$(call test,str.suffix.list,empty-list,$$(call str.suffix.list,abc,,+),abc)
 
 # [str] <-- $(call str.suffix.vars,[str:in],[list{var}:find],[str:suffix])
+t.str.suffix.vars.f1 := a b
+t.str.suffix.vars.f2 := c
+$(call test,str.suffix.vars,basic,$$(call str.suffix.vars,xa bycz,t.str.suffix.vars.f1 t.str.suffix.vars.f2,+),xa b+yc+z)
+$(call test,str.suffix.vars,empty-list,$$(call str.suffix.vars,abc,,+),abc)
 
 # [str] <-- $(call str.wrap.list,[str:in],[list:find],[str:prefix],[str:suffix])
+$(call test,str.wrap.list,basic,$$(call str.wrap.list,abc,a c,<,>),<a>b<c>)
+$(call test,str.wrap.list,empty-list,$$(call str.wrap.list,abc,,<,>),abc)
 
 # [str] <-- $(call str.wrap.vars,[str:in],[list{var}:find],[str:prefix],[str:suffix])
+t.str.wrap.vars.f1 := a b
+t.str.wrap.vars.f2 := c
+$(call test,str.wrap.vars,basic,$$(call str.wrap.vars,xa bycz,t.str.wrap.vars.f1 t.str.wrap.vars.f2,<,>),x<a b>y<c>z)
+$(call test,str.wrap.vars,empty-list,$$(call str.wrap.vars,abc,,<,>),abc)
 
 # [str] <-- $(call str.treesubst.list2list,[str:in],[list:find],[list:repl])
 $(call test,str.treesubst.list2list,doc-example,\
 	$$(call str.treesubst.list2list,<string>,i < >,<i> << >>),\
 	<<str<i>ng>>)
+$(call test,str.treesubst.list2list,swap,$$(call str.treesubst.list2list,ab,a b,b a),ba)
+$(call test,str.treesubst.list2list,no-clobber,$$(call str.treesubst.list2list,a,a b,b c),b)
+$(call test,str.treesubst.list2list,overlap,$$(call str.treesubst.list2list,aab,ab a,X Y),YX)
+$(call test,str.treesubst.list2list,overlap-rev,$$(call str.treesubst.list2list,aab,a ab,X Y),XXb)
+$(call test,str.treesubst.list2list,short-repl,$$(call str.treesubst.list2list,abc,a b c,1),1)
+$(call test,str.treesubst.list2list,empty-lists,$$(call str.treesubst.list2list,abc,,),abc)
+$(call test,str.treesubst.list2list,empty-in,$$(call str.treesubst.list2list,,a,1),)
 
 # [str] <-- $(call str.treesubst.list2vars,[str:in],[list:find],[list{var}:repl])
+t.str.treesubst.list2vars.r1 := x y
+t.str.treesubst.list2vars.r2 := <
+$(call test,str.treesubst.list2vars,basic,$$(call str.treesubst.list2vars,abc,a c,t.str.treesubst.list2vars.r1 t.str.treesubst.list2vars.r2),x yb<)
+$(call test,str.treesubst.list2vars,empty-lists,$$(call str.treesubst.list2vars,abc,,),abc)
 
 # [str] <-- $(call str.treesubst.vars2list,[str:in],[list{var}:find],[list:repl])
+t.str.treesubst.vars2list.f1    := a b
+t.str.treesubst.vars2list.f2    := b
+t.str.treesubst.vars2list.empty :=
+$(call test,str.treesubst.vars2list,no-clobber,$$(call str.treesubst.vars2list,xa by,t.str.treesubst.vars2list.f1 t.str.treesubst.vars2list.f2,b 2),xby)
+$(call test,str.treesubst.vars2list,empty-var-ignored,$$(call str.treesubst.vars2list,abc,t.str.treesubst.vars2list.empty t.str.treesubst.vars2list.f2,1 2),a2c)
+$(call test,str.treesubst.vars2list,empty-lists,$$(call str.treesubst.vars2list,abc,,),abc)
 
 # [str] <-- $(call str.treesubst.vars2vars,[str:in],[list{var}:find],[list{var}:repl])
+t.str.treesubst.vars2vars.f1 := a b
+t.str.treesubst.vars2vars.f2 := c
+t.str.treesubst.vars2vars.r1 := <>
+t.str.treesubst.vars2vars.r2 := -
+$(call test,str.treesubst.vars2vars,basic,$$(call str.treesubst.vars2vars,xa bycz,t.str.treesubst.vars2vars.f1 t.str.treesubst.vars2vars.f2,t.str.treesubst.vars2vars.r1 t.str.treesubst.vars2vars.r2),x<>y-z)
+$(call test,str.treesubst.vars2vars,empty-lists,$$(call str.treesubst.vars2vars,abc,,),abc)
 
 
 
