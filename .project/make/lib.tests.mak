@@ -38,7 +38,7 @@
 # original encoding! UTF-8, LF line endings.
 #===============================================================================
 ifneq "$(filter lib.common.mak,$(notdir $(MAKEFILE_LIST)))" ""
-$(error Error: lib.common.mak must not be included prior to running lib.tests.mak. Exiting...)
+$(error Error: lib.common.mak must not be included prior to running lib.tests.mak.)
 endif
 
 __test.vars := $(subst %,\%,$(.VARIABLES))
@@ -301,15 +301,6 @@ __test.report.coverage = \
 
 
 test.exit_on_error = $(if $(strip $(__test.ids.failed) $(__test.ids.invalid)),$(error Exiting with error.$(if $(strip $(__test.ids.failed)),$(test.nl)$(words $(__test.ids.failed)) test(s) failed.)$(if $(strip $(__test.ids.invalid)),$(test.nl)$(words $(__test.ids.invalid)) test(s) invalid)))
-
-
-
-#func = $$0=[$0],$n$$1=[$1],$n$$2=[$2],$n$$3=[$3]
-
-#$(call test,func,case,$$(call func,$$1,$$2,$$3),$$$$0=[func]$$c$$n$$$$1=[]$$c$$n$$$$2=[]$$c$$n$$$$3=[])
-
-#$(info $e)
-#$(error Exiting...)
 
 
 

@@ -139,14 +139,14 @@ override expr.strip.ws      = $(if $(and $1,$(firstword $2)),$(call __expr.strip
 
 
 #-------------------------------------------------------------------------------
-#>    ### word.pack.<T>           	[word<T>] <-- $(call word.pack.<T>,[T:val])
-#>    ### expr.word.pack.<T>      	[expr<word<T>>([T:val])] <-- $(call expr.word.pack.<T>,[type:T],[expr:$1])
+#>    ### __word.pack.<T>         	[word<T>] <-- $(call __word.pack.<T>,[T:val])
+#>    ### expr.__word.pack.<T>    	[expr<word<T>>([T:val])] <-- $(call expr.__word.pack.<T>,[type:T],[expr:$1])
 #-------------------------------------------------------------------------------
 
 # $(call __expr.word.pack.list2list,expr:inexpr,list:from,list:to)
 override __expr.word.pack.list2list = $(if $(firstword $2),$(call $0,$(call expr.subst,$(firstword $2),$(firstword $3),$1),$(wordlist 2,$(words $2),$2),$(wordlist 2,$(words $3),$3)),$1)
 
-override expr.word.pack.<T> = $(strip $(foreach T,$1, \
+override expr.__word.pack.<T> = $(strip $(foreach T,$1, \
 	$( Local variables - Each var name is prefixed with the name of this function, '$0'. ) \
 	$( - $0.inexpr is the input expression which we operate on. Defaults to '$1') \
 	$( - $0.normal is the list of normal chars in this type's charset, 'char.$T'. ) \
@@ -158,9 +158,6 @@ override expr.word.pack.<T> = $(strip $(foreach T,$1, \
 	$(call var.set,override,$0.inexpr,{str},$(or $2,$$1)) \
 	$(call var.set,override,$0.normal,{str},$(sort $(filter-out $$%,$(char.$T)))) \
 	$(call var.set,override,$0.expand,{str},$(filter $$x,$(char.$T)) $(sort $(filter-out $$x $$e,$(filter $$%,$(char.$T)))) $(filter $$e,$(char.$T))) \
-	\
-	$(info $0.expand = [$($0.expand)]) \
-	$(info [$(call word.pack,{word},$($0.expand))]) \
 	\
 	$( Generate expression ) \
 	$( try to avoid relying on functions which call 'word.pack/word.unpack' to avoid a circular dependency ) \
@@ -175,13 +172,13 @@ override expr.word.pack.<T> = $(strip $(foreach T,$1, \
 
 
 #-------------------------------------------------------------------------------
-#>    ### word.unpack.<T>         	[T:val] <-- $(call word.unpack.<T>,[word<T>])
-#>    ### expr.word.unpack.<T>    	[expr<T:val>([word<T>])] <-- $(call expr.word.unpack.<T>,{type:T},[expr<word<T>>([word[T]]):$1])
+#>    ### __word.unpack.<T>       	[T:val] <-- $(call __word.unpack.<T>,[word<T>])
+#>    ### expr.__word.unpack.<T>  	[expr<T:val>([word<T>])] <-- $(call expr.__word.unpack.<T>,{type:T},[expr<word<T>>([word[T]]):$1])
 #-------------------------------------------------------------------------------
 # $(call __expr.word.unpack.list2list,expr:inexpr,list:from,list:to)
 override __expr.word.unpack.list2list = $(if $(firstword $2),$(call $0,$(call expr.subst,$(firstword $2),$(firstword $3),$1),$(wordlist 2,$(words $2),$2),$(wordlist 2,$(words $3),$3)),$1)
 
-override expr.word.unpack.<T> = $(strip $(foreach T,$1, \
+override expr.__word.unpack.<T> = $(strip $(foreach T,$1, \
 	$( Local variables - Each var name is prefixed with the name of this function, '$0'. ) \
 	$( - $0.inexpr is the input expression which we operate on. Defaults to '$1') \
 	$( - $0.normal is the list of normal chars in this type's charset, 'char.$T'. ) \
@@ -207,10 +204,10 @@ override expr.word.unpack.<T> = $(strip $(foreach T,$1, \
 
 
 #-------------------------------------------------------------------------------
-#>    ### chars.split.<T>         	[list<char>] <-- $(call chars.split.<T>,[T:val])
-#>    ### expr.chars.split.<T>    	[expr<list<char>>([T:val])] <-- $(call expr.chars.split.<T>,{type:T},[expr<T>([T:val]):$1])
+#>    ### __chars.split.<T>       	[list<char>] <-- $(call __chars.split.<T>,[T:val])
+#>    ### expr.__chars.split.<T>  	[expr<list<char>>([T:val])] <-- $(call expr.__chars.split.<T>,{type:T},[expr<T>([T:val]):$1])
 #-------------------------------------------------------------------------------
-override expr.chars.split.<T> = $(strip $(foreach T,$1, \
+override expr.__chars.split.<T> = $(strip $(foreach T,$1, \
 	$( Local variables - Each var name is prefixed with the name of this function, '$0'. ) \
 	$( - $0.inexpr is the input expression which we operate on. Defaults to '$1') \
 	$( - $0.normal is the list of normal chars in this type's charset, 'char.$T'. ) \
@@ -224,7 +221,7 @@ override expr.chars.split.<T> = $(strip $(foreach T,$1, \
 	$(call var.set,override,$0.expand,{str},$(filter $$x,$(char.$T)) $(sort $(filter-out $$x $$e,$(filter $$%,$(char.$T)))) $(filter $$e,$(char.$T))) \
 	\
 	$( Generate expression) \
-	$(call expr.strip,$(subst $$x,$$$$,$(call expr.subst.list2list,$(call expr.call,word.pack.$T,$($0.inexpr)),$(call word.pack,{word},$($0.expand) $($0.normal)),$(addsuffix $$s,$(call word.pack,{word},$($0.expand) $($0.normal)))))) \
+	$(call expr.strip,$(subst $$x,$$$$,$(call expr.subst.list2list,$(call expr.call,__word.pack.$T,$($0.inexpr)),$(call word.pack,{word},$($0.expand) $($0.normal)),$(addsuffix $$s,$(call word.pack,{word},$($0.expand) $($0.normal)))))) \
 	\
 	$( Cleanup local variables) \
 	$(foreach var,$($0.locals),$(call var.set,override,$(var),{str},$e)) \
@@ -234,41 +231,41 @@ override expr.chars.split.<T> = $(strip $(foreach T,$1, \
 
 
 # Generic Overrides
-override expr.word.pack.{bool}      = $(call $(if $2,expr.call,expr.var),word.pack.{str},$2)
-override expr.word.unpack.{bool}    = $(call $(if $2,expr.call,expr.var),word.unpack.{str},$2)
-override expr.chars.split.{bool}    = $(call $(if $2,expr.call,expr.var),chars.split.{str},$2)
+override expr.__word.pack.{bool}      = $(call $(if $2,expr.call,expr.var),__word.pack.{str},$2)
+override expr.__word.unpack.{bool}    = $(call $(if $2,expr.call,expr.var),__word.unpack.{str},$2)
+override expr.__chars.split.{bool}    = $(call $(if $2,expr.call,expr.var),__chars.split.{str},$2)
 
-override expr.word.pack.{char}      = $(call $(if $2,expr.call,expr.var),word.pack.{str},$2)
-override expr.word.unpack.{char}    = $(call $(if $2,expr.call,expr.var),word.unpack.{str},$2)
-override expr.chars.split.{char}    = $(call expr.strip,$(or $2,$$1))
+override expr.__word.pack.{char}      = $(call $(if $2,expr.call,expr.var),__word.pack.{str},$2)
+override expr.__word.unpack.{char}    = $(call $(if $2,expr.call,expr.var),__word.unpack.{str},$2)
+override expr.__chars.split.{char}    = $(call expr.strip,$(or $2,$$1))
 
-override expr.word.pack.{expr}      = $(call $(if $2,expr.call,expr.var),word.pack.{str},$2)
-override expr.word.unpack.{expr}    = $(call $(if $2,expr.call,expr.var),word.unpack.{str},$2)
-override expr.chars.split.{expr}    = $(call $(if $2,expr.call,expr.var),chars.split.{str},$2)
+override expr.__word.pack.{expr}      = $(call $(if $2,expr.call,expr.var),__word.pack.{str},$2)
+override expr.__word.unpack.{expr}    = $(call $(if $2,expr.call,expr.var),__word.unpack.{str},$2)
+override expr.__chars.split.{expr}    = $(call $(if $2,expr.call,expr.var),__chars.split.{str},$2)
 
-override expr.word.pack.{origin}    = $(call $(if $2,expr.call,expr.var),word.pack.{line},$2)
-override expr.word.unpack.{origin}  = $(call $(if $2,expr.call,expr.var),word.unpack.{line},$2)
-override expr.chars.split.{origin}  = $(call $(if $2,expr.call,expr.var),chars.split.{line},$2)
+override expr.__word.pack.{origin}    = $(call $(if $2,expr.call,expr.var),__word.pack.{line},$2)
+override expr.__word.unpack.{origin}  = $(call $(if $2,expr.call,expr.var),__word.unpack.{line},$2)
+override expr.__chars.split.{origin}  = $(call $(if $2,expr.call,expr.var),__chars.split.{line},$2)
 
-override expr.word.pack.{feature}   = $(call $(if $2,expr.call,expr.var),word.pack.{word},$2)
-override expr.word.unpack.{feature} = $(call $(if $2,expr.call,expr.var),word.unpack.{word},$2)
-override expr.chars.split.{feature} = $(call $(if $2,expr.call,expr.var),chars.split.{word},$2)
+override expr.__word.pack.{feature}   = $(call $(if $2,expr.call,expr.var),__word.pack.{word},$2)
+override expr.__word.unpack.{feature} = $(call $(if $2,expr.call,expr.var),__word.unpack.{word},$2)
+override expr.__chars.split.{feature} = $(call $(if $2,expr.call,expr.var),__chars.split.{word},$2)
 
-override expr.word.pack.{flavor}    = $(call $(if $2,expr.call,expr.var),word.pack.{word},$2)
-override expr.word.unpack.{flavor}  = $(call $(if $2,expr.call,expr.var),word.unpack.{word},$2)
-override expr.chars.split.{flavor}  = $(call $(if $2,expr.call,expr.var),chars.split.{word},$2)
+override expr.__word.pack.{flavor}    = $(call $(if $2,expr.call,expr.var),__word.pack.{word},$2)
+override expr.__word.unpack.{flavor}  = $(call $(if $2,expr.call,expr.var),__word.unpack.{word},$2)
+override expr.__chars.split.{flavor}  = $(call $(if $2,expr.call,expr.var),__chars.split.{word},$2)
 
-override expr.word.pack.{type}      = $(call $(if $2,expr.call,expr.var),word.pack.{word},$2)
-override expr.word.unpack.{type}    = $(call $(if $2,expr.call,expr.var),word.unpack.{word},$2)
-override expr.chars.split.{type}    = $(call $(if $2,expr.call,expr.var),chars.split.{word},$2)
+override expr.__word.pack.{type}      = $(call $(if $2,expr.call,expr.var),__word.pack.{word},$2)
+override expr.__word.unpack.{type}    = $(call $(if $2,expr.call,expr.var),__word.unpack.{word},$2)
+override expr.__chars.split.{type}    = $(call $(if $2,expr.call,expr.var),__chars.split.{word},$2)
 
-override expr.word.pack.{idx}       = $(call $(if $2,expr.call,expr.var),word.pack.{uint},$2)
-override expr.word.unpack.{idx}     = $(call $(if $2,expr.call,expr.var),word.unpack.{uint},$2)
-override expr.chars.split.{idx}     = $(call $(if $2,expr.call,expr.var),chars.split.{uint},$2)
+override expr.__word.pack.{idx}       = $(call $(if $2,expr.call,expr.var),__word.pack.{uint},$2)
+override expr.__word.unpack.{idx}     = $(call $(if $2,expr.call,expr.var),__word.unpack.{uint},$2)
+override expr.__chars.split.{idx}     = $(call $(if $2,expr.call,expr.var),__chars.split.{uint},$2)
 
-override expr.word.pack.{digit}     = $(call $(if $2,expr.call,expr.var),word.pack.{uint},$2)
-override expr.word.unpack.{digit}   = $(call $(if $2,expr.call,expr.var),word.unpack.{uint},$2)
-override expr.chars.split.{digit}   = $(call expr.strip,$(or $2,$$1))
+override expr.__word.pack.{digit}     = $(call $(if $2,expr.call,expr.var),__word.pack.{uint},$2)
+override expr.__word.unpack.{digit}   = $(call $(if $2,expr.call,expr.var),__word.unpack.{uint},$2)
+override expr.__chars.split.{digit}   = $(call expr.strip,$(or $2,$$1))
 
 #-------------------------------------------------------------------------------
 #	{path}      	Path
@@ -330,15 +327,15 @@ override expr.chars.split.{digit}   = $(call expr.strip,$(or $2,$$1))
 #	 '/'    --> ''   	   +   	   +   	   +   	   $e$ePART$e$ePART$e$e
 #	 '$e$e' --> '/'  	   +   	   +   	   +   	   /PART/PART/
 #-------------------------------------------------------------------------------
-override expr.word.pack.{path}  = $(subst $$1,$(call expr.word.pack.<T>,$1,$2),$(subst $$x,$$$$,$(call expr.subst.list2list,$$1,\
+override expr.__word.pack.{path}  = $(subst $$1,$(call expr.__word.pack.<T>,$1,$2),$(subst $$x,$$$$,$(call expr.subst.list2list,$$1,\
 	$$xb	$$xs	$$b$$b	$$b$$s  	$$b$$xp 	$$b[ 	$$b] 	$$b? 	$$s 	$$b 	/        	$$xe$$xe	/   	$$xe$$xe,\
 	$$b 	$$s 	/     	$$xb$$xs	$$xb$$xp	$$xb[	$$xb]	$$xb?	$$xs	/   	$$xe/$$xe	$$e     	$$e 	/        \
 )))
-override expr.word.pack.{xpath} = $(subst $$1,$(call expr.word.pack.<T>,$1,$2),$(subst $$x,$$$$,$(call expr.subst.list2list,$$1,\
+override expr.__word.pack.{xpath} = $(subst $$1,$(call expr.__word.pack.<T>,$1,$2),$(subst $$x,$$$$,$(call expr.subst.list2list,$$1,\
 	$$xb	$$xs	$$b$$b	$$b$$s  	$$b$$xp 	$$b[ 	$$b] 	$$b? 	    	$$b 	/        	$$xe$$xe	/   	$$xe$$xe,\
 	$$b 	$$s 	/     	$$xb$$xs	$$xb$$xp	$$xb[	$$xb]	$$xb?	    	/   	$$xe/$$xe	$$e     	$$e 	/        \
 )))
-override expr.word.pack.{wpath} = $(subst $$1,$(call expr.word.pack.<T>,$1,$2),$(subst $$x,$$$$,$(call expr.subst.list2list,$$1,\
+override expr.__word.pack.{wpath} = $(subst $$1,$(call expr.__word.pack.<T>,$1,$2),$(subst $$x,$$$$,$(call expr.subst.list2list,$$1,\
 	$$xb	    	$$b$$b	        	$$b$$xp 	$$b[ 	$$b] 	$$b? 	    	$$b 	/        	$$xe$$xe	/   	$$xe$$xe,\
 	$$b 	    	/     	        	$$xb$$xp	$$xb[	$$xb]	$$xb?	    	/   	$$xe/$$xe	$$e     	$$e 	/        \
 )))
@@ -357,9 +354,9 @@ override expr.word.pack.{wpath} = $(subst $$1,$(call expr.word.pack.<T>,$1,$2),$
 #
 # generics
 #   generics.header
-#   word.pack.<T>
-#     word.pack.{str}
-#     word.pack.{char}
+#   __word.pack.<T>
+#     __word.pack.{str}
+#     __word.pack.{char}
 #   generics.footer
 #
 
@@ -384,8 +381,8 @@ generics.header:
 generics.footer:
 	$(info $(call file.tee,>>,$(generics.file),$($@)))
 
-# chars.split.<T>, word.pack.<T>, word.unpack.<T>, ...
-# chars.split.{str}, chars.split.{char}, ...
+# __chars.split.<T>, __word.pack.<T>, __word.unpack.<T>, ...
+# __chars.split.{str}, __chars.split.{char}, ...
 override define expr.generics.target
 $1: | $$(foreach T,$$(generics.types),$$(subst <T>,$$T,$1))
 	$$(info $$(call file.tee,>>,$$(generics.file),$$e))
