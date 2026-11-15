@@ -5,11 +5,12 @@
 #
 # Usage (from the repository root):
 #
-#	make -f .project/make/lib.tests.mak                Run all tests
-#	make -f .project/make/lib.tests.mak tests=int.%    Run tests whose function name, or
-#	                                                   FUNC:CASE id, matches a %-pattern
-#	make -f .project/make/lib.tests.mak verbose=1      Also print passing tests
-#	make -f .project/make/lib.tests.mak coverage=1     Also list library functions with no tests
+#	make -f .project/make/lib.tests.mak                         Run all tests
+#	make -f .project/make/lib.tests.mak tests=int.%             Run tests whose function name, or
+#	                                                              FUNC:CASE id, matches a %-pattern
+#	make -f .project/make/lib.tests.mak verbose=1               Also print passing tests
+#	make -f .project/make/lib.tests.mak coverage=1              List library functions with no tests
+#	make -f .project/make/lib.tests.mak coverage=1 verbose=1    Also print functions with test coverage
 #
 #	Exits 0 if all selected tests pass, or 2 if any fail.
 #
@@ -292,13 +293,21 @@ __test.value        = $(subst $$$$,,$(value $1))
 #-------------------------------------------------------------------------------
 test.report.summary = \
 	$(info $(test.empty))\
-	$(info $(notdir $(__test.file)): $(words $(__test.ids.passed)) passed$(test.comma) $(words $(__test.ids.failed)) failed, $(words $(__test.ids.skipped)) skipped, $(words $(__test.ids.invalid)) invalid ($(words $(__test.ids.passed) $(__test.ids.failed) $(__test.ids.skipped) $(__test.ids.invalid)) total))\
+	$(info $(notdir $(__test.file)): $(words $(__test.ids.passed)) passed$(test.comma) $(words $(__test.ids.failed)) failed, $(words $(__test.ids.skipped)) skipped, $(words $(__test.ids.invalid)) invalid ($(words $(__test.ids.passed) $(__test.ids.failed) $(__test.ids.skipped) $(__test.ids.invalid)) total))
 
 test.report.coverage = $(call __test.report.coverage,$(sort $(filter-out _%,$(call __test.var.filter.functions,$(__test.vars)))))
 __test.report.coverage = \
+	$( Local variables )\
+	$(eval override $0.funcs.all      := $1)\
+	$(eval override $0.funcs.tested   := $(filter     $(__test.funcs),$($0.funcs.all)))\
+	$(eval override $0.funcs.untested := $(filter-out $(__test.funcs),$($0.funcs.all)))\
+	\
+	$( Print results )\
 	$(info $(test.empty))\
-	$(info coverage: $(words $1) library functions$(test.comma) $(words $(filter $(__test.funcs),$1)) tested$(test.comma) $(words $(filter-out $(__test.funcs),$1)) untested:)\
-	$(foreach __F,$(filter-out $(__test.funcs),$1),$(info $(test.empty)  $(__F)))
+	$(info coverage: $(words $($0.funcs.all)) library functions$(test.comma) $(words $($0.funcs.tested)) (+)tested$(test.comma) $(words $($0.funcs.untested)) (-)untested)\
+	$(foreach __F,$(if $(verbose),$($0.funcs.all),$($0.funcs.untested)),\
+		$(info $(test.empty)  $(if $(filter $(__F),$($0.funcs.tested)),(+),(-)) $(__F))\
+	)
 
 
 test.exit_on_error = $(if $(strip $(__test.ids.failed) $(__test.ids.invalid)),$(error Exiting with error.$(if $(strip $(__test.ids.failed)),$(test.nl)$(words $(__test.ids.failed)) test(s) failed.)$(if $(strip $(__test.ids.invalid)),$(test.nl)$(words $(__test.ids.invalid)) test(s) invalid)))
