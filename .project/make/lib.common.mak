@@ -1765,9 +1765,9 @@ override str.to.idx  = $(filter-out 0,$(call str.to.uint,$1))
 # {int}  <-- $(call __int.strip.zeros,{int})
 # {uint} <-- $(call __uint.strip.zeros,{uint})
 #	Strips leading zeros; 00300 --> 300, 00000 --> 0
-#	Warning: Runs forever if input is empty or does not consist exclusively of the characters in the type charset.
+#	Int variant corrects -0 to 0.
 override __int.strip.zeros  = $(subst -0,0,$(if $(1:-%=),,-)$(call __uint.strip.zeros,$(1:-%=%)))
-override __uint.strip.zeros = $(if $(filter 0 1% 2% 3% 4% 5% 6% 7% 8% 9%,$1),$1,$(call $0,$(1:0%=%)))
+override __uint.strip.zeros = $(if $(filter 0 1% 2% 3% 4% 5% 6% 7% 8% 9%,$1),$(1:%=%),$(if $(filter 0%,$1),$(call $0,$(1:0%=%))))
 
 
 
@@ -1779,14 +1779,8 @@ override __uint.strip.zeros = $(if $(filter 0 1% 2% 3% 4% 5% 6% 7% 8% 9%,$1),$1,
 #-------------------------------------------------------------------------------
 
 
+
 #-------------------------------------------------------------------------------
-# {list{digit|-}} <-- $(call __digits.add,[list{digit|-}:A],[list{digit|-}:B])
-# {list{digit|-}} <-- $(call __digits.sub,[list{digit|-}:A],[list{digit|-}:B])
-#
-#	Performs long addition/subtraction between two lists of digits.
-#	Inputs may include a leading negative sign '-' character.
-#	Returns the sum/difference as a list with leading 0s removed.
-#
 # {word:digit/carry} <-- $(call __digit.add,[digit:A],[digit:A],[0|1:C])
 # {word:digit/carry} <-- $(call __digit.sub,[digit:B],[digit:B],[0|1:C])
 #
@@ -1810,16 +1804,42 @@ override __uint.strip.zeros = $(if $(filter 0 1% 2% 3% 4% 5% 6% 7% 8% 9%,$1),$1,
 #------------------------------------------------------------------------------------------------#
 override __digit.add = $(word 1$(or $2,0),x x x x x x x x x $(wordlist $(word 1$(or $1,0),$(if $(3:0=),,x) x x x x x x x x 1 2 3 4 5 6 7 8 9 10 11),20,0/0 1/0 2/0 3/0 4/0 5/0 6/0 7/0 8/0 9/0 0/1 1/1 2/1 3/1 4/1 5/1 6/1 7/1 8/1 9/1))
 override __digit.sub = $(word 1$(or $2,0),x x x x x x x x x $(wordlist $(word 1$(or $1,0),$(if $(3:0=),x,) x x x x x x x x 11 10 9 8 7 6 5 4 3 2 1),20,9/0 8/0 7/0 6/0 5/0 4/0 3/0 2/0 1/0 0/0 9/1 8/1 7/1 6/1 5/1 4/1 3/1 2/1 1/1 0/1))
-#                                                            | (-)+(-) = -(|A|+|B|)               | (-)+(+) = |B|-|A|                                     | (+)+(-) = |A|-|B|                | (+)+(+) = ...             add each pair of digits, starting with the rightmost digit, until empty or only leading 0s remain                  extract carry                 | result: strip carry              | if leftmost carry=1, carry the 1.
-override __digits.add = $(if $(filter -,$1),$(if $(filter -,$2),- $(call __digits.add,$(1:-=),$(2:-=)),$(call __digits.sub,$(2:-=),$(1:-=))),$(if $(filter -,$2),$(call __digits.sub,$(1:-=),$(2:-=)),$(if $(filter-out 0,$1 $2),$(call $0,$(call list.remove.last,$1),$(call list.remove.last,$2),$(call __digit.add,$(lastword $1),$(lastword $2),$(notdir $(firstword $3))) $3),$(patsubst %/0,%,$(patsubst %/1,%,$(if $(filter %/1,$(firstword $3)),1 $3,$(or $3,0)))))))
-#                                                            | (-)-(-) = |B|-|A|                  | (-)-(+) = -(|A|+|B|)                                  | (+)-(-) = |A|+|B|                | (+)-(+) = ...             sub each pair of digits, starting with the rightmost digit, until empty or only leading 0s remain                  extract carry                 | result: strip carry              | if leftmost carry=1, then |A|<|B|, so redo calculation as -(|B|-|A|)
-override __digits.sub = $(if $(filter -,$1),$(if $(filter -,$2),$(call __digits.sub,$(2:-=),$(1:-=)),- $(call __digits.add,$(1:-=),$(2:-=))),$(if $(filter -,$2),$(call __digits.add,$(1:-=),$(2:-=)),$(if $(filter-out 0,$1 $2),$(call $0,$(call list.remove.last,$1),$(call list.remove.last,$2),$(call __digit.sub,$(lastword $1),$(lastword $2),$(notdir $(firstword $3))) $3),$(patsubst %/0,%,$(patsubst %/1,%,$(if $(filter %/1,$(firstword $3)),- $(call $0,1 $(3:%=0),$(patsubst %/0,%,$(3:%/1=%))),$(or $(call filter-out.start,0/%,$3),0)))))))
 
 
 
 #-------------------------------------------------------------------------------
-#> int.abs          	[int]   |   $(call int.abs,[int])
-#> int.neg          	[int]   |   $(call int.neg,[int])
+# {list{digit}}   <-- $(call __digits.add,[list{digit}:A],[list{digit}:B])
+# {list{digit|-}} <-- $(call __digits.sub,[list{digit}:A],[list{digit}:B])
+#
+#	Performs long addition/subtraction between two lists of digits.
+#	Input lists may not include '-' at this stage; problems must be reformulated
+#	to avoid adding/subtracting negative numbers.
+#	Returns the sum/difference as a list with leading 0s removed and possibly a
+#	leading '-' if the result is negative.
+#-------------------------------------------------------------------------------
+# if list is empty or only leading 0s remain:
+#	add each pair of digits, starting with the rightmost digit | extract carry | result: strip carry | if leftmost carry=1, carry the 1.
+override define __digits.add
+$(strip $(if $(filter-out 0,$1 $2),
+	$(call $0,$(call list.remove.last,$1),$(call list.remove.last,$2),$(call __digit.add,$(lastword $1),$(lastword $2),$(notdir $(firstword $3))) $3),
+	$(patsubst %/0,%,$(patsubst %/1,%,$(if $(filter %/1,$(firstword $3)),1 $3,$(or $3,0))))
+))
+endef
+
+# if list is empty, or only leading 0s remain:
+# 	sub each pair of digits, starting with the rightmost digit | extract carry | result: strip carry | if leftmost carry=1, then |A|<|B|, so redo calculation as -(|B|-|A|)
+override define __digits.sub
+$(strip $(if $(filter-out 0,$1 $2),
+	$(call $0,$(call list.remove.last,$1),$(call list.remove.last,$2),$(call __digit.sub,$(lastword $1),$(lastword $2),$(notdir $(firstword $3))) $3),
+	$(patsubst %/0,%,$(patsubst %/1,%,$(if $(filter %/1,$(firstword $3)),- $(call $0,1 $(3:%=0),$(patsubst %/0,%,$(3:%/1=%))),$(or $(call filter-out.start,0/%,$3),0))))
+))
+endef
+
+
+
+#-------------------------------------------------------------------------------
+#> int.abs          	[int]   |   $(call int.abs,[int:A])
+#> int.neg          	[int]   |   $(call int.neg,[int:A])
 #> int.add          	[int]   |   $(call int.add,[int:A],[int:B])
 #> int.sub          	[int]   |   $(call int.sub,[int:A],[int:B])
 #> int.max          	[int]   |   $(call int.max,[int:A],[int:B])
@@ -1828,13 +1848,58 @@ override __digits.sub = $(if $(filter -,$1),$(if $(filter -,$2),$(call __digits.
 #
 #	Performs the given operation on one or more integer values.
 #
+#	Inputs are tolerant of [empty], whitespace, leading 0s, and negative 0.
+#	  They are NOT tolerant of lists, bare '-', or invalid characters;
+#	  use str.to.int for complete input validation.
+#
+#	Outputs have whitespace and leading 0s removed, and negative 0 corrected.
+#	  If any input is [empty] or whitespace-only, output is also [empty].
+#
 #-------------------------------------------------------------------------------
-override int.abs   = $(and $1   ,$(subst -,,$1))
-override int.neg   = $(and $1   ,$(foreach int,$1,$(if $(findstring -,$(int)),$(int:-%=%),$(int))))
-override int.add   = $(and $1,$2,$(subst $s,,$(call $(0:int.%=__digits.%),$(call chars.split,int,$1),$(call chars.split,int,$2))))
-override int.sub   = $(and $1,$2,$(subst $s,,$(call $(0:int.%=__digits.%),$(call chars.split,int,$1),$(call chars.split,int,$2))))
-override int.max   = $(and $1,$2,$(or $(if $(call int.gtr,$1,$2),$1,$2),0))
-override int.min   = $(and $1,$2,$(or $(if $(call int.lss,$1,$2),$1,$2),0))
+override int.abs = $(call __uint.strip.zeros,$(1:-%=%))
+override int.neg = $(if $(call int.gtr.0,$1),-$(call __uint.strip.zeros,$1),$(if $(call int.leq.0,$1),$(call int.abs,$1)))
+override int.max = $(and $(1:%=%),$(2:%=%),$(call __int.strip.zeros,$(or $(call int.gtr,$1,$2),$2)))
+override int.min = $(and $(1:%=%),$(2:%=%),$(call __int.strip.zeros,$(or $(call int.lss,$1,$2),$2)))
+
+#  A   B
+# (+)+(+) =   |A|+|B|
+# (+)+(-) =   |A|-|B|
+# (-)+(+) =   |B|-|A|
+# (-)+(-) = -(|B|+|A|)
+override define int.add =
+$(and $(1:%=%),$(2:%=%),$(subst $s,,$(strip
+	$(if $(call int.gtr.0,$1),
+		$(if $(call int.gtr.0,$2),
+			   $(call __digits.add,$(call chars.split,uint,$(1:-%=%)),$(call chars.split,uint,$(2:-%=%))),
+			   $(call __digits.sub,$(call chars.split,uint,$(1:-%=%)),$(call chars.split,uint,$(2:-%=%)))
+		),
+		$(if $(call int.gtr.0,$2),
+			   $(call __digits.sub,$(call chars.split,uint,$(2:-%=%)),$(call chars.split,uint,$(1:-%=%))),
+			 - $(call __digits.add,$(call chars.split,uint,$(2:-%=%)),$(call chars.split,uint,$(1:-%=%)))
+		)
+	)
+)))
+endef
+
+#  A   B
+# (+)-(+) =   |A|-|B|
+# (+)-(-) =   |A|+|B|
+# (-)-(+) = -(|B|+|A|)
+# (-)-(-) =   |B|-|A|
+override define int.sub =
+$(and $(1:%=%),$(2:%=%),$(subst $s,,$(strip
+	$(if $(call int.gtr.0,$1),
+		$(if $(call int.gtr.0,$2),
+			   $(call __digits.sub,$(call chars.split,uint,$(1:-%=%)),$(call chars.split,uint,$(2:-%=%))),
+			   $(call __digits.add,$(call chars.split,uint,$(1:-%=%)),$(call chars.split,uint,$(2:-%=%)))
+		),
+		$(if $(call int.gtr.0,$2),
+			 - $(call __digits.add,$(call chars.split,uint,$(2:-%=%)),$(call chars.split,uint,$(1:-%=%))),
+			   $(call __digits.sub,$(call chars.split,uint,$(2:-%=%)),$(call chars.split,uint,$(1:-%=%)))
+		)
+	)
+)))
+endef
 
 
 
@@ -1867,27 +1932,32 @@ override int.min   = $(and $1,$2,$(or $(if $(call int.lss,$1,$2),$1,$2),0))
 #-------------------------------------------------------------------------------
 #
 #	Compares a pair of integer values.
-#	Returns {true} (nonempty) equal to [int:A] if the comparison is true;
+#
+#	Returns {true} (int:A) if the comparison is true;
 #	Returns [false] (empty) if the comparision is false.
-#	Always returns [false] if any inputs are [empty].
+#
+#	Inputs are tolerant of [empty], whitespace, leading 0s, and negative 0.
+#	  They are NOT tolerant of lists, bare '-', or invalid characters;
+#	  use str.to.int for complete input validation.
+#
+#	Outputs are either [empty] or [A], verbatim; A is never modified.
+#	  If any input is [empty] or whitespace-only, output is also [empty].
 #
 #-------------------------------------------------------------------------------
-override int.equ.0 = $(and $1   ,$(filter     0   ,$1))
-override int.neq.0 = $(and $1   ,$(filter-out 0   ,$1))
-override int.gtr.0 = $(and $1   ,$(filter-out 0 -%,$1))
-override int.geq.0 = $(and $1   ,$(filter-out   -%,$1))
-override int.leq.0 = $(and $1   ,$(filter     0 -%,$1))
-override int.lss.0 = $(and $1   ,$(filter       -%,$1))
+#                           non-ws                 zero/nonzero                      nonnegative/negative
+override int.equ.0 = $(and $(1:%=%),     $(if $(subst 0,,$(subst -0,0,$(1:%=%))),,0),                     $1)
+override int.neq.0 = $(and $(1:%=%),          $(subst 0,,$(subst -0,0,$(1:%=%))),                         $1)
+override int.gtr.0 = $(and $(1:%=%),          $(subst 0,,$(subst -0,0,$(1:%=%))),    $(filter-out -%,$1), $1)
+override int.geq.0 = $(and $(1:%=%),$(or $(if $(subst 0,,$(subst -0,0,$(1:%=%))),,0),$(filter-out -%,$1)),$1)
+override int.leq.0 = $(and $(1:%=%),$(or $(if $(subst 0,,$(subst -0,0,$(1:%=%))),,0),$(filter     -%,$1)),$1)
+override int.lss.0 = $(and $(1:%=%),          $(subst 0,,$(subst -0,0,$(1:%=%))),    $(filter     -%,$1), $1)
 
-override int.equ   = $(and $1,$2,$(filter     $2,$1))
-override int.neq   = $(and $1,$2,$(filter-out $2,$1))
-override int.gtr   = $(and $1,$2,$(if $(filter-out 0 -%,$(call int.sub,$1,$2)),$1))
-override int.geq   = $(and $1,$2,$(if $(filter-out   -%,$(call int.sub,$1,$2)),$1))
-override int.leq   = $(and $1,$2,$(if $(filter     0 -%,$(call int.sub,$1,$2)),$1))
-override int.lss   = $(and $1,$2,$(if $(filter       -%,$(call int.sub,$1,$2)),$1))
-
-
-
+override int.equ   = $(and $(1:%=%),$(2:%=%),$(call str.equ,$(call __int.strip.zeros,$1),$(call __int.strip.zeros,$2)),$1)
+override int.neq   = $(and $(1:%=%),$(2:%=%),$(call str.neq,$(call __int.strip.zeros,$1),$(call __int.strip.zeros,$2)),$1)
+override int.gtr   = $(and $(1:%=%),$(2:%=%),$(call int.gtr.0,$(call int.sub,$1,$2)),$1)
+override int.geq   = $(and $(1:%=%),$(2:%=%),$(call int.geq.0,$(call int.sub,$1,$2)),$1)
+override int.leq   = $(and $(1:%=%),$(2:%=%),$(call int.leq.0,$(call int.sub,$1,$2)),$1)
+override int.lss   = $(and $(1:%=%),$(2:%=%),$(call int.lss.0,$(call int.sub,$1,$2)),$1)
 
 
 
