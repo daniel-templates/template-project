@@ -1736,14 +1736,38 @@ override list.file.exists = $(call list.map.1,,__filter.file,$(call list.repack,
 
 
 #-------------------------------------------------------------------------------
-#> int.trim         	{int}   |   $(call int.trim,[int])
+#> `str.to.int`  | `[int]`  | `$(call str.to.int,[str])`
+#> `str.to.uint` | `[uint]` | `$(call str.to.uint,[str])`
+#> `str.to.idx`  | `[idx]`  | `$(call str.to.idx,[str])`
 #-------------------------------------------------------------------------------
 #
-#	Removes leading 0s and redundant sign characters.
-#	Returns '0' if [int] is [empty].
+#>	Returns input [str] stripped of whitespace and without leading 0s.
+#>	Validates [str] matches the specific output type, or returns [empty].
 #
 #-------------------------------------------------------------------------------
-override int.trim  = $(and $(subst 0,,$(subst -,,$1)),$(findstring -,$1),-)$(or $(subst $s,,$(call filter-out.start,0,$(subst 0,0$s,$(subst -,,$1)))),0)
+
+# Validation sequence for {int}:
+#	1. stripped str is nonempty and not a bare '-' (and therefore is not only whitespace)
+#	2. stripped str matches the {int} character set and is therefore a single word (has no internal whitespace)
+#	3. stripped str has at most a single leading '-'
+override str.to.int = $(if $(1:-=),$(if $(subst -,,$(subst 9,,$(subst 8,,$(subst 7,,$(subst 6,,$(subst 5,,$(subst 4,,$(subst 3,,$(subst 2,,$(subst 1,,$(subst 0,,$(strip $1)))))))))))),,$(if $(findstring -,$(1:-%=%)),,$(call __int.strip.zeros,$(strip $1)))))
+
+# Validation sequence for {uint}:
+#	1. [str] is a valid {int}
+#	2. [str] is non-negative
+override str.to.uint = $(filter-out -%,$(call str.to.int,$1))
+
+# Validation sequence for {idx}:
+#	1. [str] is a valid {uint}
+#	2. [str] is non-zero
+override str.to.idx  = $(filter-out 0,$(call str.to.uint,$1))
+
+# {int}  <-- $(call __int.strip.zeros,{int})
+# {uint} <-- $(call __uint.strip.zeros,{uint})
+#	Strips leading zeros; 00300 --> 300, 00000 --> 0
+#	Warning: Runs forever if input is empty or does not consist exclusively of the characters in the type charset.
+override __int.strip.zeros  = $(subst -0,0,$(if $(1:-%=),,-)$(call __uint.strip.zeros,$(1:-%=%)))
+override __uint.strip.zeros = $(if $(filter 0 1% 2% 3% 4% 5% 6% 7% 8% 9%,$1),$1,$(call $0,$(1:0%=%)))
 
 
 
@@ -1756,17 +1780,18 @@ override int.trim  = $(and $(subst 0,,$(subst -,,$1)),$(findstring -,$1),-)$(or 
 
 
 #-------------------------------------------------------------------------------
-#> digits.add       	{list{digit|-}} = $(call digits.add,[list{digit|-}:A],[list{digit|-}:B])
-#> digits.sub       	{list{digit|-}} = $(call digits.sub,[list{digit|-}:A],[list{digit|-}:B])
-#------------------------------------------------------------------------------------------------#
+# {list{digit|-}} <-- $(call __digits.add,[list{digit|-}:A],[list{digit|-}:B])
+# {list{digit|-}} <-- $(call __digits.sub,[list{digit|-}:A],[list{digit|-}:B])
 #
 #	Performs long addition/subtraction between two lists of digits.
 #	Inputs may include a leading negative sign '-' character.
 #	Returns the sum/difference as a list with leading 0s removed.
 #
-#------------------------------------------------------------------------------------------------#
-# {digit/carry}   |   $(call __digit.add,[digit:A],[digit:A],[0|1:C])
-# {digit/carry}   |   $(call __digit.sub,[digit:B],[digit:B],[0|1:C])
+# {word:digit/carry} <-- $(call __digit.add,[digit:A],[digit:A],[0|1:C])
+# {word:digit/carry} <-- $(call __digit.sub,[digit:B],[digit:B],[0|1:C])
+#
+#	Adds or subtracts a pair of digits, optionally including a carry digit.
+#                                                                                                #
 #                     __digit.add                                  __digit.sub                   #
 #                     ((A+C)+B)/C                                  ((A-C)-B)/C                   #
 #     B: 0   1   2   3   4   5   6   7   8   9       B: 0   1   2   3   4   5   6   7   8   9    #
@@ -1786,31 +1811,30 @@ override int.trim  = $(and $(subst 0,,$(subst -,,$1)),$(findstring -,$1),-)$(or 
 override __digit.add = $(word 1$(or $2,0),x x x x x x x x x $(wordlist $(word 1$(or $1,0),$(if $(3:0=),,x) x x x x x x x x 1 2 3 4 5 6 7 8 9 10 11),20,0/0 1/0 2/0 3/0 4/0 5/0 6/0 7/0 8/0 9/0 0/1 1/1 2/1 3/1 4/1 5/1 6/1 7/1 8/1 9/1))
 override __digit.sub = $(word 1$(or $2,0),x x x x x x x x x $(wordlist $(word 1$(or $1,0),$(if $(3:0=),x,) x x x x x x x x 11 10 9 8 7 6 5 4 3 2 1),20,9/0 8/0 7/0 6/0 5/0 4/0 3/0 2/0 1/0 0/0 9/1 8/1 7/1 6/1 5/1 4/1 3/1 2/1 1/1 0/1))
 #                                                            | (-)+(-) = -(|A|+|B|)               | (-)+(+) = |B|-|A|                                     | (+)+(-) = |A|-|B|                | (+)+(+) = ...             add each pair of digits, starting with the rightmost digit, until empty or only leading 0s remain                  extract carry                 | result: strip carry              | if leftmost carry=1, carry the 1.
-override digits.add = $(if $(filter -,$1),$(if $(filter -,$2),- $(call digits.add,$(1:-=),$(2:-=)),$(call digits.sub,$(2:-=),$(1:-=))),$(if $(filter -,$2),$(call digits.sub,$(1:-=),$(2:-=)),$(if $(filter-out 0,$1 $2),$(call $0,$(call list.remove.last,$1),$(call list.remove.last,$2),$(call __digit.add,$(lastword $1),$(lastword $2),$(notdir $(firstword $3))) $3),$(patsubst %/0,%,$(patsubst %/1,%,$(if $(filter %/1,$(firstword $3)),1 $3,$(or $3,0)))))))
+override __digits.add = $(if $(filter -,$1),$(if $(filter -,$2),- $(call __digits.add,$(1:-=),$(2:-=)),$(call __digits.sub,$(2:-=),$(1:-=))),$(if $(filter -,$2),$(call __digits.sub,$(1:-=),$(2:-=)),$(if $(filter-out 0,$1 $2),$(call $0,$(call list.remove.last,$1),$(call list.remove.last,$2),$(call __digit.add,$(lastword $1),$(lastword $2),$(notdir $(firstword $3))) $3),$(patsubst %/0,%,$(patsubst %/1,%,$(if $(filter %/1,$(firstword $3)),1 $3,$(or $3,0)))))))
 #                                                            | (-)-(-) = |B|-|A|                  | (-)-(+) = -(|A|+|B|)                                  | (+)-(-) = |A|+|B|                | (+)-(+) = ...             sub each pair of digits, starting with the rightmost digit, until empty or only leading 0s remain                  extract carry                 | result: strip carry              | if leftmost carry=1, then |A|<|B|, so redo calculation as -(|B|-|A|)
-override digits.sub = $(if $(filter -,$1),$(if $(filter -,$2),$(call digits.sub,$(2:-=),$(1:-=)),- $(call digits.add,$(1:-=),$(2:-=))),$(if $(filter -,$2),$(call digits.add,$(1:-=),$(2:-=)),$(if $(filter-out 0,$1 $2),$(call $0,$(call list.remove.last,$1),$(call list.remove.last,$2),$(call __digit.sub,$(lastword $1),$(lastword $2),$(notdir $(firstword $3))) $3),$(patsubst %/0,%,$(patsubst %/1,%,$(if $(filter %/1,$(firstword $3)),- $(call $0,1 $(3:%=0),$(patsubst %/0,%,$(3:%/1=%))),$(or $(call filter-out.start,0/%,$3),0)))))))
+override __digits.sub = $(if $(filter -,$1),$(if $(filter -,$2),$(call __digits.sub,$(2:-=),$(1:-=)),- $(call __digits.add,$(1:-=),$(2:-=))),$(if $(filter -,$2),$(call __digits.add,$(1:-=),$(2:-=)),$(if $(filter-out 0,$1 $2),$(call $0,$(call list.remove.last,$1),$(call list.remove.last,$2),$(call __digit.sub,$(lastword $1),$(lastword $2),$(notdir $(firstword $3))) $3),$(patsubst %/0,%,$(patsubst %/1,%,$(if $(filter %/1,$(firstword $3)),- $(call $0,1 $(3:%=0),$(patsubst %/0,%,$(3:%/1=%))),$(or $(call filter-out.start,0/%,$3),0)))))))
 
 
 
 #-------------------------------------------------------------------------------
-#> int.abs          	{int}   |   $(call int.abs,[int])
-#> int.neg          	{int}   |   $(call int.neg,[int])
-#> int.add          	{int}   |   $(call int.add,[int:A],[int:B])
-#> int.sub          	{int}   |   $(call int.sub,[int:A],[int:B])
-#> int.max          	{int}   |   $(call int.max,[int:A],[int:B])
-#> int.min          	{int}   |   $(call int.min,[int:A],[int:B])
+#> int.abs          	[int]   |   $(call int.abs,[int])
+#> int.neg          	[int]   |   $(call int.neg,[int])
+#> int.add          	[int]   |   $(call int.add,[int:A],[int:B])
+#> int.sub          	[int]   |   $(call int.sub,[int:A],[int:B])
+#> int.max          	[int]   |   $(call int.max,[int:A],[int:B])
+#> int.min          	[int]   |   $(call int.min,[int:A],[int:B])
 #-------------------------------------------------------------------------------
 #
 #	Performs the given operation on one or more integer values.
-#	Inputs where [int] is [empty] or omitted evaluate to '0'.
 #
 #-------------------------------------------------------------------------------
-override int.abs   = $(subst -,,$(call int.trim,$1))
-override int.neg   = $(foreach int,$(call int.trim,$1),$(if $(findstring -,$(int)),$(int:-%=%),$(int)))
-override int.add   = $(subst $s,,$(call $(0:int.%=digits.%),$(call chars.split,int,$1),$(call chars.split,int,$2)))
-override int.sub   = $(subst $s,,$(call $(0:int.%=digits.%),$(call chars.split,int,$1),$(call chars.split,int,$2)))
-override int.max   = $(or $(if $(call int.gtr,$1,$2),$1,$2),0)
-override int.min   = $(or $(if $(call int.lss,$1,$2),$1,$2),0)
+override int.abs   = $(and $1   ,$(subst -,,$1))
+override int.neg   = $(and $1   ,$(foreach int,$1,$(if $(findstring -,$(int)),$(int:-%=%),$(int))))
+override int.add   = $(and $1,$2,$(subst $s,,$(call $(0:int.%=__digits.%),$(call chars.split,int,$1),$(call chars.split,int,$2))))
+override int.sub   = $(and $1,$2,$(subst $s,,$(call $(0:int.%=__digits.%),$(call chars.split,int,$1),$(call chars.split,int,$2))))
+override int.max   = $(and $1,$2,$(or $(if $(call int.gtr,$1,$2),$1,$2),0))
+override int.min   = $(and $1,$2,$(or $(if $(call int.lss,$1,$2),$1,$2),0))
 
 
 
@@ -1845,22 +1869,22 @@ override int.min   = $(or $(if $(call int.lss,$1,$2),$1,$2),0)
 #	Compares a pair of integer values.
 #	Returns {true} (nonempty) equal to [int:A] if the comparison is true;
 #	Returns [false] (empty) if the comparision is false.
-#	Inputs where [int] is [empty] or omitted evaluate to '0'.
+#	Always returns [false] if any inputs are [empty].
 #
 #-------------------------------------------------------------------------------
-override int.equ.0 = $(filter     0   ,$(call int.trim,$1))
-override int.neq.0 = $(filter-out 0   ,$(call int.trim,$1))
-override int.gtr.0 = $(filter-out 0 -%,$(call int.trim,$1))
-override int.geq.0 = $(filter-out   -%,$(call int.trim,$1))
-override int.leq.0 = $(filter     0 -%,$(call int.trim,$1))
-override int.lss.0 = $(filter       -%,$(call int.trim,$1))
+override int.equ.0 = $(and $1   ,$(filter     0   ,$1))
+override int.neq.0 = $(and $1   ,$(filter-out 0   ,$1))
+override int.gtr.0 = $(and $1   ,$(filter-out 0 -%,$1))
+override int.geq.0 = $(and $1   ,$(filter-out   -%,$1))
+override int.leq.0 = $(and $1   ,$(filter     0 -%,$1))
+override int.lss.0 = $(and $1   ,$(filter       -%,$1))
 
-override int.equ   = $(filter     $(call int.trim,$2),$(call int.trim,$1))
-override int.neq   = $(filter-out $(call int.trim,$2),$(call int.trim,$1))
-override int.gtr   = $(if $(filter-out 0 -%,$(call int.sub,$1,$2)),$(call int.trim,$1))
-override int.geq   = $(if $(filter-out   -%,$(call int.sub,$1,$2)),$(call int.trim,$1))
-override int.leq   = $(if $(filter     0 -%,$(call int.sub,$1,$2)),$(call int.trim,$1))
-override int.lss   = $(if $(filter       -%,$(call int.sub,$1,$2)),$(call int.trim,$1))
+override int.equ   = $(and $1,$2,$(filter     $2,$1))
+override int.neq   = $(and $1,$2,$(filter-out $2,$1))
+override int.gtr   = $(and $1,$2,$(if $(filter-out 0 -%,$(call int.sub,$1,$2)),$1))
+override int.geq   = $(and $1,$2,$(if $(filter-out   -%,$(call int.sub,$1,$2)),$1))
+override int.leq   = $(and $1,$2,$(if $(filter     0 -%,$(call int.sub,$1,$2)),$1))
+override int.lss   = $(and $1,$2,$(if $(filter       -%,$(call int.sub,$1,$2)),$1))
 
 
 

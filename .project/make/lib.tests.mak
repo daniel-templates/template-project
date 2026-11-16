@@ -1152,14 +1152,13 @@ $(call test,path.exists,missing,$$(call path.exists,t.path.exists.none),)
 #===============================================================================
 # INTEGERS
 #===============================================================================
-# {int} <-- $(call int.trim,[int])
-$(call test,int.trim,zeros,$$(call int.trim,-007),-7)
-$(call test,int.trim,negative-zero,$$(call int.trim,-00),0)
-$(call test,int.trim,empty,$$(call int.trim,),0)
+# [int] <-- $(call str.to.int,[str])
+$(call test,str.to.int,zeros,$$(call str.to.int,-007),-7)
+$(call test,str.to.int,negative-zero,$$(call str.to.int,-00),0)
 
-# {list{digit|-}} <-- $(call digits.add,[list{digit|-}:A],[list{digit|-}:B])
+# [uint] <-- $(call str.to.uint,[str])
 
-# {list{digit|-}} <-- $(call digits.sub,[list{digit|-}:A],[list{digit|-}:B])
+# [idx] <-- $(call str.to.idx,[str])
 
 # {int} <-- $(call int.abs,[int])
 
